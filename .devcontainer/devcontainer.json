@@ -1,0 +1,30 @@
+{
+  "name": "BRMS Workshop",
+  "image": "mcr.microsoft.com/devcontainers/universal:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:latest": {},
+    "ghcr.io/devcontainers/features/git:latest": {}
+  },
+  "postCreateCommand": "docker --version && git --version",
+  "remoteUser": "codespace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "docker.showStartPage": false,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode.makefile-tools",
+        "charliermarsh.ruff"
+      ]
+    }
+  },
+  "forwardPorts": [8787],
+  "portsAttributes": {
+    "8787": {
+      "label": "RStudio Server",
+      "onAutoForward": "ignore"
+    }
+  }
+}
