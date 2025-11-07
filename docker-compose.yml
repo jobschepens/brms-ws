@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  brms-workshop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: brms-workshop:working
+    container_name: brms-workshop
+    ports:
+      - "8787:8787"
+    environment:
+      - PASSWORD=workshop
+      - USERID=1000
+    volumes:
+      # Mount local materials (for development/editing)
+      - ./materials:/home/rstudio/workshop/materials
+      # Optional: persist results
+      - ./results:/home/rstudio/workshop/results
+    restart: unless-stopped
+    # Uncomment for debugging
+    # stdin_open: true
+    # tty: true
+    # command: /bin/bash

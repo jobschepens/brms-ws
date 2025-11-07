@@ -1,0 +1,305 @@
+---
+title: "BRMS Workshop: Basics of Bayesian Regression"
+author: "BRMS Workshop"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE)
+
+# Suppress Stan messages for cleaner output
+options(mc.cores = parallel::detectCores())
+
+# Set BRMS backend (cmdstanr should be pre-compiled in container)
+# If not available, will fall back to rstan
+if (requireNamespace("cmdstanr", quietly = TRUE)) {
+  options(brms.backend = "cmdstanr")
+  cat("✓ Using CmdStan backend (pre-compiled)\n")
+} else {
+  cat("! CmdStan backend not available, using RStan\n")
+}
+```
+
+# Introduction to BRMS
+
+Welcome to the Bayesian Regression Models using Stan (BRMS) workshop! 
+
+This notebook covers the basics of using BRMS to fit Bayesian regression models. We'll build up from simple linear models to more complex hierarchical structures.
+
+## [!] First Time Setup Notes
+
+- **If prompted to install packages**: Your environment may need CmdStan. Reply **"y"** to install.
+- **First model runtime**: ~30-60 seconds (compilation happens once)
+- **Subsequent models**: <5 seconds (very fast!)
+- **In container**: Everything pre-installed, should run without prompts
+- **In Binder**: May prompt for first-time CmdStan setup (normal)
+
+---
+
+## Environment Check
+
+If you encounter any installation prompts, run this chunk to diagnose:
+
+```{r diagnose_environment, eval=FALSE}
+# Uncomment and run if you see installation prompts
+
+cat("=== Environment Diagnostics ===\n\n")
+
+cat("R Version:\n")
+print(R.version$version.string)
+
+cat("\nCmdStan Installation Status:\n")
+if (requireNamespace("cmdstanr", quietly = TRUE)) {
+  cmdstanr_path <- try(cmdstanr::cmdstan_path(), silent = TRUE)
+  if (inherits(cmdstanr_path, "try-error")) {
+    cat("- cmdstanr installed but CmdStan not found\n")
+    cat("- Run: cmdstanr::install_cmdstan()\n")
+  } else {
+    cat("✓ CmdStan found at:", cmdstanr_path, "\n")
+  }
+} else {
+  cat("- cmdstanr not installed\n")
+  cat("- Run: install.packages('cmdstanr')\n")
+}
+
+cat("\nBRMS Configuration:\n")
+cat("- Backend:", getOption("brms.backend", "default"), "\n")
+cat("- Cores:", getOption("mc.cores", "default"), "\n")
+```
+
+---
+
+# Part 1: Data Preparation
+
+First, let's load required packages and prepare our data.
+
+```{r load_packages, message=TRUE}
+cat("Loading required packages...\n")
+
+# Load packages with better error handling
+tryCatch({
+  library(brms)        # Bayesian Regression Models using Stan
+  library(tidyverse)   # Data manipulation
+  library(bayesplot)   # Posterior visualization
+  library(ggplot2)     # Plotting
+  cat("✓ All packages loaded successfully\n")
+}, error = function(e) {
+  cat("Error loading packages:\n")
+  print(e)
+  cat("\nIf prompted to install missing packages, reply 'y' to install.\n")
+})
+```
+
+Let's create a simple dataset to work with:
+
+```{r create_data}
+# Simulated data: effect of study time on exam scores
+set.seed(42)
+n <- 100
+
+data_study <- tibble(
+  student_id = 1:n,
+  study_hours = rnorm(n, mean = 5, sd = 2),
+  score = 40 + 8 * study_hours + rnorm(n, 0, 10)
+) %>%
+  mutate(
+    study_hours = pmax(study_hours, 0),  # Can't have negative study hours
+    score = pmin(pmax(score, 0), 100)     # Scores between 0-100
+  )
+
+# Explore the data
+head(data_study, 10)
+summary(data_study)
+```
+
+```{r plot_data}
+ggplot(data_study, aes(x = study_hours, y = score)) +
+  geom_point(size = 3, alpha = 0.6) +
+  theme_minimal() +
+  labs(
+    title = "Relationship between Study Time and Exam Score",
+    x = "Hours Studied",
+    y = "Exam Score"
+  )
+```
+
+---
+
+# Part 2: Simple Linear Regression
+
+Let's fit a Bayesian linear regression model. This is our first BRMS model!
+
+**Note**: The first model takes ~30-60 seconds to compile, then subsequent models are fast.
+
+```{r fit_model1, cache=TRUE}
+cat("Fitting Bayesian linear regression...\n")
+
+model1 <- brm(
+  formula = score ~ study_hours,
+  data = data_study,
+  family = gaussian(),
+  chains = 2,      # 2 parallel chains for speed (normal: 4)
+  iter = 2000,     # Total iterations per chain
+  warmup = 1000,   # Burn-in iterations
+  cores = 2,       # Parallel processing
+  refresh = 0      # Suppress iteration printing
+)
+
+cat("Model fitting complete!\n")
+```
+
+Let's examine the model:
+
+```{r examine_model1}
+# Summary of posterior distributions
+summary(model1)
+```
+
+---
+
+# Part 3: Posterior Visualization
+
+Visualize the posterior distributions:
+
+```{r posterior_plot1}
+# Plot posterior distributions
+plot(model1)
+```
+
+Extract and visualize specific parameters:
+
+```{r posterior_extract}
+# Extract posterior samples
+posterior_samples <- as_draws_df(model1)
+head(posterior_samples)
+
+# Plot intercept and slope
+posterior_samples %>%
+  ggplot(aes(x = b_study_hours)) +
+  geom_density(fill = "steelblue", alpha = 0.7) +
+  theme_minimal() +
+  labs(
+    title = "Posterior Distribution of Study Hours Effect",
+    x = "Effect Size (slope)",
+    y = "Density"
+  )
+```
+
+---
+
+# Part 4: Custom Priors
+
+Specify custom priors for the model:
+
+```{r check_priors}
+# Check default priors
+prior_summary(model1)
+
+# Define custom priors
+custom_priors <- c(
+  prior(normal(50, 10), class = "Intercept"),
+  prior(normal(8, 2), class = "b"),
+  prior(exponential(1), class = "sigma")
+)
+
+# Model with custom priors
+model2 <- brm(
+  formula = score ~ study_hours,
+  data = data_study,
+  family = gaussian(),
+  prior = custom_priors,
+  chains = 2,
+  iter = 2000,
+  warmup = 1000,
+  cores = 2,
+  refresh = 0
+)
+
+cat("Model 2 with custom priors complete!\n")
+```
+
+---
+
+# Part 5: Model Comparison
+
+Compare models using Leave-One-Out (LOO) cross-validation:
+
+```{r compare_models}
+# Add LOO criterion
+model1_loo <- add_criterion(model1, "loo")
+model2_loo <- add_criterion(model2, "loo")
+
+# Compare
+loo_compare(model1_loo, model2_loo)
+```
+
+---
+
+# Part 6: Predictions
+
+Make predictions with the model:
+
+```{r predictions}
+# Create new data for prediction
+new_data <- data.frame(
+  study_hours = seq(0, 12, by = 2)
+)
+
+# Get predicted values with uncertainty
+predictions <- posterior_predict(model1, newdata = new_data, re_formula = NA)
+
+# Calculate summaries
+pred_summary <- data.frame(
+  study_hours = new_data$study_hours,
+  mean = colMeans(predictions),
+  lower = apply(predictions, 2, quantile, probs = 0.025),
+  upper = apply(predictions, 2, quantile, probs = 0.975)
+)
+
+# Plot predictions
+ggplot(pred_summary, aes(x = study_hours, y = mean)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "steelblue") +
+  geom_point(data = data_study, aes(x = study_hours, y = score), alpha = 0.5) +
+  theme_minimal() +
+  labs(
+    title = "Bayesian Predictions with 95% Credible Interval",
+    x = "Hours Studied",
+    y = "Predicted Score"
+  )
+```
+
+---
+
+# Summary
+
+Congratulations! You've learned:
+
+1. ✅ Loading data and fitting a Bayesian regression model
+2. ✅ Understanding posterior distributions
+3. ✅ Visualizing results
+4. ✅ Specifying custom priors
+5. ✅ Comparing models with LOO
+6. ✅ Making predictions with uncertainty
+
+## Next Steps
+
+- Explore hierarchical models for grouped data
+- Fit models with different families (Poisson, binomial, etc.)
+- Use regularizing priors for complex models
+- Check model diagnostics (Rhat, ESS)
+
+## Resources
+
+- **BRMS Documentation**: https://paul-buerkner.github.io/brms/
+- **Stan Manual**: https://mc-stan.org/docs/
+- **Bayesian Visualization**: https://mc-stan.org/bayesplot/articles/
+
+---
+
+**Happy Bayesian modeling!** 🎓
