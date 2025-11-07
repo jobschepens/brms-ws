@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   brms-workshop:
+    image: jobschepens/brms-workshop:working
     build:
       context: .
       dockerfile: Dockerfile
-    image: brms-workshop:working
     container_name: brms-workshop
     ports:
       - "8787:8787"
