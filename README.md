@@ -6,6 +6,15 @@ A production-ready, containerized Bayesian Regression Models using Stan (BRMS) w
 
 ## 🚀 Quick Start: Choose Your Path
 
+### 🐳 **Docker Hub** (Pre-built Image)
+**Ready-to-use container image.**
+
+[![Docker Image](https://img.shields.io/badge/Docker%20Hub-jobschepens%2Fbrms--workshop-blue?logo=docker)](https://hub.docker.com/r/jobschepens/brms-workshop)
+
+- Pre-built and tested image
+- Fast startup, no build time
+- Perfect for reproducible environments
+
 ### ⭐ **Binder** (Recommended for Workshops)
 **Zero installation.** One click and you're coding!
 
