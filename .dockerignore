@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# Development
+.vscode
+.Rhistory
+.Rprofile
+.RData
+*.Rproj
+.Rproj.user/
+
+# R Markdown cache folders
+*_cache/
+*_files/
+
+# Results directory (local output, not part of image)
+results/
+
+# System
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Build artifacts
+.cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Large files
+*.tar.gz
+*.zip
