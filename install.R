@@ -29,12 +29,22 @@ cat("This may take 5-10 minutes on first build...\n")
 # Use explicit error handling
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
   tryCatch({
+    # Ensure CmdStan directory exists
+    cmdstan_dir <- file.path(Sys.getenv("HOME"), ".cmdstanr", "cmdstan")
+    dir.create(dirname(cmdstan_dir), showWarnings = FALSE, recursive = TRUE)
+    
+    # Install CmdStan
     cmdstanr::install_cmdstan(
+      dir = dirname(cmdstan_dir),
       cores = parallel::detectCores(),
       quiet = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      release_url = "https://github.com/stan-dev/cmdstan/releases/download"
     )
-    cat("✓ CmdStan installed successfully\n")
+    
+    # Verify installation and set path
+    installed_path <- cmdstanr::cmdstan_path()
+    cat("✓ CmdStan installed successfully at: ", installed_path, "\n")
   }, error = function(e) {
     cat("⚠ Warning: CmdStan installation encountered an issue:\n")
     print(e)
