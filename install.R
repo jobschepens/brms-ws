@@ -14,8 +14,13 @@ cat("=== Installing BRMS Workshop Packages ===\n\n")
 cat("Installing core BRMS packages...\n")
 
 # Install cmdstanr first (needed before brms for modern Stan interface)
-cat("Installing cmdstanr...\n")
-install.packages("cmdstanr", quiet = TRUE, dependencies = TRUE)
+# cmdstanr is NOT on CRAN - must install from Stan's R-universe repo
+cat("Installing cmdstanr from Stan repository...\n")
+install.packages("cmdstanr", 
+                 repos = c("https://stan-dev.r-universe.dev", 
+                          "https://cloud.r-project.org"),
+                 quiet = TRUE, 
+                 dependencies = TRUE)
 
 # Install brms (will use cmdstanr backend if available)
 cat("Installing brms...\n")
@@ -29,17 +34,24 @@ cat("This may take 5-10 minutes on first build...\n")
 # Use explicit error handling
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
   tryCatch({
+    # Check toolchain first (recommended by Stan docs)
+    cat("Checking C++ toolchain...\n")
+    toolchain_ok <- cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = TRUE)
+    
+    if (!toolchain_ok) {
+      cat("⚠ Warning: C++ toolchain check failed. CmdStan installation may fail.\n")
+    }
+    
     # Ensure CmdStan directory exists
     cmdstan_dir <- file.path(Sys.getenv("HOME"), ".cmdstanr", "cmdstan")
     dir.create(dirname(cmdstan_dir), showWarnings = FALSE, recursive = TRUE)
     
-    # Install CmdStan
+    # Install CmdStan with recommended settings
     cmdstanr::install_cmdstan(
       dir = dirname(cmdstan_dir),
       cores = parallel::detectCores(),
       quiet = FALSE,
-      overwrite = TRUE,
-      release_url = "https://github.com/stan-dev/cmdstan/releases/download"
+      overwrite = TRUE
     )
     
     # Verify installation and set path
