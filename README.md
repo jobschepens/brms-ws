@@ -19,7 +19,7 @@ A production-ready, containerized Bayesian Regression Models using Stan (BRMS) w
 **Zero installation.** One click and you're coding!
 
 [![Binder (GHCR)](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jobschepens/brms-ws/main?urlpath=rstudio)
-[![Binder (Docker Hub)](https://img.shields.io/badge/Binder-Docker%20Hub-579ACA?logo=docker&logoColor=white)](https://mybinder.org/v2/dockerhub/jobschepens/brms-workshop/working?urlpath=rstudio)
+[![Binder (Docker Hub)](https://img.shields.io/badge/Binder-Docker%20Hub-579ACA?logo=docker&logoColor=white)](https://mybinder.org/v2/docker/jobschepens%2Fbrms-workshop%3Aworking?urlpath=rstudio)
 
 - No installation needed
 - Free hosting
