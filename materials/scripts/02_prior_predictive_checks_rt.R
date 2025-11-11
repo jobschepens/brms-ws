@@ -40,23 +40,36 @@ rt_priors <- c(
 # ============================================================================
 cat("\n=== 1. Fitting model with PRIOR ONLY (no data) ===\n")
 
-prior_pred <- brm(
-  log_rt ~ condition + (1 + condition | subject) + (1 | item),
-  data = rt_data, 
-  family = gaussian(),
-  prior = rt_priors,
-  sample_prior = "only",  # Only sample from prior!
-  chains = 4, iter = 1000,  # 4 chains, fewer iterations
-  cores = 4,                 # Parallel sampling
-  verbose = FALSE,
-  refresh = 0
-)
+# Check if saved model exists to avoid recompiling
+model_file <- "materials/scripts/fits/prior_pred_rt.rds"
+if (file.exists(model_file)) {
+  cat("Loading saved model from:", model_file, "\n")
+  prior_pred <- readRDS(model_file)
+} else {
+  cat("Fitting new model (this may take a while)...\n")
+  prior_pred <- brm(
+    log_rt ~ condition + (1 + condition | subject) + (1 | item),
+    data = rt_data, 
+    family = gaussian(),
+    prior = rt_priors,
+    sample_prior = "only",  # Only sample from prior!
+    chains = 4, iter = 1000,  # 4 chains, fewer iterations
+    cores = 4,                 # Parallel sampling
+    verbose = FALSE,
+    refresh = 0
+  )
+  # Save the model for future use
+  dir.create("materials/scripts/fits", showWarnings = FALSE, recursive = TRUE)
+  saveRDS(prior_pred, model_file)
+  cat("Model saved to:", model_file, "\n")
+}
 
-cat("Prior predictive model fitted.\n")
+cat("Prior predictive model ready.\n")
 
 # Generating prior predictive checks...
 cat("\nGenerating prior predictive checks...\n")
-pdf("materials/scripts/02_prior_predictive_checks_rt_visuals.pdf", width = 12, height = 10)
+dir.create("materials/scripts/figures", showWarnings = FALSE, recursive = TRUE)
+pdf("materials/scripts/figures/02_prior_predictive_checks_rt_visuals.pdf", width = 12, height = 10)
 
 par(mfrow = c(2, 3))
 
@@ -81,15 +94,15 @@ plot(pp_check(prior_pred, type = "stat", stat = "max"),
      main = "Test stat: Max RT (log scale)")
 
 dev.off()
-cat("Saved: materials/scripts/02_prior_predictive_checks_rt_visuals.pdf\n")
+cat("Saved: materials/scripts/figures/02_prior_predictive_checks_rt_visuals.pdf\n")
 
 # ============================================================================
 # 2. Check prior predictive distribution directly
 # ============================================================================
 cat("\n=== 2. Examining prior distributions directly ===\n")
 
-# Extract prior samples
-prior_samples <- prior_draws(prior_pred)
+# Extract prior samples (use as_draws_df since sample_prior = "only")
+prior_samples <- as_draws_df(prior_pred)
 
 # Check Intercept prior
 cat("\nIntercept prior (log scale):\n")
@@ -160,7 +173,7 @@ cat("Average effect subjects (50%): ", round(exp(subject_slopes[2]), 3), "× mul
 cat("Large effect subjects (97.5%): ", round(exp(subject_slopes[3]), 3), "× multiplier\n")
 
 # Visualize distributions
-pdf("materials/scripts/02_prior_predictive_checks_rt_ranef.pdf", width = 12, height = 8)
+pdf("materials/scripts/figures/02_prior_predictive_checks_rt_ranef.pdf", width = 12, height = 8)
 
 par(mfrow = c(2, 2))
 
@@ -198,7 +211,7 @@ lines(density(simulated_slopes),
 legend("topright", c("Intercepts", "Slopes"), col = c("blue", "red"), lwd = 2)
 
 dev.off()
-cat("Saved: materials/scripts/02_prior_predictive_checks_rt_ranef.pdf\n")
+cat("Saved: materials/scripts/figures/02_prior_predictive_checks_rt_ranef.pdf\n")
 
 # ============================================================================
 # 4. Interpretation summary
@@ -217,6 +230,6 @@ cat("✗ 95% interval 10ms-50s: priors too wide\n")
 cat("✗ Negative effect sizes: something wrong with data/formula\n")
 
 cat("\n=== Script complete! ===\n")
-cat("Generated PDFs:\n")
+cat("Generated PDFs in materials/scripts/figures/:\n")
 cat("  - 02_prior_predictive_checks_rt_visuals.pdf\n")
 cat("  - 02_prior_predictive_checks_rt_ranef.pdf\n")

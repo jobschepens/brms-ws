@@ -38,23 +38,36 @@ gram_priors <- c(
 # ============================================================================
 cat("\n=== 1. Fitting model with PRIOR ONLY (no data) ===\n")
 
-prior_pred_gram <- brm(
-  correct ~ condition + (1 + condition | subject) + (1 | item),
-  data = gram_data, 
-  family = bernoulli(),
-  prior = gram_priors,
-  sample_prior = "only",  # Only sample from prior!
-  chains = 4, iter = 1000,  # 4 chains, fewer iterations
-  cores = 4,                 # Parallel sampling
-  verbose = FALSE,
-  refresh = 0
-)
+# Check if saved model exists to avoid recompiling
+model_file <- "materials/scripts/fits/prior_pred_gram.rds"
+if (file.exists(model_file)) {
+  cat("Loading saved model from:", model_file, "\n")
+  prior_pred_gram <- readRDS(model_file)
+} else {
+  cat("Fitting new model (this may take a while)...\n")
+  prior_pred_gram <- brm(
+    correct ~ condition + (1 + condition | subject) + (1 | item),
+    data = gram_data, 
+    family = bernoulli(),
+    prior = gram_priors,
+    sample_prior = "only",  # Only sample from prior!
+    chains = 4, iter = 1000,  # 4 chains, fewer iterations
+    cores = 4,                 # Parallel sampling
+    verbose = FALSE,
+    refresh = 0
+  )
+  # Save the model for future use
+  dir.create("materials/scripts/fits", showWarnings = FALSE, recursive = TRUE)
+  saveRDS(prior_pred_gram, model_file)
+  cat("Model saved to:", model_file, "\n")
+}
 
-cat("Prior predictive model fitted.\n")
+cat("Prior predictive model ready.\n")
 
 # Visual checks - for binary data, use different plot types
 cat("\nGenerating prior predictive checks...\n")
-pdf("materials/scripts/02_prior_predictive_checks_gram_visuals.pdf", width = 12, height = 8)
+dir.create("materials/scripts/figures", showWarnings = FALSE, recursive = TRUE)
+pdf("materials/scripts/figures/02_prior_predictive_checks_gram_visuals.pdf", width = 12, height = 8)
 
 par(mfrow = c(2, 2))
 
@@ -84,15 +97,15 @@ legend("topright", c("Prior predictive", "Observed"),
        col = c("darkblue", "red"), lwd = 2, lty = c(1, 2))
 
 dev.off()
-cat("Saved: materials/scripts/02_prior_predictive_checks_gram_visuals.pdf\n")
+cat("Saved: materials/scripts/figures/02_prior_predictive_checks_gram_visuals.pdf\n")
 
 # ============================================================================
 # 2. Check prior predictive distribution directly
 # ============================================================================
 cat("\n=== 2. Examining prior distributions directly ===\n")
 
-# Extract prior samples
-prior_samples <- prior_draws(prior_pred_gram)
+# Extract prior samples (use as_draws_df since sample_prior = "only")
+prior_samples <- as_draws_df(prior_pred_gram)
 
 # Check Intercept prior
 cat("\nIntercept prior (log-odds scale):\n")
@@ -170,7 +183,7 @@ cat("Average effect subjects (50%): ", round(exp(subject_slopes[2]), 2), "× odd
 cat("Strong effect subjects (97.5%): ", round(exp(subject_slopes[3]), 2), "× odds multiplier\n")
 
 # Visualize distributions
-pdf("materials/scripts/02_prior_predictive_checks_gram_ranef.pdf", width = 12, height = 8)
+pdf("materials/scripts/figures/02_prior_predictive_checks_gram_ranef.pdf", width = 12, height = 8)
 
 par(mfrow = c(2, 2))
 
@@ -203,7 +216,7 @@ lines(density(simulated_slopes),
 legend("topright", c("Intercepts", "Slopes"), col = c("blue", "red"), lwd = 2)
 
 dev.off()
-cat("Saved: materials/scripts/02_prior_predictive_checks_gram_ranef.pdf\n")
+cat("Saved: materials/scripts/figures/02_prior_predictive_checks_gram_ranef.pdf\n")
 
 # ============================================================================
 # 4. Interpretation summary
@@ -222,6 +235,6 @@ cat("✗ All subjects 50% ± 1%: intercept SD too small\n")
 cat("✗ Very weak prior predictions: slopes prior too small\n")
 
 cat("\n=== Script complete! ===\n")
-cat("Generated PDFs:\n")
+cat("Generated PDFs in materials/scripts/figures/:\n")
 cat("  - 02_prior_predictive_checks_gram_visuals.pdf\n")
 cat("  - 02_prior_predictive_checks_gram_ranef.pdf\n")
