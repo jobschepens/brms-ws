@@ -16,6 +16,13 @@ format:
 
 This document demonstrates how to validate priors for a Bayesian RT model before fitting to data.
 
+## Why Prior Predictive Checks Matter
+
+Before fitting your model to actual data, validate that your priors generate sensible predictions. This is crucial because:
+- A prior that's too restrictive can prevent the model from learning from data
+- A prior that's too permissive might not regularize your estimates
+- It's much easier to revise priors before fitting than after
+
 ## Setup
 
 ```{r setup, message=FALSE, warning=FALSE}

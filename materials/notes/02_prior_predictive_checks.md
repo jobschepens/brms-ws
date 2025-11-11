@@ -29,8 +29,8 @@ pp_check(prior_pred, type = "stat", stat = "sd")  # Test statistic: compare stan
 ### Check prior predictive distribution directly
 
 ```r
-# Extract prior samples
-prior_samples <- prior_draws(fit_rt)  # from model fit with sample_prior = "yes"
+# Extract prior samples (use as_draws_df for sample_prior = "only")
+prior_samples <- as_draws_df(prior_pred)
 
 # Check Intercept prior
 hist(prior_samples$b_Intercept, main = "Prior for Intercept")
@@ -46,26 +46,35 @@ exp(quantile(prior_samples$b_Intercept, c(0.025, 0.5, 0.975)))  # In millisecond
 ### Check random effect distributions
 
 ```r
-# Extract random effect samples
-ranef_samples <- prior_draws(prior_pred)
+# Extract hyperprior SDs and simulate random effects
+prior_samples <- as_draws_df(prior_pred)
 
-# Check subject random intercepts
-hist(ranef_samples$r_subject[, , "Intercept"], 
-     main = "Prior for subject random intercepts",
+# Extract subject random intercept SD
+sd_subject_intercept <- prior_samples$sd_subject__Intercept
+
+# Simulate random intercepts using the hyperprior SD
+n_sims <- 1000
+simulated_intercepts <- rnorm(n_sims, mean = 0, sd = median(sd_subject_intercept))
+
+hist(simulated_intercepts, 
+     main = "Implied subject random intercepts",
      xlab = "Intercept adjustment (log-RT scale)")
-quantile(ranef_samples$r_subject[, , "Intercept"], c(0.025, 0.5, 0.975))
+quantile(simulated_intercepts, c(0.025, 0.5, 0.975))
 
 # Convert to RT scale to check realism
 # Example: if quantiles are [-0.1, 0, 0.1] in log scale
 # then in RT scale: exp(6 + c(-0.1, 0, 0.1)) = [375ms, 403ms, 435ms]
 # → realistic 25-60ms variation across subjects ✓
-exp(6 + quantile(ranef_samples$r_subject[, , "Intercept"], c(0.025, 0.5, 0.975)))
+exp(6 + quantile(simulated_intercepts, c(0.025, 0.5, 0.975)))
 
 # For random slopes: check effect size variation across subjects
-hist(ranef_samples$r_subject[, , "conditionB"],
-     main = "Prior for subject random slopes",
+sd_subject_slope <- prior_samples$sd_subject__conditionB
+simulated_slopes <- rnorm(n_sims, mean = 0, sd = median(sd_subject_slope))
+
+hist(simulated_slopes,
+     main = "Implied subject random slopes",
      xlab = "Condition effect adjustment")
-quantile(ranef_samples$r_subject[, , "conditionB"], c(0.025, 0.5, 0.975))
+quantile(simulated_slopes, c(0.025, 0.5, 0.975))
 ```
 
 ## Grammaticality Judgment Example
@@ -91,26 +100,35 @@ mean(prior_pred_samples)  # Should be close to 0.5 if prior is centered at 0
 ### Check random effect distributions
 
 ```r
-# Extract random effect samples
-ranef_samples <- prior_draws(prior_pred_gram)
+# Extract hyperprior SDs and simulate random effects
+prior_samples <- as_draws_df(prior_pred_gram)
 
-# Check subject random intercepts
-hist(ranef_samples$r_subject[, , "Intercept"], 
-     main = "Prior for subject random intercepts",
+# Extract subject random intercept SD
+sd_subject_intercept <- prior_samples$sd_subject__Intercept
+
+# Simulate random intercepts using the hyperprior SD
+n_sims <- 1000
+simulated_intercepts <- rnorm(n_sims, mean = 0, sd = median(sd_subject_intercept))
+
+hist(simulated_intercepts, 
+     main = "Implied subject random intercepts",
      xlab = "Intercept adjustment (log-odds scale)")
-quantile(ranef_samples$r_subject[, , "Intercept"], c(0.025, 0.5, 0.975))
+quantile(simulated_intercepts, c(0.025, 0.5, 0.975))
 
 # Convert to probability scale to check realism
 # Example: if quantiles are [-0.5, 0, 0.5] in log-odds
 # then in probability scale: plogis(0 + c(-0.5, 0, 0.5)) = [0.38, 0.5, 0.62]
 # → realistic 38-62% variation across subjects ✓
-plogis(0 + quantile(ranef_samples$r_subject[, , "Intercept"], c(0.025, 0.5, 0.975)))
+plogis(0 + quantile(simulated_intercepts, c(0.025, 0.5, 0.975)))
 
 # For random slopes: check effect size variation across subjects
-hist(ranef_samples$r_subject[, , "conditionB"],
-     main = "Prior for subject random slopes",
+sd_subject_slope <- prior_samples$sd_subject__conditionB
+simulated_slopes <- rnorm(n_sims, mean = 0, sd = median(sd_subject_slope))
+
+hist(simulated_slopes,
+     main = "Implied subject random slopes",
      xlab = "Condition effect adjustment (log-odds)")
-quantile(ranef_samples$r_subject[, , "conditionB"], c(0.025, 0.5, 0.975))
+quantile(simulated_slopes, c(0.025, 0.5, 0.975))
 ```
 
 ## Interpretation Guide

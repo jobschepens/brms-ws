@@ -1,0 +1,400 @@
+---
+title: "Posterior Predictive Checks: Grammaticality Judgment Example"
+author: "brms Workshop"
+format: html
+editor: visual
+execute:
+  cache: true
+  warning: false
+  message: false
+---
+
+# Posterior Predictive Checks for Binary Data
+
+After fitting your model, validate that it generates data similar to what you observed.
+
+## Why Posterior Predictive Checks Matter
+
+Posterior predictive checks answer: "If I were to generate new data from my fitted model, would it look like my actual data?" This validates that your model has captured the essential structure of your data.
+
+For binary outcomes (correct/incorrect, yes/no), we focus on:
+- **Proportion of successes** (mean of 0/1 outcomes)
+- **Accuracy by condition** 
+- **Calibration** (predicted probabilities match observed frequencies)
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+
+library(brms)
+library(tidyverse)
+library(bayesplot)
+
+# Set seed for reproducibility
+set.seed(42)
+```
+
+## Load or Fit Model
+
+```{r}
+#| label: load-model
+
+# Create example grammaticality judgment data (same as prior checks)
+n_subj <- 25
+n_trials <- 40
+n_items <- 30
+
+gram_data <- expand.grid(
+  trial = 1:n_trials,
+  subject = 1:n_subj,
+  item = 1:n_items
+) %>%
+  filter(row_number() <= n_subj * n_trials * 2) %>%
+  mutate(
+    condition = rep(c('A', 'B'), length.out = n()),
+    p_correct = plogis(0.2 + (condition == 'B') * 0.4),
+    correct = rbinom(n(), size = 1, prob = p_correct)
+  )
+
+# Define priors
+gram_priors <- c(
+  prior(normal(0, 1.5), class = Intercept),
+  prior(normal(0, 1), class = b),
+  prior(exponential(1), class = sd),
+  prior(lkj(2), class = cor)
+)
+
+# Check if model exists, otherwise fit it
+model_file <- "fits/fit_gram.rds"
+if (file.exists(model_file)) {
+  cat("Loading saved model from:", model_file, "\n")
+  fit_gram <- readRDS(model_file)
+} else {
+  cat("Fitting model (this may take a while)...\n")
+  cat("Note: Model fitting requires significant computational resources.\n")
+  cat("Consider fitting the model separately and saving to fits/fit_gram.rds\n\n")
+  
+  # Fit with reduced complexity for demonstration
+  fit_gram <- brm(
+    correct ~ condition + (1 + condition | subject) + (1 | item),
+    data = gram_data,
+    family = bernoulli(),
+    prior = gram_priors,
+    chains = 2,  # Reduced for faster fitting
+    iter = 1000,
+    cores = 2,
+    backend = "rstan",
+    refresh = 0
+  )
+  # Save for future use
+  dir.create("fits", showWarnings = FALSE, recursive = TRUE)
+  saveRDS(fit_gram, model_file)
+  cat("Model saved to:", model_file, "\n")
+}
+
+# Display model summary
+cat("\n=== Model Summary ===\n")
+print(summary(fit_gram))
+```
+
+## Posterior Predictive Checks for Binary Data
+
+### Bar Plot Comparison
+
+```{r}
+#| label: bar-plot
+#| fig-width: 8
+#| fig-height: 6
+
+# Bar plot for binary outcomes
+pp_check(fit_gram, type = "bars", ndraws = 500) +
+  ggtitle("Bar plot: Observed vs. Predicted counts")
+```
+
+**Interpretation:**
+
+- Bars show frequency of 0s (incorrect) and 1s (correct)
+- Light blue bars = observed data
+- Dark lines = posterior predictions
+- Should see good overlap between observed and predicted frequencies
+
+### Check Proportion Correct
+
+```{r}
+#| label: prop-correct
+#| fig-width: 8
+#| fig-height: 6
+
+# Check observed proportion vs. predicted
+pp_check(fit_gram, type = "stat", stat = "mean") +
+  ggtitle("Proportion correct: Observed vs. Predicted")
+```
+
+The mean of binary data = proportion of 1's (proportion correct). This check verifies that the model's predicted accuracy matches the observed accuracy.
+
+### Error Plot for Discrete Data
+
+```{r}
+#| label: error-plot
+#| fig-width: 8
+#| fig-height: 6
+
+# Error plot for discrete data
+pp_check(fit_gram, type = "error_binned") +
+  ggtitle("Binned error plot")
+```
+
+**Interpretation:**
+
+- Shows prediction error patterns
+- Points should scatter around zero
+- Systematic patterns suggest model misspecification
+
+## Extract and Analyze Posterior Predictions
+
+### Predicted Binary Outcomes
+
+```{r}
+#| label: extract-predictions
+
+# Draw from posterior predictive distribution (binary outcomes: 0 or 1)
+post_pred <- posterior_predict(fit_gram, ndraws = 1000)
+dim(post_pred)  # 1000 draws × n observations
+
+cat("\nDimensions of posterior predictions:\n")
+cat("Draws:", nrow(post_pred), "\n")
+cat("Observations:", ncol(post_pred), "\n")
+
+# Calculate overall accuracy
+obs_accuracy <- mean(gram_data$correct)
+pred_accuracy <- apply(post_pred, 1, mean)
+
+cat("\nOverall Accuracy:\n")
+cat("Observed:", round(obs_accuracy, 3), "\n")
+cat("Predicted (median):", round(median(pred_accuracy), 3), "\n")
+cat("95% CI:", round(quantile(pred_accuracy, c(0.025, 0.975)), 3), "\n")
+```
+
+### Distribution of Predicted Accuracy
+
+```{r}
+#| label: pred-accuracy-dist
+#| fig-width: 8
+#| fig-height: 6
+
+hist(pred_accuracy,
+     main = "Posterior predictive distribution of accuracy",
+     xlab = "Proportion correct",
+     col = "lightblue",
+     breaks = 30,
+     xlim = c(0, 1))
+abline(v = obs_accuracy, col = "red", lwd = 3, lty = 2)
+legend("topleft",
+       legend = c("Predicted", "Observed"),
+       col = c("lightblue", "red"),
+       lwd = c(1, 3),
+       lty = c(1, 2))
+
+# Check if observed is within reasonable range
+if (obs_accuracy < quantile(pred_accuracy, 0.025) || 
+    obs_accuracy > quantile(pred_accuracy, 0.975)) {
+  cat("\n⚠ Warning: Observed accuracy outside 95% posterior predictive interval\n")
+  cat("Model may not be capturing the data well.\n")
+} else {
+  cat("\n✓ Observed accuracy within 95% posterior predictive interval\n")
+}
+```
+
+## Expected Value (Probability) Summaries
+
+```{r}
+#| label: expected-probs
+
+# Get predicted probabilities (on 0-1 scale)
+post_epred <- posterior_epred(fit_gram)
+dim(post_epred)  # n_draws × n observations
+
+cat("\nPosterior expected probabilities:\n")
+cat("Dimensions:", dim(post_epred), "\n")
+
+# Posterior probability of correct for first observation
+cat("\nExample: First observation\n")
+cat("Observed outcome:", gram_data$correct[1], "\n")
+cat("Predicted P(correct):", 
+    round(quantile(post_epred[, 1], c(0.025, 0.5, 0.975)), 3), "\n")
+```
+
+### Calibration Check
+
+```{r}
+#| label: calibration
+#| fig-width: 8
+#| fig-height: 6
+
+# Check calibration: do predicted probabilities match observed frequencies?
+# Bin by predicted probability and compare to observed proportion
+
+pred_prob_median <- apply(post_epred, 2, median)
+
+# Create bins
+n_bins <- 10
+bins <- cut(pred_prob_median, breaks = n_bins, include.lowest = TRUE)
+
+calibration_data <- data.frame(
+  predicted = pred_prob_median,
+  observed = gram_data$correct,
+  bin = bins
+) %>%
+  group_by(bin) %>%
+  summarise(
+    mean_predicted = mean(predicted),
+    mean_observed = mean(observed),
+    n = n()
+  ) %>%
+  filter(n > 0)
+
+plot(calibration_data$mean_predicted, 
+     calibration_data$mean_observed,
+     pch = 19,
+     cex = sqrt(calibration_data$n) / 3,
+     xlab = "Predicted probability",
+     ylab = "Observed proportion",
+     main = "Calibration plot",
+     xlim = c(0, 1),
+     ylim = c(0, 1))
+abline(0, 1, col = "red", lwd = 2, lty = 2)
+grid()
+legend("topleft", 
+       legend = "Perfect calibration",
+       col = "red",
+       lwd = 2,
+       lty = 2)
+
+cat("\nCalibration:\n")
+cat("Points should fall near the diagonal line.\n")
+cat("Point size proportional to number of observations.\n")
+```
+
+## Check by Condition
+
+```{r}
+#| label: by-condition
+
+# Observed accuracy by condition
+obs_by_condition <- gram_data %>%
+  group_by(condition) %>%
+  summarise(
+    accuracy = mean(correct),
+    n = n()
+  )
+
+# Predicted accuracy by condition
+gram_data$pred_prob <- apply(post_epred, 2, median)
+pred_by_condition <- gram_data %>%
+  group_by(condition) %>%
+  summarise(
+    pred_accuracy = mean(pred_prob)
+  )
+
+comparison <- left_join(obs_by_condition, pred_by_condition, by = "condition")
+
+cat("\nAccuracy by Condition:\n")
+print(comparison, n = Inf)
+
+# Visualize
+barplot(
+  height = rbind(comparison$accuracy, comparison$pred_accuracy),
+  beside = TRUE,
+  names.arg = comparison$condition,
+  col = c("lightblue", "lightgreen"),
+  main = "Accuracy by Condition",
+  ylab = "Proportion correct",
+  ylim = c(0, 1),
+  legend.text = c("Observed", "Predicted"),
+  args.legend = list(x = "topleft")
+)
+```
+
+### Posterior Predictions by Condition
+
+```{r}
+#| label: pred-by-condition
+#| fig-width: 10
+#| fig-height: 6
+
+# Get predictions for each condition with population-level effects only
+new_data <- data.frame(
+  condition = c("A", "B"),
+  subject = NA,
+  item = NA
+)
+
+epred_condition <- posterior_epred(fit_gram, 
+                                   newdata = new_data, 
+                                   re_formula = NA)  # population-level only
+
+# Summarize
+condition_summary <- apply(epred_condition, 2, quantile, c(0.025, 0.5, 0.975))
+colnames(condition_summary) <- new_data$condition
+
+cat("\nPopulation-level P(correct) by condition:\n")
+print(round(condition_summary, 3))
+
+# Plot
+par(mfrow = c(1, 2))
+
+for (i in 1:2) {
+  hist(epred_condition[, i],
+       main = paste("Condition", new_data$condition[i]),
+       xlab = "P(correct)",
+       col = "lightblue",
+       breaks = 30,
+       xlim = c(0, 1))
+  abline(v = median(epred_condition[, i]), col = "red", lwd = 2)
+}
+```
+
+## Summary
+
+### Key Diagnostics Checked
+
+1. ✓ **Bar plot** - Observed counts match posterior predictions
+2. ✓ **Proportion correct** - Overall accuracy captured correctly
+3. ✓ **Calibration** - Predicted probabilities align with observed frequencies
+4. ✓ **By condition** - Model captures differences between conditions
+5. ✓ **Expected values** - Posterior probabilities are reasonable
+
+### Interpreting Binary Model Checks
+
+- **Observed proportion correct** should be near the central tendency of the posterior predictions
+- If observed is far from predicted → model isn't capturing the accuracy pattern
+- Common issues:
+  - Forgetting interactions
+  - Wrong random effect structure
+  - Not accounting for item-level variation
+
+### Common Problems and Solutions
+
+| Problem | Diagnosis | Solution |
+|---------|-----------|----------|
+| Poor calibration | Points far from diagonal | Add predictors, check formula |
+| Misses condition effects | Different accuracy by condition not captured | Add condition × random effect interaction |
+| Predictions too certain | Predicted probs near 0 or 1 | Check priors, may be too strong |
+| Predictions too uncertain | Predicted probs all near 0.5 | Add more structure, informative priors |
+
+### Next Steps
+
+If posterior predictive checks reveal problems:
+
+1. **Adjust model formula** - Add missing predictors or interactions
+2. **Revise priors** - May be too restrictive or too vague
+3. **Check random effects structure** - Subjects and items may vary in unexpected ways
+4. **Consider response time cutoffs** - Fast guesses vs. thoughtful responses
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```

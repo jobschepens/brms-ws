@@ -1,0 +1,302 @@
+---
+title: "Posterior Predictive Checks: Reaction Time Example"
+author: "brms Workshop"
+format: html
+editor: visual
+execute:
+  cache: true
+  warning: false
+  message: false
+---
+
+# Posterior Predictive Checks for RT Data
+
+After fitting your model, validate that it generates data similar to what you observed.
+
+## Why Posterior Predictive Checks Matter
+
+Posterior predictive checks answer: "If I were to generate new data from my fitted model, would it look like my actual data?" This validates that your model has captured the essential structure of your data.
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+
+library(brms)
+library(tidyverse)
+library(bayesplot)
+
+# Set seed for reproducibility
+set.seed(42)
+```
+
+## Load or Fit Model
+
+```{r}
+#| label: load-model
+
+# Create example RT data (same as in prior checks for consistency)
+n_subj <- 20
+n_trials <- 50
+n_items <- 30
+
+rt_data <- expand.grid(
+  trial = 1:n_trials,
+  subject = 1:n_subj,
+  item = 1:n_items
+) %>%
+  filter(row_number() <= n_subj * n_trials * 3) %>%
+  mutate(
+    condition = rep(c("A", "B"), length.out = n()),
+    log_rt = rnorm(n(), mean = 6, sd = 0.3) + 
+             (condition == "B") * 0.15 + 
+             rnorm(n(), mean = 0, sd = 0.1),
+    rt = exp(log_rt)
+  )
+
+# Define priors
+rt_priors <- c(
+  prior(normal(6, 1.5), class = Intercept),
+  prior(normal(0, 0.5), class = b),
+  prior(exponential(1), class = sigma),
+  prior(exponential(1), class = sd),
+  prior(lkj(2), class = cor)
+)
+
+# Check if model exists, otherwise fit it
+model_file <- "fits/fit_rt.rds"
+if (file.exists(model_file)) {
+  cat("Loading saved model from:", model_file, "\n")
+  fit_rt <- readRDS(model_file)
+} else {
+  cat("Fitting model (this may take a while)...\n")
+  cat("Note: Model fitting requires significant computational resources.\n")
+  cat("Consider fitting the model separately and saving to fits/fit_rt.rds\n\n")
+  
+  # Fit with reduced complexity for demonstration
+  fit_rt <- brm(
+    log_rt ~ condition + (1 + condition | subject) + (1 | item),
+    data = rt_data,
+    family = gaussian(),
+    prior = rt_priors,
+    chains = 2,  # Reduced for faster fitting
+    iter = 1000,
+    cores = 2,
+    backend = "rstan",
+    refresh = 0
+  )
+  # Save for future use
+  dir.create("fits", showWarnings = FALSE, recursive = TRUE)
+  saveRDS(fit_rt, model_file)
+  cat("Model saved to:", model_file, "\n")
+}
+
+# Display model summary
+cat("\n=== Model Summary ===\n")
+print(summary(fit_rt))
+```
+
+## Basic Posterior Predictive Checks
+
+### Visual Checks
+
+```{r}
+#| label: basic-pp-checks
+#| fig-width: 10
+#| fig-height: 8
+
+# Default: density overlay of observed vs. simulated data
+pp_check(fit_rt, ndraws = 100) +
+  ggtitle("Density overlay: Observed vs. Posterior predictions")
+```
+
+**Interpretation:**
+
+- **Blue line** (observed data) should be among the dark lines (posterior predictions)
+- If blue line is far from the bundle → model missed something important
+- Small discrepancies are normal; large ones suggest model misspecification
+
+### Check Specific Statistics
+
+```{r}
+#| label: stat-checks
+#| fig-width: 10
+#| fig-height: 6
+
+# Did we get the mean right?
+p1 <- pp_check(fit_rt, type = "stat", stat = "mean") +
+  ggtitle("Mean: Observed vs. Predicted")
+
+# Did we get the spread right?
+p2 <- pp_check(fit_rt, type = "stat", stat = "sd") +
+  ggtitle("SD: Observed vs. Predicted")
+
+# Extreme values?
+p3 <- pp_check(fit_rt, type = "stat", stat = "min") +
+  ggtitle("Minimum: Observed vs. Predicted")
+
+p4 <- pp_check(fit_rt, type = "stat", stat = "max") +
+  ggtitle("Maximum: Observed vs. Predicted")
+
+# Display all plots
+library(patchwork)
+(p1 | p2) / (p3 | p4)
+```
+
+## Extract and Analyze Posterior Predictions
+
+```{r}
+#| label: extract-predictions
+
+# Draw from posterior predictive distribution
+post_pred <- posterior_predict(fit_rt, ndraws = 1000)
+dim(post_pred)  # 1000 draws × n observations
+
+cat("\nDimensions of posterior predictions:\n")
+cat("Draws:", nrow(post_pred), "\n")
+cat("Observations:", ncol(post_pred), "\n")
+```
+
+### Compare Observed vs. Predicted
+
+```{r}
+#| label: compare-obs-pred
+#| fig-width: 8
+#| fig-height: 6
+
+# Compare observed vs. predicted means
+obs_mean <- mean(rt_data$log_rt)
+pred_mean <- apply(post_pred, 1, mean)
+
+hist(pred_mean, 
+     main = "Posterior predictive distribution of mean log-RT",
+     xlab = "Mean log-RT",
+     col = "lightblue",
+     breaks = 30)
+abline(v = obs_mean, col = "red", lwd = 3, lty = 2)
+legend("topright", 
+       legend = c("Predicted", "Observed"),
+       col = c("lightblue", "red"),
+       lwd = c(1, 3),
+       lty = c(1, 2))
+
+cat("\nObserved mean log-RT:", round(obs_mean, 3), "\n")
+cat("Predicted mean log-RT (median):", round(median(pred_mean), 3), "\n")
+cat("95% CI for predicted mean:", 
+    round(quantile(pred_mean, c(0.025, 0.975)), 3), "\n")
+```
+
+### Check Posterior Predictive Intervals
+
+```{r}
+#| label: pred-intervals
+
+# Check 95% posterior predictive interval
+post_pred_interval <- apply(post_pred, 2, quantile, c(0.025, 0.975))
+
+# Roughly 95% of observed values should fall within their interval
+coverage <- mean(rt_data$log_rt > post_pred_interval[1,] & 
+                 rt_data$log_rt < post_pred_interval[2,])
+
+cat("\nPosterior Predictive Interval Coverage:\n")
+cat("Proportion of observations within 95% interval:", round(coverage, 3), "\n")
+cat("Expected: ~0.95\n")
+
+if (coverage < 0.90) {
+  cat("\n⚠ Warning: Coverage is lower than expected.\n")
+  cat("Model may be overconfident or missing important structure.\n")
+} else if (coverage > 0.98) {
+  cat("\n⚠ Warning: Coverage is higher than expected.\n")
+  cat("Model may be too uncertain or overfitted.\n")
+} else {
+  cat("\n✓ Coverage looks good!\n")
+}
+```
+
+## Check by Condition
+
+```{r}
+#| label: by-condition
+#| fig-width: 10
+#| fig-height: 6
+
+# Group predictions by condition
+rt_data_cond <- rt_data %>%
+  group_by(condition) %>%
+  summarise(
+    obs_mean = mean(log_rt),
+    obs_sd = sd(log_rt)
+  )
+
+# Get posterior predictions by condition
+post_pred_A <- posterior_predict(fit_rt, 
+                                 newdata = filter(rt_data, condition == "A"),
+                                 ndraws = 1000)
+post_pred_B <- posterior_predict(fit_rt, 
+                                 newdata = filter(rt_data, condition == "B"),
+                                 ndraws = 1000)
+
+pred_mean_A <- apply(post_pred_A, 1, mean)
+pred_mean_B <- apply(post_pred_B, 1, mean)
+
+# Plot comparison
+par(mfrow = c(1, 2))
+
+hist(pred_mean_A, 
+     main = "Condition A: Mean log-RT",
+     xlab = "Mean log-RT",
+     col = "lightblue",
+     breaks = 30,
+     xlim = range(c(pred_mean_A, pred_mean_B)))
+abline(v = rt_data_cond$obs_mean[1], col = "red", lwd = 3, lty = 2)
+
+hist(pred_mean_B, 
+     main = "Condition B: Mean log-RT",
+     xlab = "Mean log-RT",
+     col = "lightgreen",
+     breaks = 30,
+     xlim = range(c(pred_mean_A, pred_mean_B)))
+abline(v = rt_data_cond$obs_mean[2], col = "red", lwd = 3, lty = 2)
+
+cat("\nBy Condition:\n")
+cat("Condition A - Observed:", round(rt_data_cond$obs_mean[1], 3), "\n")
+cat("Condition A - Predicted:", round(median(pred_mean_A), 3), "\n")
+cat("Condition B - Observed:", round(rt_data_cond$obs_mean[2], 3), "\n")
+cat("Condition B - Predicted:", round(median(pred_mean_B), 3), "\n")
+```
+
+## Summary
+
+### Key Diagnostics Checked
+
+1. ✓ **Visual inspection** - Observed data overlaps with posterior predictions
+2. ✓ **Mean** - Central tendency captured correctly
+3. ✓ **SD** - Spread of data captured correctly
+4. ✓ **Extreme values** - Min/max are reasonable
+5. ✓ **Predictive intervals** - Coverage is appropriate
+6. ✓ **By condition** - Model captures group differences
+
+### Common Problems and Solutions
+
+| Problem | Diagnosis | Solution |
+|---------|-----------|----------|
+| Model predictions too narrow | SD of posterior predictions < SD of data | Relax priors, check formula |
+| Model predictions too wide | SD of posterior predictions >> SD of data | Tighten priors, add more structure |
+| Misses condition effects | Mean differs dramatically by condition | Add condition × random effect interaction |
+| Extreme value mismatch | Min/max far from observed | Check for outliers, consider robust models |
+
+### Next Steps
+
+If posterior predictive checks reveal problems:
+
+1. **Adjust model formula** - Add missing predictors or interactions
+2. **Revise priors** - May be too restrictive or too vague
+3. **Consider alternative families** - E.g., Student's t for robust modeling
+4. **Check for outliers** - May need to handle separately
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```
