@@ -17,10 +17,7 @@ After fitting your model, validate that it generates data similar to what you ob
 
 Posterior predictive checks answer: "If I were to generate new data from my fitted model, would it look like my actual data?" This validates that your model has captured the essential structure of your data.
 
-For binary outcomes (correct/incorrect, yes/no), we focus on:
-- **Proportion of successes** (mean of 0/1 outcomes)
-- **Accuracy by condition** 
-- **Calibration** (predicted probabilities match observed frequencies)
+For binary outcomes (correct/incorrect, yes/no), we focus on: - **Proportion of successes** (mean of 0/1 outcomes) - **Accuracy by condition** - **Calibration** (predicted probabilities match observed frequencies)
 
 ## Setup
 
@@ -115,10 +112,10 @@ pp_check(fit_gram, type = "bars", ndraws = 500) +
 
 **Interpretation:**
 
-- Bars show frequency of 0s (incorrect) and 1s (correct)
-- Light blue bars = observed data
-- Dark lines = posterior predictions
-- Should see good overlap between observed and predicted frequencies
+-   Bars show frequency of 0s (incorrect) and 1s (correct)
+-   Light blue bars = observed data
+-   Dark lines = posterior predictions
+-   Should see good overlap between observed and predicted frequencies
 
 ### Check Proportion Correct
 
@@ -148,9 +145,9 @@ pp_check(fit_gram, type = "error_binned") +
 
 **Interpretation:**
 
-- Shows prediction error patterns
-- Points should scatter around zero
-- Systematic patterns suggest model misspecification
+-   Shows prediction error patterns
+-   Points should scatter around zero
+-   Systematic patterns suggest model misspecification
 
 ## Extract and Analyze Posterior Predictions
 
@@ -360,25 +357,25 @@ for (i in 1:2) {
 
 ### Key Diagnostics Checked
 
-1. ✓ **Bar plot** - Observed counts match posterior predictions
-2. ✓ **Proportion correct** - Overall accuracy captured correctly
-3. ✓ **Calibration** - Predicted probabilities align with observed frequencies
-4. ✓ **By condition** - Model captures differences between conditions
-5. ✓ **Expected values** - Posterior probabilities are reasonable
+1.  [x] **Bar plot** - Observed counts match posterior predictions
+2.  [x] **Proportion correct** - Overall accuracy captured correctly
+3.  [x] **Calibration** - Predicted probabilities align with observed frequencies
+4.  [x] **By condition** - Model captures differences between conditions
+5.  [x] **Expected values** - Posterior probabilities are reasonable
 
 ### Interpreting Binary Model Checks
 
-- **Observed proportion correct** should be near the central tendency of the posterior predictions
-- If observed is far from predicted → model isn't capturing the accuracy pattern
-- Common issues:
-  - Forgetting interactions
-  - Wrong random effect structure
-  - Not accounting for item-level variation
+-   **Observed proportion correct** should be near the central tendency of the posterior predictions
+-   If observed is far from predicted → model isn't capturing the accuracy pattern
+-   Common issues:
+    -   Forgetting interactions
+    -   Wrong random effect structure
+    -   Not accounting for item-level variation
 
 ### Common Problems and Solutions
 
 | Problem | Diagnosis | Solution |
-|---------|-----------|----------|
+|----------------------|--------------------------|------------------------|
 | Poor calibration | Points far from diagonal | Add predictors, check formula |
 | Misses condition effects | Different accuracy by condition not captured | Add condition × random effect interaction |
 | Predictions too certain | Predicted probs near 0 or 1 | Check priors, may be too strong |
@@ -388,10 +385,10 @@ for (i in 1:2) {
 
 If posterior predictive checks reveal problems:
 
-1. **Adjust model formula** - Add missing predictors or interactions
-2. **Revise priors** - May be too restrictive or too vague
-3. **Check random effects structure** - Subjects and items may vary in unexpected ways
-4. **Consider response time cutoffs** - Fast guesses vs. thoughtful responses
+1.  **Adjust model formula** - Add missing predictors or interactions
+2.  **Revise priors** - May be too restrictive or too vague
+3.  **Check random effects structure** - Subjects and items may vary in unexpected ways
+4.  **Consider response time cutoffs** - Fast guesses vs. thoughtful responses
 
 ```{r}
 #| label: session-info

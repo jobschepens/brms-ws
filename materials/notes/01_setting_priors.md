@@ -1,8 +1,33 @@
+---
+title: "Setting Priors in brms"
+subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
+date: today
+author: "Workshop Materials"
+format: 
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    code-fold: false
+    keep-md: false
+---
+
 # 1. Setting Priors in brms (20 min)
 
 ## Default vs. Weakly Informative Priors
 
 brms uses weakly informative priors by default (not completely flat). However, for psycholinguistics, domain-specific priors are even better.
+
+
+
+## Reaction Time Data (log-transformed)
+
+### Check default priors
+
+```r
+get_prior(log_rt ~ condition + (1 + condition | subject) + (1 | item),
+          data = rt_data, family = gaussian())
+```
 
 ## Default brms Priors
 
@@ -42,15 +67,6 @@ brms uses weakly informative priors by default (not completely flat). However, f
 - See `materials/scripts/getprior.R` for verification.
 
 ---
-
-## Reaction Time Data (log-transformed)
-
-### Check default priors
-
-```r
-get_prior(log_rt ~ condition + (1 + condition | subject) + (1 | item),
-          data = rt_data, family = gaussian())
-```
 
 ### Set weakly informative priors for RTs
 

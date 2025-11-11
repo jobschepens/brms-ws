@@ -113,9 +113,9 @@ pp_check(fit_rt, ndraws = 100) +
 
 **Interpretation:**
 
-- **Blue line** (observed data) should be among the dark lines (posterior predictions)
-- If blue line is far from the bundle → model missed something important
-- Small discrepancies are normal; large ones suggest model misspecification
+-   **Black line** (`y` = observed data) should be among the blue lines (`yrep` = posterior predictions)
+-   If black line is far from the bundle → model missed something important
+-   Small discrepancies are normal; large ones suggest model misspecification
 
 ### Check Specific Statistics
 
@@ -270,19 +270,19 @@ cat("Condition B - Predicted:", round(median(pred_mean_B), 3), "\n")
 
 ### Key Diagnostics Checked
 
-1. ✓ **Visual inspection** - Observed data overlaps with posterior predictions
-2. ✓ **Mean** - Central tendency captured correctly
-3. ✓ **SD** - Spread of data captured correctly
-4. ✓ **Extreme values** - Min/max are reasonable
-5. ✓ **Predictive intervals** - Coverage is appropriate
-6. ✓ **By condition** - Model captures group differences
+1.  [x] **Visual inspection** - Observed data overlaps with posterior predictions
+2.  [x] **Mean** - Central tendency captured correctly
+3.  [x] **SD** - Spread of data captured correctly
+4.  [x] **Extreme values** - Min/max are reasonable
+5.  [x] **Predictive intervals** - Coverage is appropriate
+6.  [x] **By condition** - Model captures group differences
 
 ### Common Problems and Solutions
 
 | Problem | Diagnosis | Solution |
-|---------|-----------|----------|
-| Model predictions too narrow | SD of posterior predictions < SD of data | Relax priors, check formula |
-| Model predictions too wide | SD of posterior predictions >> SD of data | Tighten priors, add more structure |
+|----------------------|--------------------------|------------------------|
+| Model predictions too narrow | SD of posterior predictions \< SD of data | Relax priors, check formula |
+| Model predictions too wide | SD of posterior predictions \>\> SD of data | Tighten priors, add more structure |
 | Misses condition effects | Mean differs dramatically by condition | Add condition × random effect interaction |
 | Extreme value mismatch | Min/max far from observed | Check for outliers, consider robust models |
 
@@ -290,10 +290,10 @@ cat("Condition B - Predicted:", round(median(pred_mean_B), 3), "\n")
 
 If posterior predictive checks reveal problems:
 
-1. **Adjust model formula** - Add missing predictors or interactions
-2. **Revise priors** - May be too restrictive or too vague
-3. **Consider alternative families** - E.g., Student's t for robust modeling
-4. **Check for outliers** - May need to handle separately
+1.  **Adjust model formula** - Add missing predictors or interactions
+2.  **Revise priors** - May be too restrictive or too vague
+3.  **Consider alternative families** - E.g., Student's t for robust modeling
+4.  **Check for outliers** - May need to handle separately
 
 ```{r}
 #| label: session-info
