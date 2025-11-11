@@ -18,6 +18,10 @@ services:
       # Optional: persist results
       - ./results:/home/rstudio/workshop/results
     restart: unless-stopped
+    # Performance optimizations for AMD Ryzen 5 7640HS
+    cpus: '8'           # Use 8 threads (out of 12 available)
+    mem_limit: 12g      # Allocate 12GB RAM
+    shm_size: 2g        # Increase shared memory for Stan
     # Uncomment for debugging
     # stdin_open: true
     # tty: true
