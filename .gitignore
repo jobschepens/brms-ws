@@ -1,0 +1,61 @@
+# R and RStudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*_cache/
+*_files/
+
+# Quarto
+/.quarto/
+_site/
+*_cache/
+*_files/
+*.knit.md
+
+# R package development
+*.tar.gz
+*.Rcheck/
+vignettes/*.html
+vignettes/*.pdf
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+~$*
+
+# LaTeX
+*.aux
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Stan
+*.stan
+*.csv
+
+# Keep the fitted models (they're valuable!)
+# But ignore any temporary model files
+*.rds.tmp
