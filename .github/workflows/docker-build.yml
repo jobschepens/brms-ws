@@ -43,8 +43,6 @@ jobs:
             ghcr.io/jobschepens/brms-ws/brms-workshop
           tags: |
             type=raw,value=working
-            type=raw,value=latest
-            type=sha,prefix={{branch}}-
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -60,8 +58,5 @@ jobs:
       - name: Build summary
         run: |
           echo "✅ Docker image built and pushed successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "Tags pushed:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`jobschepens/brms-workshop:working\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`jobschepens/brms-workshop:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "Image available at:" >> $GITHUB_STEP_SUMMARY
           echo "- \`ghcr.io/jobschepens/brms-ws/brms-workshop:working\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/jobschepens/brms-ws/brms-workshop:latest\`" >> $GITHUB_STEP_SUMMARY
