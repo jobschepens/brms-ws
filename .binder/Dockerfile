@@ -8,23 +8,15 @@ RUN apt-get update && apt-get install -y python3-pip && \
     python3 -m pip install --no-cache-dir notebook jupyterlab jupyterhub && \
     rm -rf /var/lib/apt/lists/*
 
-# Binder requirement 3: Create user with uid 1000
-ARG NB_USER=jovyan
+# Binder requirement 3: Set user with uid 1000 (already exists in base image as rstudio)
+ARG NB_USER=rstudio
 ARG NB_UID=1000
 ENV USER=${NB_USER}
 ENV NB_UID=${NB_UID}
 ENV HOME=/home/${NB_USER}
 
-RUN adduser --disabled-password \
-    --gecos "Default user" \
-    --uid ${NB_UID} \
-    ${NB_USER}
-
-# Copy R configuration and cmdstan from rstudio to jovyan user
-RUN mkdir -p ${HOME} && \
-    if [ -d /home/rstudio/.Rprofile ]; then cp /home/rstudio/.Rprofile ${HOME}/; fi && \
-    if [ -d /home/rstudio/.cmdstanr ]; then cp -r /home/rstudio/.cmdstanr ${HOME}/; fi && \
-    if [ -d /home/rstudio/workshop ]; then cp -r /home/rstudio/workshop/* ${HOME}/; fi
+# Copy R configuration is already in place (rstudio user has everything)
+# No need to copy from rstudio to jovyan since we're using rstudio user
 
 # Ensure R libraries are accessible to all users
 RUN chmod -R a+rX /usr/local/lib/R/site-library 2>/dev/null || true
