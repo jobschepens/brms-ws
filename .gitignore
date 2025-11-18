@@ -1,3 +1,22 @@
+# Environment files with user-specific settings
+.env
+
+# SSH keys (NEVER commit these!)
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+id_ecdsa*
+
+# SLURM output files
+*.out
+*.err
+slurm-*.out
+
+# Container files
+*.sif
+
+
 # R and RStudio
 .Rproj.user
 .Rhistory
