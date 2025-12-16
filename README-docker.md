@@ -1,6 +1,6 @@
 # BRMS Workshop Docker Image
 
-A production-ready, containerized Bayesian Regression Models using Stan (BRMS) workshop environment. Everything you need is pre-installed.
+A production-ready, containerized Bayesian Regression Models using Stan (BRMS) workshop environment. Everything you need is pre-installed. Note that the cmdstanr is currently only available in root (e.g. use attach to running container in vs code instead of RStudio server).
 
 ## Quick Start
 

@@ -120,11 +120,11 @@ For psycholinguistics, it's better to specify priors based on domain knowledge:
 #| label: rt-priors
 # Define priors explicitly
 rt_priors <- c(
-  prior(normal(6, 1.5), class = Intercept),    # log(RT) around 400ms
-  prior(normal(0, 0.5), class = b),            # effects typically < 150ms
-  prior(exponential(1), class = sigma),        # residual SD
-  prior(exponential(1), class = sd),           # random effects SD
-  prior(lkj(2), class = cor)                   # correlations
+  prior(normal(6, 1.5), class = Intercept, lb = 4),  # log(RT) around 400ms, min ~55ms
+  prior(normal(0, 0.5), class = b),                  # effects typically < 150ms
+  prior(exponential(1), class = sigma),              # residual SD
+  prior(exponential(1), class = sd),                 # random effects SD
+  prior(lkj(2), class = cor)                         # correlations
 )
 
 cat("Our weakly informative priors:\n")
@@ -133,11 +133,14 @@ print(rt_priors)
 
 ### Why These Numbers?
 
-#### `normal(6, 1.5)` for Intercept
+#### `normal(6, 1.5)` for Intercept with `lb = 4`
 
 - **Mean = 6** on log scale → exp(6) ≈ 403ms (typical RT)
 - **SD = 1.5** → 95% prior interval spans [3, 9] on log scale
-- This translates to exp(3) to exp(9) ≈ **20ms to 8,100ms** (allows flexibility!)
+- **Lower bound = 4** → exp(4) ≈ 55ms (minimum physiologically possible motor response)
+  - Without `lb`, the prior puts only ~9% probability below this threshold
+  - Adding `lb` makes our assumption explicit: we don't entertain impossibly fast RTs
+  - In practice, data will dominate anyway, but bounded priors clarify our theoretical assumptions
 - But 95% of prior **mass** is between ±1.96 × 1.5 around the mean
 - This puts most probability on reasonable RTs (100-1500ms), while still allowing outliers
 

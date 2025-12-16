@@ -8,6 +8,9 @@ ENV CMDSTANR_INSTALL_CORES=4
 # Install system dependencies and TeX Live packages
 RUN apt-get update && apt-get install -y \
     build-essential \
+    g++ \
+    libcurl4-openssl-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Update TeX Live and install additional packages
@@ -19,33 +22,38 @@ WORKDIR /home/rstudio/workshop
 # Copy installation script
 COPY install.R .
 
-# Run R package installation
-RUN R --quiet --slave -f install.R
+# Run R package installation (installs packages system-wide and CmdStan as root)
+RUN R --no-save --no-restore -f install.R
 
 # Copy workshop materials with proper permissions
 COPY --chown=rstudio:rstudio materials/ ./materials/
 
-# Create R profile to set CmdStan path on startup
+# Create R profile to set CmdStan path on startup for rstudio user
 RUN mkdir -p /home/rstudio && \
     printf '%s\n' \
     '# Auto-detect and set CmdStan path' \
     'if (requireNamespace("cmdstanr", quietly = TRUE)) {' \
     '  tryCatch({' \
-    '    cmdstan_path <- cmdstanr::cmdstan_path()' \
-    '    if (is.null(cmdstan_path) || !file.exists(cmdstan_path)) {' \
-    '      possible_paths <- c(' \
-    '        file.path(Sys.getenv("HOME"), ".cmdstanr", "cmdstan"),' \
-    '        file.path(Sys.getenv("HOME"), ".local", "share", "cmdstan"),' \
-    '        "/opt/cmdstan"' \
-    '      )' \
-    '      for (path in possible_paths) {' \
-    '        if (file.exists(path)) {' \
-    '          cmdstanr::set_cmdstan_path(path)' \
-    '          break' \
+    '    # Try to get existing path first' \
+    '    cmdstan_path <- tryCatch(cmdstanr::cmdstan_path(), error = function(e) NULL)' \
+    '    ' \
+    '    # If no path set, search for it in user home directory' \
+    '    if (is.null(cmdstan_path)) {' \
+    '      cmdstan_base <- file.path(Sys.getenv("HOME"), ".cmdstan")' \
+    '      if (dir.exists(cmdstan_base)) {' \
+    '        possible_paths <- list.dirs(cmdstan_base, recursive = FALSE, full.names = TRUE)' \
+    '        cmdstan_dirs <- grep("cmdstan-", possible_paths, value = TRUE)' \
+    '        if (length(cmdstan_dirs) > 0) {' \
+    '          # Use the most recent version' \
+    '          cmdstan_path <- sort(cmdstan_dirs, decreasing = TRUE)[1]' \
+    '          cmdstanr::set_cmdstan_path(cmdstan_path)' \
+    '          cat("✓ CmdStan path set to:", cmdstan_path, "\n")' \
     '        }' \
     '      }' \
     '    }' \
-    '  }, error = function(e) {})' \
+    '  }, error = function(e) {' \
+    '    message("Note: CmdStan path could not be auto-detected. Run cmdstanr::install_cmdstan() if needed.")' \
+    '  })' \
     '}' \
     > /home/rstudio/.Rprofile
 

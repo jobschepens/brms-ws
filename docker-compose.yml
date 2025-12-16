@@ -12,6 +12,7 @@ services:
     environment:
       - PASSWORD=workshop
       - USERID=1000
+      - ROOT=true
     volumes:
       # Mount local materials (for development/editing)
       - ./materials:/home/rstudio/workshop/materials

@@ -12,17 +12,22 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, cache = FALSE)
 
-# Suppress Stan messages for cleaner output
-options(mc.cores = parallel::detectCores())
-
-# Set BRMS backend (cmdstanr should be pre-compiled in container)
-# If not available, will fall back to rstan
+# Set BRMS backend FIRST before loading brms
+# cmdstanr should be pre-compiled in container
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
-  options(brms.backend = "cmdstanr")
-  cat("✓ Using CmdStan backend (pre-compiled)\n")
+  tryCatch({
+    cmdstanr::cmdstan_path()
+    options(brms.backend = "cmdstanr")
+    cat("✓ Using CmdStan backend (pre-compiled)\n")
+  }, error = function(e) {
+    cat("! CmdStan not found, using RStan\n")
+  })
 } else {
-  cat("! CmdStan backend not available, using RStan\n")
+  cat("! cmdstanr not available, using RStan\n")
 }
+
+# Set cores for parallel processing
+options(mc.cores = parallel::detectCores())
 ```
 
 # Introduction to BRMS
@@ -83,11 +88,13 @@ cat("Loading required packages...\n")
 
 # Load packages with better error handling
 tryCatch({
+  library(rstan)       # Load rstan first for compatibility
   library(brms)        # Bayesian Regression Models using Stan
   library(tidyverse)   # Data manipulation
   library(bayesplot)   # Posterior visualization
   library(ggplot2)     # Plotting
   cat("✓ All packages loaded successfully\n")
+  cat("✓ BRMS backend:", getOption("brms.backend", "rstan"), "\n")
 }, error = function(e) {
   cat("Error loading packages:\n")
   print(e)

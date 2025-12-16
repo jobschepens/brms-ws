@@ -33,38 +33,35 @@ cat("This may take 5-10 minutes on first build...\n")
 
 # Use explicit error handling
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
-  tryCatch({
-    # Check toolchain first (recommended by Stan docs)
-    cat("Checking C++ toolchain...\n")
-    toolchain_ok <- cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = TRUE)
-    
-    if (!toolchain_ok) {
-      cat("⚠ Warning: C++ toolchain check failed. CmdStan installation may fail.\n")
-    }
-    
-    # Ensure CmdStan directory exists
-    cmdstan_dir <- file.path(Sys.getenv("HOME"), ".cmdstanr", "cmdstan")
-    dir.create(dirname(cmdstan_dir), showWarnings = FALSE, recursive = TRUE)
-    
-    # Install CmdStan with recommended settings
-    cmdstanr::install_cmdstan(
-      dir = dirname(cmdstan_dir),
-      cores = parallel::detectCores(),
-      quiet = FALSE,
-      overwrite = TRUE
-    )
-    
-    # Verify installation and set path
-    installed_path <- cmdstanr::cmdstan_path()
-    cat("✓ CmdStan installed successfully at: ", installed_path, "\n")
-  }, error = function(e) {
-    cat("⚠ Warning: CmdStan installation encountered an issue:\n")
-    print(e)
-    cat("CmdStan may need to be installed manually in the container.\n")
-    cat("Users can run: cmdstanr::install_cmdstan() if needed\n")
-  })
+  # Check toolchain first (recommended by Stan docs)
+  cat("Checking C++ toolchain...\n")
+  toolchain_ok <- cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = FALSE)
+  
+  if (!toolchain_ok) {
+    cat("ERROR: C++ toolchain check failed. CmdStan installation will fail.\n")
+    quit(status = 1)
+  }
+  
+  # Install CmdStan with explicit settings
+  cat("Starting CmdStan installation...\n")
+  cmdstanr::install_cmdstan(
+    cores = as.integer(Sys.getenv("CMDSTANR_INSTALL_CORES", "4")),
+    quiet = FALSE,
+    overwrite = FALSE,
+    timeout = as.integer(Sys.getenv("CMDSTAN_INSTALL_TIMEOUT", "3600"))
+  )
+  
+  # Verify installation and set path
+  installed_path <- cmdstanr::cmdstan_path()
+  cat("✓ CmdStan installed successfully at: ", installed_path, "\n")
+  
+  # Test that it works
+  cat("Testing CmdStan installation...\n")
+  cmdstanr::cmdstan_version()
+  cat("✓ CmdStan is functional\n")
 } else {
-  cat("⚠ cmdstanr not loaded, CmdStan installation skipped\n")
+  cat("ERROR: cmdstanr package not available\n")
+  quit(status = 1)
 }
 
 # ------ BAYESIAN ANALYSIS TOOLS ------
