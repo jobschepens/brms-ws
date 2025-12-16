@@ -23,11 +23,24 @@ After fitting, check if the model generates data similar to what you observed. A
 
 **See**: `03_posterior_predictive_checks.md`
 
+### 4. Comparing Priors 
+Sensitivity analysis: fit models with different priors and compare posteriors to check robustness. Understand how prior choice affects inference.
+
+**See**: `04_comparing_priors.md`
+
+### 5. LOO Cross-Validation 
+Efficient leave-one-out cross-validation for model comparison. Compare nested and non-nested models using expected log pointwise predictive density (elpd).
+
+**See**: `05_loo.md`
+
+**Note**: We will discuss CV variants later:
+- **LOO**: Standard leave-one-out cross-validation
+- **k-fold CV for multilevel models**: Sample from groups for unseen data of existing subjects
+- **LOGO-CV**: Leave-one-group-out cross-validation for unseen subjects
+
 ---
 
 ## For Later 
-
-- **Comparing Priors**: Sensitivity analysis: fit models with different priors and compare posteriors to check robustness. **See**: `04_comparing_priors_qa.md`
 
 - **Convergence Diagnostics**: Visualize and assess MCMC sampling quality
   - `mcmc_plot`: Visualization of posterior estimates
@@ -41,11 +54,6 @@ After fitting, check if the model generates data similar to what you observed. A
 - **Model Comparison with Bayes Factors**: Compare evidence between models
   - Bayes Factors for nested models and how posterior odds depend on prior specification
   - Sensitivity to prior choice and importance of defensible priors
-  
-- **LOO Cross-Validation**: Efficient leave-one-out CV for model comparison
-  - Comparing nested models using LOO
-  - Comparing non-nested models with LOO
-  - Using expected log pointwise predictive density (elpd) for model ranking
 
 - **Other DV Types**: Count data, ordinal responses, bounded continuous data
 - **Reporting Results**: Publishing Bayesian mixed effects models
