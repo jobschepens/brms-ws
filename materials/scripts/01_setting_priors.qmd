@@ -171,18 +171,51 @@ brms defaults use `student_t(3, μ, 2.5)` which has heavier tails than `normal()
 
 ```{r tail-comparison}
 #| label: tail-comparison
+#| fig-width: 8
+#| fig-height: 5
 # Compare tail behavior
-normal_99 <- quantile(rnorm(100000, 0, 0.5), c(0.001, 0.999))
-studentt_99 <- quantile(rt(100000, 3) * 0.5, c(0.001, 0.999))
+set.seed(456)
+n_samples <- 100000
+normal_samples <- rnorm(n_samples, 0, 0.5)
+studentt_samples <- rt(n_samples, 3) * 0.5
+
+normal_99 <- quantile(normal_samples, c(0.001, 0.999))
+studentt_99 <- quantile(studentt_samples, c(0.001, 0.999))
 
 cat("Tails comparison (1st and 99th percentiles):\n")
 cat("Normal(0, 0.5):       ", round(normal_99, 2), "\n")
 cat("Student-t(3) × 0.5:   ", round(studentt_99, 2), "\n")
 cat("Student-t ratio:      ", round(studentt_99[2] / normal_99[2], 2), "x wider\n\n")
-cat("Student-t allows extreme values 2x more likely than normal!\n")
+cat("Student-t allows extreme values 2x more likely than normal!\n\n")
+
+# Graphical comparison
+library(ggplot2)
+comparison_df <- data.frame(
+  value = c(normal_samples, studentt_samples),
+  distribution = rep(c("Normal(0, 0.5)", "Student-t(3, 0, 0.5)"), each = n_samples)
+)
+
+ggplot(comparison_df, aes(x = value, fill = distribution, color = distribution)) +
+  geom_density(alpha = 0.3, linewidth = 1) +
+  geom_vline(xintercept = normal_99, linetype = "dashed", color = "#F8766D", linewidth = 0.7) +
+  geom_vline(xintercept = studentt_99, linetype = "dashed", color = "#00BFC4", linewidth = 0.7) +
+  coord_cartesian(xlim = c(-3, 3)) +
+  scale_fill_manual(values = c("#F8766D", "#00BFC4")) +
+  scale_color_manual(values = c("#F8766D", "#00BFC4")) +
+  labs(
+    title = "Normal vs. Student-t Prior Distributions",
+    subtitle = "Student-t has heavier tails (dashed lines = 0.1% and 99.9% quantiles)",
+    x = "Value",
+    y = "Density",
+    fill = "Distribution",
+    color = "Distribution"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
 ```
 
 **When to use each:**
+
 - **Student-t**: Default choice (conservative, robust to outliers)
 - **Normal**: When you have strong domain knowledge about plausible ranges (better for RT data in controlled experiments)
 

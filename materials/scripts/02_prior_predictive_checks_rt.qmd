@@ -244,8 +244,13 @@ hist(simulated_slopes,
 if (!is.null(sigma_vals) && is.numeric(sigma_vals)) {
   hist(sigma_vals,
        main = "Prior for Residual Noise (Sigma)",
-       xlab = "Sigma value",
+       xlab = "Sigma value (log-RT scale)",
        breaks = 30, col = "lightgreen", border = "white")
+  abline(v = 0.3, col = "red", lwd = 2, lty = 2)
+  
+  cat("\nInterpretation: Red line shows typical residual SD (0.3) for RT data\n")
+  cat("Our prior puts", round(mean(sigma_vals < 0.3) * 100, 1), 
+      "% probability below this value\n")
 } else {
   plot(1, main = "Sigma visualization", xlab = "", ylab = "")
   text(1, 1, "Sigma samples not available")
