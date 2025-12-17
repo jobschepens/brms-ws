@@ -7,7 +7,8 @@ format:
   html:
     toc: true
     number-sections: true
-    code-fold: false
+    code-fold: true
+    code-summary: "Show code"
     keep-md: true
     theme:
       light: flatly
@@ -16,7 +17,7 @@ format:
     toc: true
     number-sections: true
     colorlinks: true
-    code-fold: false
+    echo: false
     keep-md: false
 execute:
   cache: true
@@ -216,7 +217,15 @@ rt_priors_simple <- c(
   prior(exponential(1), class = sigma)
 )
 
-# Complex model: includes random effects
+# Medium model: random intercepts only (no correlation)
+rt_priors_medium <- c(
+  prior(normal(6, 1.5), class = Intercept, lb = 4),
+  prior(normal(0, 0.5), class = b),
+  prior(exponential(1), class = sigma),
+  prior(exponential(1), class = sd)
+)
+
+# Complex model: includes random effects with correlation
 rt_priors_complex <- c(
   prior(normal(6, 1.5), class = Intercept, lb = 4),
   prior(normal(0, 0.5), class = b),
@@ -257,6 +266,13 @@ fit_simple_100_with <- fit_or_load(
   log_rt ~ condition,
   rt_data_100_with,
   rt_priors_simple
+)
+
+fit_medium_100_with <- fit_or_load(
+  "fit_medium_100_with",
+  log_rt ~ condition + (1 | subject) + (1 | item),
+  rt_data_100_with,
+  rt_priors_medium
 )
 
 fit_complex_100_with <- fit_or_load(
@@ -321,6 +337,7 @@ fit_complex_40_without <- fit_or_load(
 ```{r add-loo}
 # Add LOO criterion to all models
 fit_simple_100_with <- add_criterion(fit_simple_100_with, "loo")
+fit_medium_100_with <- add_criterion(fit_medium_100_with, "loo")
 fit_complex_100_with <- add_criterion(fit_complex_100_with, "loo")
 
 fit_simple_100_without <- add_criterion(fit_simple_100_without, "loo")
@@ -331,7 +348,28 @@ fit_complex_40_with <- add_criterion(fit_complex_40_with, "loo")
 
 fit_simple_40_without <- add_criterion(fit_simple_40_without, "loo")
 fit_complex_40_without <- add_criterion(fit_complex_40_without, "loo")
+
+# Display individual LOO results showing progression of model complexity
+print("Example: Individual LOO output for simple model (n=100, WITH RE)")
+print(fit_simple_100_with$criteria$loo)
+
+print("Example: Individual LOO output for medium model (n=100, WITH RE)")
+print(fit_medium_100_with$criteria$loo)
+
+print("Example: Individual LOO output for complex model (n=100, WITH RE)")
+print(fit_complex_100_with$criteria$loo)
 ```
+
+**Understanding individual LOO output:**
+
+- **Estimate**: The ELPD (higher = better predictive accuracy)
+- **SE**: Standard error of the estimate (uncertainty)
+- **p_loo**: Effective number of parameters (how much the model "uses" the data)
+- **looic**: -2 × elpd_loo (lower = better, analogous to AIC)
+- **Pareto k diagnostic**: Checks reliability of the LOO approximation
+  - All k < 0.5: Excellent
+  - k < 0.7: Good
+  - k > 0.7: Problematic (may need `reloo = TRUE`)
 
 ## Compare Models for Each Scenario
 
@@ -341,6 +379,10 @@ loo_comp_100_with <- loo_compare(fit_simple_100_with, fit_complex_100_with)
 loo_comp_100_without <- loo_compare(fit_simple_100_without, fit_complex_100_without)
 loo_comp_40_with <- loo_compare(fit_simple_40_with, fit_complex_40_with)
 loo_comp_40_without <- loo_compare(fit_simple_40_without, fit_complex_40_without)
+
+# Show all columns including p_loo
+print("\nFull comparison with p_loo values:")
+print(loo_comp_100_with, simplify = FALSE)
 
 # Helper function to extract comparison info
 extract_comparison <- function(loo_comp, scenario_name) {
@@ -382,21 +424,53 @@ comparison_table <- rbind(
   extract_comparison(loo_comp_40_without, "n=40, WITHOUT RE")
 )
 
-knitr::kable(comparison_table,
-             caption = "LOO Model Comparison Across Four Scenarios",
-             col.names = c("Scenario", "Winner", "ELPD Δ", "SE", "Ratio", "Interpretation"),
-             align = c("l", "l", "r", "r", "r", "l"),
-             row.names = FALSE)
+# knitr::kable(comparison_table,
+#              caption = "LOO Model Comparison Across Four Scenarios",
+#              col.names = c("Scenario", "Winner", "ELPD Δ", "SE", "Ratio", "Interpretation"),
+#              align = c("l", "l", "r", "r", "r", "l"),
+#              row.names = FALSE)
 ```
 
-**Key patterns to observe:**
+### Understanding the Output Columns
 
-- **n=100, WITH RE**: Complex model wins decisively (ratio > 10)
-- **n=100, WITHOUT RE**: Simple model wins weakly (ratio ≈ 1-2)
-- **n=40, WITH RE**: Complex model wins strongly (ratio ≈ 6)
-- **n=40, WITHOUT RE**: Models essentially equivalent (ratio < 1)
+The `loo_compare()` output shows (note: by default only some columns are printed):
 
-## Detailed Ratio Analysis
+**Default output:**  
+
+- **elpd_diff**: Difference from best model (0 for winner, negative for others)
+- **se_diff**: Standard error of the difference (uncertainty in comparison)
+
+**Full output (with `simplify = FALSE`):**  
+
+- **elpd_loo**: Expected log pointwise predictive density (higher = better predictions)
+- **se_elpd_loo**: Standard error of elpd_loo
+- **p_loo**: Effective number of parameters - this shows model complexity!
+  - Simple model: p_loo ≈ number of fixed effects + 1 (for sigma)
+  - Complex model: p_loo increases with random effects (subjects, items, correlations)
+  - **Key**: Higher p_loo = more complex model, but also better fit if it wins
+- **looic**: LOO Information Criterion = -2 × elpd_loo (lower = better, like AIC/BIC)
+
+**Why p_loo matters**: It shows you're not just comparing predictive accuracy, but **accuracy adjusted for complexity**. The complex model has higher p_loo (uses more parameters), so it needs to predict *substantially* better to win.
+
+**Key insight**: The ratio (|elpd_diff| / se_diff) tells you how many standard errors separate the models. A ratio > 4 indicates strong evidence for the winning model.
+
+### ELPD
+
+**ELPD** = "Expected Log Pointwise Predictive Density"
+
+- **Expected**: We marginalize over all possible future data
+- **Log**: Works on log scale for numerical stability
+- **Pointwise**: Evaluated separately for each data point
+- **Predictive Density**: How well the model predicts new data
+
+**Key properties:**
+
+- **Higher is better** (like R² in frequentist stats)
+- **Difference matters**: Which model predicts new data better?
+- **Not about fit to current data**: About generalization
+- Takes into account the uncertainty of predictions
+
+### Ratio
 
 The ratio (|ELPD_diff| / SE) tells us how many standard errors separate the models. Here's a detailed breakdown:
 
@@ -463,31 +537,6 @@ knitr::kable(ratio_details,
              row.names = FALSE)
 ```
 
-**How to interpret the ratio:**
-
-- **Ratio < 1**: Difference is smaller than the uncertainty → Models are essentially equivalent
-- **Ratio 1-2**: Weak evidence → Difference is 1-2 standard errors, suggestive but not conclusive
-- **Ratio 2-4**: Moderate evidence → Difference is 2-4 standard errors, reasonable confidence
-- **Ratio 4-10**: Strong evidence → Difference is 4-10 standard errors, high confidence
-- **Ratio > 10**: Very strong evidence → Difference is >10 standard errors, extremely confident
-
-# Understanding ELPD
-
-## What ELPD Actually Means
-
-**ELPD** = "Expected Log Pointwise Predictive Density"
-
-- **Expected**: We marginalize over all possible future data
-- **Log**: Works on log scale for numerical stability
-- **Pointwise**: Evaluated separately for each data point
-- **Predictive Density**: How well the model predicts new data
-
-**Key properties:**
-
-- **Higher is better** (like R² in frequentist stats)
-- **Difference matters**: Which model predicts new data better?
-- **Not about fit to current data**: About generalization
-- Takes into account the uncertainty of predictions
 
 ## Rule of Thumb for Model Comparison
 
@@ -495,18 +544,12 @@ knitr::kable(ratio_details,
 
 | elpd_diff | Ratio* | Interpretation | Action |
 |-----------|--------|----------------|--------|
-| \|diff\| < 4 | < 4 | Equivalent models | Pick simpler one |
-| 4-10 | 4-10 | Moderate difference | Prefer larger elpd |
-| > 10 | > 10 | Clear winner | Prefer larger elpd |
+| < 4 | < 2 | Equivalent models | Pick simpler one |
+| 4-10 | 2-4 | Moderate difference | Consider larger elpd |
+| > 10 | > 4 | Clear winner | Prefer larger elpd |
 
 *Ratio = |elpd_diff| / se_diff (how many standard errors apart?)
 
-**The ratio tells you:**
-
-- < 1: Difference could be random noise
-- 1-2: Weak evidence for difference
-- 2-4: Moderate evidence
-- > 4: Strong evidence
 
 ## Visualizations: Side-by-Side Comparisons
 
@@ -621,6 +664,9 @@ p4 <- plot_elpd_differences(fit_simple_40_without, fit_complex_40_without,
 
 ### Plot 3: Model Weights (2×2 Grid)
 
+**Model weights** represent the probability that each model would make the best predictions for new data, based on the LOO estimates. Weights close to 1.0 indicate strong confidence in that model, while weights near 0.5 suggest the models are roughly equivalent in predictive performance.
+
+
 ```{r plot-weights-grid}
 #| fig.width: 12
 #| fig.height: 10
@@ -664,6 +710,8 @@ p4 <- plot_model_weights(fit_simple_40_without, fit_complex_40_without, "n=40, W
 
 ### Plot 4: Pareto k Diagnostics (2×2 Grid)
 
+**Pareto k values** diagnose the reliability of the LOO approximation for each observation, with values below 0.7 indicating trustworthy estimates. High k values (> 0.7) suggest influential observations where the importance sampling approximation may be unreliable, requiring exact leave-one-out refitting with `reloo = TRUE`.
+
 ```{r plot-pareto-k-grid}
 #| fig.width: 12
 #| fig.height: 10
@@ -703,52 +751,6 @@ p4 <- plot_pareto_k(fit_complex_40_without, "n=40, WITHOUT RE")
     title = "Pareto k Diagnostics for Complex Model",
     subtitle = "k < 0.5 (good) | k < 0.7 (ok) | k > 0.7 (problematic)"
   )
-```
-
-# Cross-Validation Variants
-
-Different CV strategies for different research questions:
-
-**LOO (Leave-One-Out):**
-
-- Default choice
-- For general predictive performance
-- Treats all observations as exchangeable
-
-**K-fold CV:**
-
-- Split data into K groups
-- For multilevel models: sample from groups
-- Useful for: predicting unseen data from existing subjects
-
-**LOGO-CV (Leave-One-Group-Out):**
-
-- Leave out entire groups (e.g., subjects)
-- For predicting: completely new subjects
-- More conservative than LOO
-
-```{r cv-variants}
-# Example: 10-fold cross-validation
-# (computationally expensive - not run by default)
-# fit_complex_100_with_kfold <- kfold(fit_complex_100_with, K = 10, folds = "stratified")
-
-cv_methods <- data.frame(
-  Method = c("loo()", "kfold()", "kfold() with group"),
-  Description = c(
-    "Leave-one-out (default)",
-    "K-fold cross-validation",
-    "Leave-one-group-out (e.g., subjects)"
-  ),
-  Use_Case = c(
-    "General predictive performance",
-    "Unseen data from existing subjects",
-    "Completely new subjects"
-  )
-)
-
-knitr::kable(cv_methods,
-             caption = "Cross-Validation Variants in brms",
-             col.names = c("Method", "Description", "Use Case"))
 ```
 
 ## Key Insights from Four Scenarios
@@ -905,34 +907,6 @@ ggplot(k_all_df, aes(x = observation, y = pareto_k, color = model)) +
 - Points above 0.7 (red line) indicate unreliable LOO estimates
 - Small sample scenarios (n=40) may show slightly higher k values due to limited data
 
-## Handling Problematic Observations
-
-If you have observations with k > 0.7:
-
-```{r reloo-example}
-# Example: Refit with exact LOO for problematic observations
-# (only run if needed)
-
-# Uncomment to run:
-# loo_refit <- loo(fit_rt_complex, reloo = TRUE)
-
-reloo_steps <- data.frame(
-  Step = 1:4,
-  Action = c(
-    "Identify observations with k > 0.7",
-    "Refit model leaving each one out exactly",
-    "Use exact LOO for problematic observations",
-    "Combine with PSIS-LOO for the rest"
-  )
-)
-
-knitr::kable(reloo_steps,
-             caption = "What reloo = TRUE Does",
-             col.names = c("Step", "Action"),
-             align = c("c", "l"))
-```
-
-
 ## Influential Observations: Pareto k vs p_loo
 
 The relationship between Pareto k and p_loo (effective number of parameters per observation) can reveal influential observations:
@@ -993,6 +967,212 @@ p4 <- plot_k_vs_p_loo(fit_complex_40_without, rt_data_40_without, "n=40, WITHOUT
 - Points along the **right edge** (high k, low p_loo): Outliers with less model influence
 - Points in the **upper-left** (low k, high p_loo): Normal high-leverage observations
 - Most points should cluster in the **lower-left** (low k, low p_loo): Well-behaved observations
+
+## Handling Problematic Observations
+
+**When to use exact LOO refitting:**
+
+The Pareto k diagnostic has two key thresholds:
+
+- **k > 0.7** (bad): PSIS approximation unreliable - **definitely refit** with exact LOO
+- **k > 0.5** (concerning): PSIS approximation less accurate - **consider refitting** for critical analyses
+- **k < 0.5** (good): PSIS approximation works well - no refitting needed
+
+**Trade-off:** Refitting at k > 0.5 is more conservative and gives more accurate estimates, but it's computationally expensive (more observations to refit). For most purposes, k > 0.7 is sufficient. 
+
+```{r reloo-example}
+#| cache: false
+
+# Set threshold for refitting (0.7 = standard, 0.5 = conservative)
+k_threshold <- 0.7  # Change to 0.5 for more conservative refitting
+
+# Helper function to refit with exact LOO if needed
+refit_if_needed <- function(fit_obj, fit_name, threshold = k_threshold) {
+  filepath <- paste0("fits/", fit_name, "_reloo_k", gsub("\\.", "", as.character(threshold)), ".rds")
+  
+  # Check if any k values exceed threshold
+  k_values <- fit_obj$criteria$loo$diagnostics$pareto_k
+  n_problematic <- sum(k_values > threshold)
+  
+  if (n_problematic > 0) {
+    cat(sprintf("Found %d problematic observations for %s\n", n_problematic, fit_name))
+    
+    # Check if reloo version exists
+    if (file.exists(filepath)) {
+      cat(sprintf("Loading cached reloo results for %s\n", fit_name))
+      return(readRDS(filepath))
+    } else {
+      cat(sprintf("Refitting with exact LOO for %s (this may take a while...)\n", fit_name))
+      fit_reloo <- loo(fit_obj, reloo = TRUE, cores = 4)
+      saveRDS(fit_reloo, filepath)
+      return(fit_reloo)
+    }
+  } else {
+    cat(sprintf("No problematic observations for %s - using standard LOO\n", fit_name))
+    return(fit_obj$criteria$loo)
+  }
+}
+
+# Check and refit if needed for all complex models
+loo_complex_100_with <- refit_if_needed(fit_complex_100_with, "fit_complex_100_with")
+loo_complex_100_without <- refit_if_needed(fit_complex_100_without, "fit_complex_100_without")
+loo_complex_40_with <- refit_if_needed(fit_complex_40_with, "fit_complex_40_with")
+loo_complex_40_without <- refit_if_needed(fit_complex_40_without, "fit_complex_40_without")
+```
+
+**What `reloo = TRUE` does:**
+
+1. Identifies observations with k > threshold (0.7 by default, or 0.5 if set)
+2. Refits the model leaving each problematic observation out exactly
+3. Uses exact LOO for problematic observations
+4. Combines with PSIS-LOO for well-behaved observations
+
+**Note:** Exact LOO refitting is computationally expensive (10-30 minutes per model at k > 0.7 threshold, potentially longer at k > 0.5). Results are cached in `fits/` directory with threshold encoded in filename (e.g., `_reloo_k07.rds` or `_reloo_k05.rds`).
+
+## Comparing Results Before and After Exact LOO
+
+Check if exact LOO refitting changed the model comparison results:
+
+```{r compare-after-reloo}
+#| cache: false
+
+# Also refit simple models if they have problematic observations
+loo_simple_100_with <- refit_if_needed(fit_simple_100_with, "fit_simple_100_with")
+loo_simple_100_without <- refit_if_needed(fit_simple_100_without, "fit_simple_100_without")
+loo_simple_40_with <- refit_if_needed(fit_simple_40_with, "fit_simple_40_with")
+loo_simple_40_without <- refit_if_needed(fit_simple_40_without, "fit_simple_40_without")
+
+# Helper function to safely extract elpd_diff
+get_elpd_diff <- function(fit_simple, fit_complex) {
+  # Use the loo objects (either original or refitted)
+  simple_loo <- if(inherits(fit_simple, "brmsfit")) fit_simple$criteria$loo else fit_simple
+  complex_loo <- if(inherits(fit_complex, "brmsfit")) fit_complex$criteria$loo else fit_complex
+  
+  comp <- loo_compare(list(simple = simple_loo, complex = complex_loo))
+  return(abs(comp[2, "elpd_diff"]))
+}
+
+# Helper function to get ratio
+get_ratio <- function(fit_simple, fit_complex) {
+  simple_loo <- if(inherits(fit_simple, "brmsfit")) fit_simple$criteria$loo else fit_simple
+  complex_loo <- if(inherits(fit_complex, "brmsfit")) fit_complex$criteria$loo else fit_complex
+  
+  comp <- loo_compare(list(simple = simple_loo, complex = complex_loo))
+  elpd_diff <- comp[2, "elpd_diff"]
+  se_diff <- comp[2, "se_diff"]
+  return(abs(elpd_diff) / se_diff)
+}
+
+# Get original values (from section 2.2)
+original_elpd_100_with <- get_elpd_diff(fit_simple_100_with, fit_complex_100_with)
+original_ratio_100_with <- get_ratio(fit_simple_100_with, fit_complex_100_with)
+
+original_elpd_100_without <- get_elpd_diff(fit_simple_100_without, fit_complex_100_without)
+original_ratio_100_without <- get_ratio(fit_simple_100_without, fit_complex_100_without)
+
+original_elpd_40_with <- get_elpd_diff(fit_simple_40_with, fit_complex_40_with)
+original_ratio_40_with <- get_ratio(fit_simple_40_with, fit_complex_40_with)
+
+original_elpd_40_without <- get_elpd_diff(fit_simple_40_without, fit_complex_40_without)
+original_ratio_40_without <- get_ratio(fit_simple_40_without, fit_complex_40_without)
+
+# Get refitted values
+reloo_elpd_100_with <- get_elpd_diff(loo_simple_100_with, loo_complex_100_with)
+reloo_ratio_100_with <- get_ratio(loo_simple_100_with, loo_complex_100_with)
+
+reloo_elpd_100_without <- get_elpd_diff(loo_simple_100_without, loo_complex_100_without)
+reloo_ratio_100_without <- get_ratio(loo_simple_100_without, loo_complex_100_without)
+
+reloo_elpd_40_with <- get_elpd_diff(loo_simple_40_with, loo_complex_40_with)
+reloo_ratio_40_with <- get_ratio(loo_simple_40_with, loo_complex_40_with)
+
+reloo_elpd_40_without <- get_elpd_diff(loo_simple_40_without, loo_complex_40_without)
+reloo_ratio_40_without <- get_ratio(loo_simple_40_without, loo_complex_40_without)
+
+# Check for problematic observations in both models
+check_problematic <- function(fit, name, threshold = k_threshold) {
+  if (inherits(fit, "brmsfit")) {
+    k_values <- fit$criteria$loo$diagnostics$pareto_k
+  } else {
+    k_values <- fit$diagnostics$pareto_k
+  }
+  n_prob <- sum(k_values > threshold)
+  return(c(n_prob, max(k_values)))
+}
+
+# Create comprehensive comparison table
+reloo_comparison <- data.frame(
+  Scenario = rep(c("n=100, WITH RE", "n=100, WITHOUT RE", "n=40, WITH RE", "n=40, WITHOUT RE"), each = 2),
+  Model = rep(c("Simple", "Complex"), 4),
+  Problematic_k = c(
+    check_problematic(fit_simple_100_with, "simple_100_with")[1],
+    check_problematic(fit_complex_100_with, "complex_100_with")[1],
+    check_problematic(fit_simple_100_without, "simple_100_without")[1],
+    check_problematic(fit_complex_100_without, "complex_100_without")[1],
+    check_problematic(fit_simple_40_with, "simple_40_with")[1],
+    check_problematic(fit_complex_40_with, "complex_40_with")[1],
+    check_problematic(fit_simple_40_without, "simple_40_without")[1],
+    check_problematic(fit_complex_40_without, "complex_40_without")[1]
+  ),
+  Max_k = c(
+    check_problematic(fit_simple_100_with, "simple_100_with")[2],
+    check_problematic(fit_complex_100_with, "complex_100_with")[2],
+    check_problematic(fit_simple_100_without, "simple_100_without")[2],
+    check_problematic(fit_complex_100_without, "complex_100_without")[2],
+    check_problematic(fit_simple_40_with, "simple_40_with")[2],
+    check_problematic(fit_complex_40_with, "complex_40_with")[2],
+    check_problematic(fit_simple_40_without, "simple_40_without")[2],
+    check_problematic(fit_complex_40_without, "complex_40_without")[2]
+  )
+)
+
+knitr::kable(reloo_comparison,
+             caption = paste0("Problematic Observations by Model and Scenario (threshold k > ", k_threshold, ")"),
+             col.names = c("Scenario", "Model", paste0("Problematic (k>", k_threshold, ")"), "Max k"),
+             align = c("l", "l", "r", "r"),
+             digits = 3)
+
+# Create comparison table for ELPD and ratios
+comparison_changes <- data.frame(
+  Scenario = c("n=100, WITH RE", "n=100, WITHOUT RE", "n=40, WITH RE", "n=40, WITHOUT RE"),
+  Original_ELPD = c(original_elpd_100_with, original_elpd_100_without, 
+                    original_elpd_40_with, original_elpd_40_without),
+  Reloo_ELPD = c(reloo_elpd_100_with, reloo_elpd_100_without,
+                 reloo_elpd_40_with, reloo_elpd_40_without),
+  ELPD_Change = c(
+    reloo_elpd_100_with - original_elpd_100_with,
+    reloo_elpd_100_without - original_elpd_100_without,
+    reloo_elpd_40_with - original_elpd_40_with,
+    reloo_elpd_40_without - original_elpd_40_without
+  ),
+  Original_Ratio = c(original_ratio_100_with, original_ratio_100_without,
+                     original_ratio_40_with, original_ratio_40_without),
+  Reloo_Ratio = c(reloo_ratio_100_with, reloo_ratio_100_without,
+                  reloo_ratio_40_with, reloo_ratio_40_without),
+  Ratio_Change = c(
+    reloo_ratio_100_with - original_ratio_100_with,
+    reloo_ratio_100_without - original_ratio_100_without,
+    reloo_ratio_40_with - original_ratio_40_with,
+    reloo_ratio_40_without - original_ratio_40_without
+  )
+)
+
+knitr::kable(comparison_changes,
+             caption = "Impact of Exact LOO Refitting on Model Comparison",
+             col.names = c("Scenario", "Original |ELPD Δ|", "Reloo |ELPD Δ|", "ELPD Change", 
+                          "Original Ratio", "Reloo Ratio", "Ratio Change"),
+             align = c("l", "r", "r", "r", "r", "r", "r"),
+             digits = 2)
+```
+
+**Key findings:**
+
+- **Both models checked**: Simple and complex models are both refitted if they exceed threshold (k > 0.7 by default)
+- **ELPD changes**: Shows how the difference between models changed after exact LOO
+- **Ratio changes**: Shows if the strength of evidence changed (ratio = |ELPD Δ| / SE)
+- **Typical pattern**: Changes are usually small (< 1 ELPD unit) unless observations are very influential
+- **Interpretation**: Large changes suggest the original PSIS-LOO approximation was unreliable
+- **Conservative option**: Set `k_threshold <- 0.5` at the top of this section to refit more observations (slower but more accurate)
 
 # Comparing WAIC and LOO
 
@@ -1089,6 +1269,381 @@ knitr::kable(ranking_comparison,
 - **Rankings identical**: Both methods agree - conclusions are robust
 - **Small differences in values**: Normal - both methods have uncertainty
 - **Rankings differ**: Investigate! Check Pareto k diagnostics and look for influential observations
+
+# Cross-Validation Variants
+
+Different CV strategies for different research questions:
+
+**LOO (Leave-One-Out):**
+
+- Default choice
+- For general predictive performance
+- Treats all observations as exchangeable
+
+**K-fold CV:**
+
+- Split data into K groups
+- For multilevel models: sample from groups
+- Useful for: predicting unseen data from existing subjects
+
+**LOGO-CV (Leave-One-Group-Out):**
+
+- Leave out entire groups (e.g., subjects)
+- Tests generalization to **new subjects from the same population**
+- Answers: "How well can we predict for unseen subjects?"
+- Most conservative - isolates data from different subjects
+
+```{r cv-variants-table}
+cv_methods <- data.frame(
+  Method = c("loo()", "kfold(K=10)", 
+             "kfold(K=5, folds='grouped', group='subject')", 
+             "kfold(group='subject')"),
+  Description = c(
+    "Leave-one-out (approximate)",
+    "K-fold (random split)",
+    "K-fold (grouped subjects, ~2 per fold)",
+    "True LOGO (each subject = 1 fold)"
+  ),
+  Use_Case = c(
+    "General predictive performance",
+    "Unseen observations (any subject)",
+    "Grouped prediction task",
+    "New subjects from same population"
+  )
+)
+
+knitr::kable(cv_methods,
+             caption = "Cross-Validation Variants in brms",
+             col.names = c("Method", "Description", "Use Case"))
+```
+
+**Technical note on fold construction:**
+
+- **`kfold(K=10)`**: Random split into K folds using `loo::kfold_split_random()`
+- **`kfold(folds="stratified", group="x")`**: Stratified by variable x using `loo::kfold_split_stratified()`  
+- **`kfold(K=5, folds="grouped", group="subject")`**: Groups 10 subjects into 5 folds (~2 subjects per fold) using `loo::kfold_split_grouped()`
+- **`kfold(group="subject")`**: True LOGO - each unique subject becomes one fold (K=10, ignores K parameter)
+
+## Comparing CV Variants: Do Prediction Goals Matter?
+
+We'll compare all three CV methods on the n=100 WITH RE scenario to see how different prediction goals affect model selection.
+
+**Why K-fold and LOGO are fast:** Unlike traditional CV where you refit the model K times from scratch, `kfold()` in brms uses **approximate leave-out** via importance sampling (similar to LOO). It only refits observations with high Pareto k values. This means:
+
+- **Fast**: Completes in seconds instead of hours
+- **Accurate**: Exact refitting only when needed (high k values)
+- **Efficient**: Reuses posterior samples from the original model fit
+
+For most folds, the approximation works well. When it doesn't (k > 0.7), brms automatically switches to exact refitting for just those problematic folds.
+
+```{r cv-variants-compute}
+#| cache: false
+
+# Helper function to compute or load K-fold CV (random split)
+compute_kfold <- function(fit_obj, fit_name, K = 10) {
+  filepath <- paste0("fits/", fit_name, "_kfold", K, ".rds")
+  
+  if (file.exists(filepath)) {
+    cat(sprintf("Loading cached %d-fold CV for %s\n", K, fit_name))
+    return(readRDS(filepath))
+  } else {
+    cat(sprintf("Computing %d-fold CV for %s (this may take 5-10 minutes...)\n", K, fit_name))
+    # Random split into K folds of approximately equal size
+    kfold_result <- kfold(fit_obj, K = K, folds = NULL, cores = 4)
+    saveRDS(kfold_result, filepath)
+    return(kfold_result)
+  }
+}
+
+# Helper function to compute or load K-fold CV with grouped subjects
+# Uses custom fold assignment to work with ANY model (not just those with subject RE)
+compute_kfold_grouped <- function(fit_obj, fit_name, data, K = 5) {
+  filepath <- paste0("fits/", fit_name, "_kfold", K, "_grouped.rds")
+  
+  if (file.exists(filepath)) {
+    cat(sprintf("Loading cached %d-fold grouped CV for %s\n", K, fit_name))
+    return(readRDS(filepath))
+  } else {
+    cat(sprintf("Computing %d-fold grouped CV for %s (this may take 5-10 minutes...)\n", K, fit_name))
+    # Create custom fold assignment: split subjects into K groups
+    # Use kfold_split_grouped() from loo package
+    fold_ids <- loo::kfold_split_grouped(K = K, x = data$subject)
+    kfold_result <- kfold(fit_obj, folds = fold_ids, cores = 4)
+    saveRDS(kfold_result, filepath)
+    return(kfold_result)
+  }
+}
+
+# Helper function to compute or load true LOGO-CV (leave-one-group-out by subject)
+# Uses custom fold assignment to work with ANY model
+compute_logo <- function(fit_obj, fit_name, data) {
+  filepath <- paste0("fits/", fit_name, "_logo_subject.rds")
+  
+  if (file.exists(filepath)) {
+    cat(sprintf("Loading cached LOGO-CV for %s\n", fit_name))
+    return(readRDS(filepath))
+  } else {
+    cat(sprintf("Computing LOGO-CV for %s (this may take 10-20 minutes...)\n", fit_name))
+    # Create custom fold assignment: one fold per subject
+    # Each unique subject ID becomes a fold number
+    fold_ids <- as.integer(data$subject)
+    logo_result <- kfold(fit_obj, folds = fold_ids, cores = 4)
+    saveRDS(logo_result, filepath)
+    return(logo_result)
+  }
+}
+
+# Compute K-fold CV (random split) for n=100 WITH RE scenario (all three models)
+kfold_simple_100 <- compute_kfold(fit_simple_100_with, "fit_simple_100_with", K = 10)
+kfold_medium_100 <- compute_kfold(fit_medium_100_with, "fit_medium_100_with", K = 10)
+kfold_complex_100 <- compute_kfold(fit_complex_100_with, "fit_complex_100_with", K = 10)
+
+# Compute K-fold CV (grouped by subject) and LOGO for n=100 WITH RE scenario (all three models)
+# Using custom fold assignments based on subject IDs - works for any model!
+kfold_grouped_simple_100 <- compute_kfold_grouped(fit_simple_100_with, "fit_simple_100_with", rt_data_100_with, K = 5)
+kfold_grouped_medium_100 <- compute_kfold_grouped(fit_medium_100_with, "fit_medium_100_with", rt_data_100_with, K = 5)
+kfold_grouped_complex_100 <- compute_kfold_grouped(fit_complex_100_with, "fit_complex_100_with", rt_data_100_with, K = 5)
+
+logo_simple_100 <- compute_logo(fit_simple_100_with, "fit_simple_100_with", rt_data_100_with)
+logo_medium_100 <- compute_logo(fit_medium_100_with, "fit_medium_100_with", rt_data_100_with)
+logo_complex_100 <- compute_logo(fit_complex_100_with, "fit_complex_100_with", rt_data_100_with)
+
+# Store the LOO results we already have (from section 2.1)
+loo_simple_100 <- fit_simple_100_with$criteria$loo
+loo_medium_100 <- fit_medium_100_with$criteria$loo
+loo_complex_100 <- fit_complex_100_with$criteria$loo
+```
+
+### Visualizing CV Variant Results
+
+```{r plot-cv-variants}
+#| fig.width: 10
+#| fig.height: 5
+
+# Create comparison data frame for all four CV methods
+# Using custom fold assignments, all methods now work for all three models!
+cv_comparison <- data.frame(
+  Method = rep(c("LOO", "K-fold (random)", "K-fold (grouped)", "LOGO (by subject)"), each = 3),
+  Model = rep(c("Simple", "Medium (RI only)", "Complex (RI+RS)"), 4),
+  ELPD = c(
+    loo_simple_100$estimates["elpd_loo", "Estimate"],
+    loo_medium_100$estimates["elpd_loo", "Estimate"],
+    loo_complex_100$estimates["elpd_loo", "Estimate"],
+    kfold_simple_100$estimates["elpd_kfold", "Estimate"],
+    kfold_medium_100$estimates["elpd_kfold", "Estimate"],
+    kfold_complex_100$estimates["elpd_kfold", "Estimate"],
+    kfold_grouped_simple_100$estimates["elpd_kfold", "Estimate"],
+    kfold_grouped_medium_100$estimates["elpd_kfold", "Estimate"],
+    kfold_grouped_complex_100$estimates["elpd_kfold", "Estimate"],
+    logo_simple_100$estimates["elpd_kfold", "Estimate"],
+    logo_medium_100$estimates["elpd_kfold", "Estimate"],
+    logo_complex_100$estimates["elpd_kfold", "Estimate"]
+  ),
+  SE = c(
+    loo_simple_100$estimates["elpd_loo", "SE"],
+    loo_medium_100$estimates["elpd_loo", "SE"],
+    loo_complex_100$estimates["elpd_loo", "SE"],
+    kfold_simple_100$estimates["elpd_kfold", "SE"],
+    kfold_medium_100$estimates["elpd_kfold", "SE"],
+    kfold_complex_100$estimates["elpd_kfold", "SE"],
+    kfold_grouped_simple_100$estimates["elpd_kfold", "SE"],
+    kfold_grouped_medium_100$estimates["elpd_kfold", "SE"],
+    kfold_grouped_complex_100$estimates["elpd_kfold", "SE"],
+    logo_simple_100$estimates["elpd_kfold", "SE"],
+    logo_medium_100$estimates["elpd_kfold", "SE"],
+    logo_complex_100$estimates["elpd_kfold", "SE"]
+  )
+) %>%
+  mutate(
+    Method = factor(Method, levels = c("LOO", "K-fold (random)", "K-fold (grouped)", "LOGO (by subject)")),
+    Model = factor(Model, levels = c("Simple", "Medium (RI only)", "Complex (RI+RS)"))
+  )
+
+# Determine winner for each method
+cv_comparison <- cv_comparison %>%
+  group_by(Method) %>%
+  mutate(is_winner = ELPD == max(ELPD)) %>%
+  ungroup()
+
+# Create plot with method as color/shape
+ggplot(cv_comparison, aes(x = ELPD, y = Model, color = Method, shape = Method)) +
+  geom_pointrange(
+    aes(xmin = ELPD - SE, xmax = ELPD + SE),
+    size = 1,
+    position = position_dodge(width = 0.5)
+  ) +
+  scale_color_manual(
+    values = c("LOO" = "#E69F00", "K-fold (random)" = "#56B4E9", 
+               "K-fold (grouped)" = "#0072B2", "LOGO (by subject)" = "#009E73"),
+    name = "CV Method"
+  ) +
+  scale_shape_manual(
+    values = c("LOO" = 16, "K-fold (random)" = 17, 
+               "K-fold (grouped)" = 18, "LOGO (by subject)" = 15),
+    name = "CV Method"
+  ) +
+  labs(
+    title = "ELPD Comparison Across CV Variants and Model Complexity (n=100, WITH RE)",
+    subtitle = "Simple = no RE | Medium = random intercepts only | Complex = random intercepts + slopes | Error bars show ±1 SE",
+    x = "ELPD ± SE",
+    y = "Model"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "right",
+    panel.grid.major.y = element_blank()
+  )
+```
+
+```{r cv-table}
+# Create a nicely formatted table of the CV results
+cv_table <- cv_comparison %>%
+  select(Method, Model, ELPD, SE) %>%
+  arrange(Method, desc(ELPD))
+
+knitr::kable(
+  cv_table,
+  digits = 1,
+  caption = "ELPD estimates with standard errors for all CV methods and models",
+  col.names = c("CV Method", "Model", "ELPD", "SE")
+)
+```
+
+**Key observation from the table**: The difference between Medium and Complex models is much larger for LOO and K-fold (random) (~17 ELPD) compared to K-fold (grouped) and LOGO (~3-4 ELPD). Why?
+
+**Explanation**: This reveals what random slopes actually help with:
+
+- **LOO/K-fold (random)**: Test prediction for **new observations from subjects already in the training data**
+  - When predicting a left-out observation, the model has already seen other data points from that same subject
+  - For the Complex model, it can use the learned subject-specific slopes to make better predictions
+  - For the Medium model, it only knows the subject's baseline (intercept) but not their specific response pattern
+  - **Result**: Large advantage for Complex (~17 ELPD) because subject-specific slopes greatly improve within-subject prediction
+
+- **K-fold (grouped)/LOGO**: Test prediction for **completely unseen subjects**
+  - When predicting for a new subject, the model has zero observations from that subject
+  - Both Medium and Complex models must rely on population-level estimates only
+  - Random slopes help somewhat (Complex learns more about population variability structure)
+  - **Result**: Smaller advantage for Complex (~3-4 ELPD) because without subject-specific data, the benefit of slopes is limited to better population-level modeling
+
+
+**Technical approach**: To enable subject-based grouping for **both** models (including the simple model without random effects), we use **custom fold assignments** created with `loo::kfold_split_grouped()` and pass them via the `folds` parameter. This allows us to answer the important question: "How well does the simple model (which pools subjects) generalize to new subjects compared to the complex model (which accounts for subject variability)?"
+
+### Comparing Winners Across CV Methods
+
+```{r cv-winners-table}
+# Calculate differences and ratios for each method
+cv_results <- data.frame(
+  Method = c("LOO", "K-fold (random)", "K-fold (grouped)", "LOGO (by subject)"),
+  Winner = c("Complex", "Complex", "Complex", "Complex"),
+  ELPD_diff = c(
+    abs(loo_complex_100$estimates["elpd_loo", "Estimate"] - 
+        loo_simple_100$estimates["elpd_loo", "Estimate"]),
+    abs(kfold_complex_100$estimates["elpd_kfold", "Estimate"] - 
+        kfold_simple_100$estimates["elpd_kfold", "Estimate"]),
+    abs(kfold_grouped_complex_100$estimates["elpd_kfold", "Estimate"] - 
+        kfold_grouped_simple_100$estimates["elpd_kfold", "Estimate"]),
+    abs(logo_complex_100$estimates["elpd_kfold", "Estimate"] - 
+        logo_simple_100$estimates["elpd_kfold", "Estimate"])
+  )
+)
+
+# Calculate SE of differences (approximate)
+cv_results$SE_diff <- c(
+  sqrt(loo_simple_100$estimates["elpd_loo", "SE"]^2 + 
+       loo_complex_100$estimates["elpd_loo", "SE"]^2),
+  sqrt(kfold_simple_100$estimates["elpd_kfold", "SE"]^2 + 
+       kfold_complex_100$estimates["elpd_kfold", "SE"]^2),
+  sqrt(kfold_grouped_simple_100$estimates["elpd_kfold", "SE"]^2 + 
+       kfold_grouped_complex_100$estimates["elpd_kfold", "SE"]^2),
+  sqrt(logo_simple_100$estimates["elpd_kfold", "SE"]^2 + 
+       logo_complex_100$estimates["elpd_kfold", "SE"]^2)
+)
+
+cv_results$Ratio <- cv_results$ELPD_diff / cv_results$SE_diff
+
+cv_results$Interpretation <- ifelse(cv_results$Ratio < 2, "Weak evidence",
+                              ifelse(cv_results$Ratio < 4, "Moderate evidence",
+                              ifelse(cv_results$Ratio < 10, "Strong evidence",
+                                     "Very strong evidence")))
+
+knitr::kable(cv_results,
+             caption = "Model Comparison Across CV Variants (n=100, WITH RE)",
+             col.names = c("CV Method", "Winner", "|ELPD Δ|", "SE", "Ratio", "Interpretation"),
+             align = c("l", "l", "r", "r", "r", "l"),
+             digits = 2,
+             row.names = FALSE)
+```
+
+**Key insights:**
+
+- **Three model types tested**: 
+  - **Simple**: No random effects (pools all subjects)
+  - **Medium**: Random intercepts only `(1 | subject) + (1 | item)`
+  - **Complex**: Random intercepts + slopes `(1 + condition | subject) + (1 | item)`
+- **All CV methods work for all models**: Using custom fold assignments enables subject-based grouping for any model
+- **Clear progression**: Medium consistently better than Simple; Complex best across all CV methods
+- **CV method characteristics**:
+  - **LOO**: Most optimistic (smallest SE) - general predictive performance
+  - **K-fold (random)**: Some subjects in multiple folds
+  - **K-fold (grouped)**: 10 subjects split into 5 groups (~2 per fold)
+  - **LOGO**: Each subject = one fold (10 folds total) - most conservative
+- **Pattern**: As CV becomes more conservative (more subject isolation), uncertainty increases
+- **Random slopes matter**: Complex model's advantage over Medium shows that subject-specific condition effects improve generalization
+
+**Understanding LOGO-CV:**
+
+LOGO-CV addresses a fundamentally different research question: **"How well does the model generalize to unseen subjects from the same population?"** 
+
+The key distinction:
+
+- **K-fold with stratification**: Ensures data from all subjects in each fold → tests prediction for new observations from these specific subjects
+- **LOGO-CV**: Completely isolates different subjects → tests prediction for new subjects we haven't seen yet
+
+For models with subject-specific random effects, LOGO-CV is inherently more challenging because:
+
+1. When leaving out an entire subject, the model has zero observations to estimate that subject's random effects
+2. Predictions rely only on population-level parameters (fixed effects and random effect standard deviations)
+3. This tests whether the model can generalize beyond the specific subjects in the training data
+
+**Critical interpretation**: Lower absolute ELPD values in LOGO compared to LOO don't indicate a "bad" model - they reflect the inherent difficulty of predicting for completely new individuals. The **relative comparison** between models is what matters. If model differences remain consistent across CV methods, your conclusions are robust across different prediction scenarios.
+
+### When to Use Each Method
+
+```{r cv-method-choice}
+cv_guidance <- data.frame(
+  Scenario = c(
+    "Testing experimental effects",
+    "Building predictive model for same subjects",
+    "Generalizing to new subjects in same population",
+    "Clinical/applied prediction for new individuals"
+  ),
+  Recommended_CV = c(
+    "LOO",
+    "K-fold",
+    "LOGO",
+    "LOGO"
+  ),
+  Reason = c(
+    "Efficient; random effects are nuisance parameters",
+    "Captures uncertainty about specific observations",
+    "Tests capacity to predict for unseen subjects",
+    "Most relevant for real-world application"
+  )
+)
+
+knitr::kable(cv_guidance,
+             caption = "Choosing the Right CV Method for Your Research Question",
+             col.names = c("Research Scenario", "CV Method", "Why"),
+             align = c("l", "l", "l"))
+```
+
+**Important considerations for LOGO-CV:**
+
+- **When appropriate**: Random effects represent exchangeable groups (subjects, items) from a larger population
+- **What it tests**: Can the model generalize to new groups from the same population?
+- **Key assumption**: Groups are exchangeable conditional on available covariates
+- **Practical note**: For unbalanced designs or groups with few observations, LOGO may show high uncertainty or computational instability
+- **Interpretation**: Focus on relative model comparisons, not absolute ELPD values
 
 # Summary and Best Practices
 
