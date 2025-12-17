@@ -23,15 +23,14 @@ slurm-*.out
 .RData
 .Ruserdata
 *.Rproj
-*_cache/
-*_files/
 
-# Quarto
+# Quarto - but keep rendered output for GitHub Pages
 /.quarto/
 _site/
-*_cache/
-*_files/
 *.knit.md
+
+# Cache files (keep separate from _files which contains assets)
+*_cache/
 
 # R package development
 *.tar.gz
