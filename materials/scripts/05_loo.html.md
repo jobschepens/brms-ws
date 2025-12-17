@@ -17,7 +17,7 @@ format:
     toc: true
     number-sections: true
     colorlinks: true
-    code-fold: false
+    echo: false
     keep-md: false
 execute:
   cache: true
@@ -955,8 +955,59 @@ p4 <- plot_model_weights(fit_simple_40_without, fit_complex_40_without, "n=40, W
 :::
 :::
 
+::: {.cell}
+
+```{.r .cell-code}
+# Create table of model weights for all scenarios
+weights_table <- data.frame(
+  Scenario = rep(c("n=100, WITH RE", "n=100, WITHOUT RE", "n=40, WITH RE", "n=40, WITHOUT RE"), each = 2),
+  Model = rep(c("Simple", "Complex"), 4),
+  Weight = c(
+    as.numeric(model_weights(fit_simple_100_with, fit_complex_100_with, weights = "loo")),
+    as.numeric(model_weights(fit_simple_100_without, fit_complex_100_without, weights = "loo")),
+    as.numeric(model_weights(fit_simple_40_with, fit_complex_40_with, weights = "loo")),
+    as.numeric(model_weights(fit_simple_40_without, fit_complex_40_without, weights = "loo"))
+  )
+)
+
+knitr::kable(
+  weights_table,
+  digits = 3,
+  caption = "Model weights (stacking) across all scenarios",
+  col.names = c("Scenario", "Model", "Weight")
+)
+```
+
+::: {.cell-output-display}
 
 
+Table: Model weights (stacking) across all scenarios
+
+|Scenario          |Model   | Weight|
+|:-----------------|:-------|------:|
+|n=100, WITH RE    |Simple  |  0.000|
+|n=100, WITH RE    |Complex |  1.000|
+|n=100, WITHOUT RE |Simple  |  0.896|
+|n=100, WITHOUT RE |Complex |  0.104|
+|n=40, WITH RE     |Simple  |  0.000|
+|n=40, WITH RE     |Complex |  1.000|
+|n=40, WITHOUT RE  |Simple  |  0.835|
+|n=40, WITHOUT RE  |Complex |  0.165|
+
+
+:::
+:::
+
+
+
+
+**Interpreting model weights:**
+
+- **Weight ≈ 1.0**: Very high confidence in this model (it dominates predictions)
+- **Weight ≈ 0.5**: Models are roughly equivalent (uncertain which is better)
+- **Weight < 0.1**: Very low confidence (model contributes little to predictions)
+
+Model weights represent the optimal combination of models for predictions. When one model has weight ≈ 1.0, LOO is very confident that model is superior.
 
 ### Plot 4: Pareto k Diagnostics (2×2 Grid)
 
@@ -1713,7 +1764,7 @@ waic_comp_100_without <- loo_compare(fit_simple_100_without, fit_complex_100_wit
 waic_comp_40_with <- loo_compare(fit_simple_40_with, fit_complex_40_with, criterion = "waic")
 waic_comp_40_without <- loo_compare(fit_simple_40_without, fit_complex_40_without, criterion = "waic")
 
-# Create comparison table
+# Create comparison table with actual values
 ranking_comparison <- data.frame(
   Scenario = c("n=100, WITH RE", "n=100, WITHOUT RE", "n=40, WITH RE", "n=40, WITHOUT RE"),
   WAIC_Winner = c(
@@ -1722,11 +1773,23 @@ ranking_comparison <- data.frame(
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(waic_comp_40_with)[1]),
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(waic_comp_40_without)[1])
   ),
+  WAIC_Value = c(
+    fit_complex_100_with$criteria$waic$estimates["elpd_waic", "Estimate"],
+    fit_complex_100_without$criteria$waic$estimates["elpd_waic", "Estimate"],
+    fit_complex_40_with$criteria$waic$estimates["elpd_waic", "Estimate"],
+    fit_simple_40_without$criteria$waic$estimates["elpd_waic", "Estimate"]
+  ),
   LOO_Winner = c(
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(loo_comp_100_with)[1]),
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(loo_comp_100_without)[1]),
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(loo_comp_40_with)[1]),
     gsub("fit_|_100_with|_100_without|_40_with|_40_without", "", rownames(loo_comp_40_without)[1])
+  ),
+  LOO_Value = c(
+    fit_complex_100_with$criteria$loo$estimates["elpd_loo", "Estimate"],
+    fit_complex_100_without$criteria$loo$estimates["elpd_loo", "Estimate"],
+    fit_complex_40_with$criteria$loo$estimates["elpd_loo", "Estimate"],
+    fit_simple_40_without$criteria$loo$estimates["elpd_loo", "Estimate"]
   )
 ) %>%
   mutate(
@@ -1737,8 +1800,9 @@ ranking_comparison <- data.frame(
 
 knitr::kable(ranking_comparison,
              caption = "Model Rankings: WAIC vs LOO Across Scenarios",
-             col.names = c("Scenario", "WAIC Winner", "LOO Winner", "Agreement"),
-             align = c("l", "l", "l", "c"))
+             col.names = c("Scenario", "WAIC Winner", "ELPD (WAIC)", "LOO Winner", "ELPD (LOO)", "Agreement"),
+             align = c("l", "l", "r", "l", "r", "c"),
+             digits = 1)
 ```
 
 ::: {.cell-output-display}
@@ -1746,12 +1810,12 @@ knitr::kable(ranking_comparison,
 
 Table: Model Rankings: WAIC vs LOO Across Scenarios
 
-|Scenario          |WAIC Winner |LOO Winner | Agreement |
-|:-----------------|:-----------|:----------|:---------:|
-|n=100, WITH RE    |Complex     |Complex    |  ✓ Agree  |
-|n=100, WITHOUT RE |Simple      |Simple     |  ✓ Agree  |
-|n=40, WITH RE     |Complex     |Complex    |  ✓ Agree  |
-|n=40, WITHOUT RE  |Simple      |Simple     |  ✓ Agree  |
+|Scenario          |WAIC Winner | ELPD (WAIC)|LOO Winner | ELPD (LOO)| Agreement |
+|:-----------------|:-----------|-----------:|:----------|----------:|:---------:|
+|n=100, WITH RE    |Complex     |        49.4|Complex    |       48.4|  ✓ Agree  |
+|n=100, WITHOUT RE |Simple      |       -42.1|Simple     |      -42.4|  ✓ Agree  |
+|n=40, WITH RE     |Complex     |         6.9|Complex    |        5.9|  ✓ Agree  |
+|n=40, WITHOUT RE  |Simple      |       -10.4|Simple     |      -10.4|  ✓ Agree  |
 
 
 :::
@@ -2177,24 +2241,16 @@ Table: ELPD estimates with standard errors for all CV methods and models
 
 
 
-**Key observation from the table**: The difference between Medium and Complex models is much larger for LOO and K-fold (random) (~17 ELPD) compared to K-fold (grouped) and LOGO (~3-4 ELPD). Why?
-
-**Explanation**: This reveals what random slopes actually help with:
+**Finding:**: The difference between Medium and Complex models is much larger for LOO and K-fold (random) (~17 ELPD) compared to K-fold (grouped) and LOGO (~3-4 ELPD). Why?
 
 - **LOO/K-fold (random)**: Test prediction for **new observations from subjects already in the training data**
   - When predicting a left-out observation, the model has already seen other data points from that same subject
-  - For the Complex model, it can use the learned subject-specific slopes to make better predictions
-  - For the Medium model, it only knows the subject's baseline (intercept) but not their specific response pattern
-  - **Result**: Large advantage for Complex (~17 ELPD) because subject-specific slopes greatly improve within-subject prediction
 
 - **K-fold (grouped)/LOGO**: Test prediction for **completely unseen subjects**
   - When predicting for a new subject, the model has zero observations from that subject
   - Both Medium and Complex models must rely on population-level estimates only
-  - Random slopes help somewhat (Complex learns more about population variability structure)
-  - **Result**: Smaller advantage for Complex (~3-4 ELPD) because without subject-specific data, the benefit of slopes is limited to better population-level modeling
 
-
-**Technical approach**: To enable subject-based grouping for **both** models (including the simple model without random effects), we use **custom fold assignments** created with `loo::kfold_split_grouped()` and pass them via the `folds` parameter. This allows us to answer the important question: "How well does the simple model (which pools subjects) generalize to new subjects compared to the complex model (which accounts for subject variability)?"
+**Technical approach**: To enable subject-based grouping for the **simple** models (model without random effects), we use **custom fold assignments** created with `loo::kfold_split_grouped()` and pass them via the `folds` parameter. This allows us to answer how well the simple model (which pools subjects) generalizes to new subjects compared to the complex model (which accounts for subject variability).
 
 ### Comparing Winners Across CV Methods
 
@@ -2284,19 +2340,6 @@ Table: Model Comparison Across CV Variants (n=100, WITH RE)
 
 **Understanding LOGO-CV:**
 
-LOGO-CV addresses a fundamentally different research question: **"How well does the model generalize to unseen subjects from the same population?"** 
-
-The key distinction:
-
-- **K-fold with stratification**: Ensures data from all subjects in each fold → tests prediction for new observations from these specific subjects
-- **LOGO-CV**: Completely isolates different subjects → tests prediction for new subjects we haven't seen yet
-
-For models with subject-specific random effects, LOGO-CV is inherently more challenging because:
-
-1. When leaving out an entire subject, the model has zero observations to estimate that subject's random effects
-2. Predictions rely only on population-level parameters (fixed effects and random effect standard deviations)
-3. This tests whether the model can generalize beyond the specific subjects in the training data
-
 **Critical interpretation**: Lower absolute ELPD values in LOGO compared to LOO don't indicate a "bad" model - they reflect the inherent difficulty of predicting for completely new individuals. The **relative comparison** between models is what matters. If model differences remain consistent across CV methods, your conclusions are robust across different prediction scenarios.
 
 ### When to Use Each Method
@@ -2353,13 +2396,6 @@ Table: Choosing the Right CV Method for Your Research Question
 
 
 
-**Important considerations for LOGO-CV:**
-
-- **When appropriate**: Random effects represent exchangeable groups (subjects, items) from a larger population
-- **What it tests**: Can the model generalize to new groups from the same population?
-- **Key assumption**: Groups are exchangeable conditional on available covariates
-- **Practical note**: For unbalanced designs or groups with few observations, LOGO may show high uncertainty or computational instability
-- **Interpretation**: Focus on relative model comparisons, not absolute ELPD values
 
 # Summary and Best Practices
 
@@ -2371,53 +2407,121 @@ Table: Choosing the Right CV Method for Your Research Question
 - Feature selection (which predictors to include?)
 - Comparing different likelihoods (Gaussian vs. Student-t)
 - Choosing between regularizing vs. non-regularizing priors
+- Prediction (versus explanation / in-sample) tasks
 
-**❌ Don't use LOO for:**
+**Why not use LOO for hypothesis testing?**
 
-- Testing specific scientific hypotheses (use posterior distributions)
-- Comparing very similar models (differences may not be meaningful)
-- With very small samples (k < 20 per group)
+LOO answers: "Which model predicts better?" - a question about **out-of-sample prediction**.
+
+But scientific hypotheses are about **in-sample effects**:
+
+- "Does condition B produce longer RTs than condition A?" → Use posterior distribution of the condition effect
+- "Is the effect significant?" → Calculate `P(β > 0 | data)` from posterior samples
+- "How large is the effect?" → Report posterior mean/median and 95% credible interval
+
+**Example distinction:**
+
+```r
+# ❌ Wrong approach: Using LOO to test if condition matters
+fit_with_condition <- brm(rt ~ condition + (1|subject), ...)
+fit_without_condition <- brm(rt ~ 1 + (1|subject), ...)
+loo_compare(fit_with_condition, fit_without_condition)
+# Problem: Even if model with condition predicts better, this doesn't 
+# quantify the effect size or provide uncertainty about the parameter
+
+# ✅ Correct approach: Using posterior to test condition effect
+fit <- brm(rt ~ condition + (1|subject), ...)
+posterior_samples <- as_draws_df(fit)
+mean(posterior_samples$b_conditionB > 0)  # Probability effect is positive
+quantile(posterior_samples$b_conditionB, c(0.025, 0.975))  # 95% CI
+```
 
 ## Workflow Recommendations
 
-**Step 1: Prior sensitivity analysis**
+### Complete Workflow 
 
-- Fit same model with different reasonable priors
-- Check if conclusions are robust
-- See `04_comparing_priors_rt.qmd`
+Useful for:
+- First-time analysis of a new data type or domain
+- Publications, dissertations
+- When prior specification is contentious or novel
+- Demonstrating methodological rigor
 
-**Step 2: Model comparison with LOO**
+**Step 1: Setting priors** (`01_setting_priors.qmd`)
+
+- Define domain-appropriate priors
+- Consider weakly informative vs. informative priors
+- Document prior rationale
+
+**Step 2: Prior predictive checks** (`02_prior_predictive_checks.qmd`)
+
+- Simulate data from priors only (no observations)
+- Verify priors generate plausible data ranges
+- Catch unreasonable prior specifications
+
+**Step 3: Fit model and check convergence** (later?)
+
+- Fit model with data
+- Check Rhat (< 1.01), ESS (> 400)
+- Inspect trace plots if needed
+
+**Step 4: Posterior predictive checks** (`03_posterior_predictive_checks.qmd`)
+
+- Compare observed data to model predictions
+- Check mean, SD, quantiles, and other test statistics
+- Identify model misspecification
+
+**Step 5: Sensitivity analysis** (`04_comparing_priors_rt.qmd`)
+
+- Refit with alternative reasonable priors
+- Compare posterior distributions
+- Verify conclusions are robust to prior choice
+
+**Step 6: Model comparison with LOO** (`05_loo.qmd`)
 
 - Compare different model structures
-- Choose best model using ELPD difference
+- Use ELPD differences and model weights
 - Check Pareto k diagnostics
 
-**Step 3: Final model validation**
+**Step 7: Hypothesis testing with ROPE (7 January 2026) and Bayes Factors (15 April 2026)**  
 
-- Posterior predictive checks
-- Check convergence diagnostics
-- Report model comparison results
+- Extract posterior distributions for parameters of interest
+- Calculate credible intervals
+- Use ROPE (Region of Practical Equivalence) for equivalence testing
+- Bayes factors for specific hypothesis comparisons (if needed)
+
+### A Faster Workflow / Taking Shortcuts
+
+1. **Set priors** - Use validated weakly informative defaults from previous work
+2. **Fit model** - Standard model structure
+3. **Check convergence** - Quick check: Rhat < 1.01, ESS > 400
+4. **Posterior predictive checks** - Always verify model captures data features
+5. **Interpret parameters** - Posterior means/medians and credible intervals
+
+**Add when needed:**
+
+- **Prior predictive checks** - Only when using new informative priors
+- **Sensitivity analysis** - When results are unexpected or borderline
+- **LOO** - Only when comparing multiple plausible model structures
+- **ROPE/Bayes factors** - Only when equivalence testing or null hypothesis quantification is required
+
 
 ## Reporting LOO Results
 
 **Minimal reporting:**
 
 ```
-We compared three models using LOO-CV: simple (random intercepts only),
-complex (random slopes for subjects), and full (random slopes for both 
-subjects and items). The complex model showed the best predictive 
-performance (ELPD = 105.2), outperforming the simple model by 5.2 
-(SE = 2.1, ratio = 2.5). All Pareto k values were < 0.5, indicating 
-reliable estimates.
+We compared three models using LOO-CV on n=100 observations: simple 
+(no random effects), medium (random intercepts for subjects and items), 
+and complex (random intercepts plus random slopes for condition by 
+subject). The complex model showed the best predictive performance 
+(ELPD = 48.4, SE = 7.0), substantially outperforming the medium model 
+(ELPD = 31.3, SE = 7.8) and the simple model (ELPD = -68.8, SE = 7.3). 
+The difference between complex and simple models was 117.2 ELPD units 
+(SE = 10.1, ratio = 11.6), providing very strong evidence for the 
+complex model. Only 1 of 100 observations had Pareto k > 0.7, indicating 
+generally reliable LOO estimates.
 ```
 
-**Complete reporting:**
-
-- ELPD differences and standard errors
-- Model weights
-- Pareto k diagnostics
-- Interpretation of ratios
-- Reasoning for final model choice
 
 ## Session Info
 
