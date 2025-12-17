@@ -20,6 +20,10 @@ format:
     keep-md: false
 ---
 
+
+
+
+
 # Setting Priors in brms (20 min)
 
 ## Default vs. Weakly Informative Priors
@@ -43,8 +47,12 @@ $$\text{posterior} \propto \text{likelihood} \times \text{prior}$$
 
 This is important: The default intercept prior depends on `mean(y)`. Let's see this in action:
 
-```{r setup, message=FALSE, warning=FALSE}
-#| label: setup
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
 library(brms)
 library(tidyverse)
 
@@ -67,35 +75,192 @@ rt_data_extreme <- data.frame(
   log_rt = rnorm(200, mean = 10, sd = 2)
 )
 ```
+:::
+
+
+
 
 Now let's check what default priors brms suggests:
 
-```{r check-defaults}
-#| label: check-default-priors
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
 cat("\n=== DEFAULT PRIORS: Typical RT data (mean log-RT ≈ 6) ===\n\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+
+=== DEFAULT PRIORS: Typical RT data (mean log-RT ≈ 6) ===
+```
+
+
+:::
+
+```{.r .cell-code}
 rt_priors_typical <- get_prior(
   log_rt ~ condition + (1 + condition | subject) + (1 | item),
   data = rt_data_typical, 
   family = gaussian()
 )
 print(rt_priors_typical)
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+                prior     class       coef   group resp dpar nlpar lb ub tag
+               (flat)         b                                             
+               (flat)         b conditionB                                  
+               lkj(1)       cor                                             
+               lkj(1)       cor            subject                          
+ student_t(3, 6, 2.5) Intercept                                             
+ student_t(3, 0, 2.5)        sd                                     0       
+ student_t(3, 0, 2.5)        sd               item                  0       
+ student_t(3, 0, 2.5)        sd  Intercept    item                  0       
+ student_t(3, 0, 2.5)        sd            subject                  0       
+ student_t(3, 0, 2.5)        sd conditionB subject                  0       
+ student_t(3, 0, 2.5)        sd  Intercept subject                  0       
+ student_t(3, 0, 2.5)     sigma                                     0       
+       source
+      default
+ (vectorized)
+      default
+ (vectorized)
+      default
+      default
+ (vectorized)
+ (vectorized)
+ (vectorized)
+ (vectorized)
+ (vectorized)
+      default
+```
+
+
+:::
+
+```{.r .cell-code}
 cat("\n\n=== DEFAULT PRIORS: Extreme RT data (mean log-RT ≈ 10) ===\n\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+
+
+=== DEFAULT PRIORS: Extreme RT data (mean log-RT ≈ 10) ===
+```
+
+
+:::
+
+```{.r .cell-code}
 rt_priors_extreme <- get_prior(
   log_rt ~ condition + (1 + condition | subject) + (1 | item),
   data = rt_data_extreme, 
   family = gaussian()
 )
 print(rt_priors_extreme)
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+                 prior     class       coef   group resp dpar nlpar lb ub tag
+                (flat)         b                                             
+                (flat)         b conditionB                                  
+                lkj(1)       cor                                             
+                lkj(1)       cor            subject                          
+ student_t(3, 10, 2.5) Intercept                                             
+  student_t(3, 0, 2.5)        sd                                     0       
+  student_t(3, 0, 2.5)        sd               item                  0       
+  student_t(3, 0, 2.5)        sd  Intercept    item                  0       
+  student_t(3, 0, 2.5)        sd            subject                  0       
+  student_t(3, 0, 2.5)        sd conditionB subject                  0       
+  student_t(3, 0, 2.5)        sd  Intercept subject                  0       
+  student_t(3, 0, 2.5)     sigma                                     0       
+       source
+      default
+ (vectorized)
+      default
+ (vectorized)
+      default
+      default
+ (vectorized)
+ (vectorized)
+ (vectorized)
+ (vectorized)
+ (vectorized)
+      default
+```
+
+
+:::
+
+```{.r .cell-code}
 # Compare intercept priors
 cat("\n=== Intercept Comparison ===\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+
+=== Intercept Comparison ===
+```
+
+
+:::
+
+```{.r .cell-code}
 cat("Typical data prior:  ", 
     rt_priors_typical[rt_priors_typical$class == "Intercept", "prior"], "\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Typical data prior:   student_t(3, 6, 2.5) 
+```
+
+
+:::
+
+```{.r .cell-code}
 cat("Extreme data prior:  ", 
     rt_priors_extreme[rt_priors_extreme$class == "Intercept", "prior"], "\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Extreme data prior:   student_t(3, 10, 2.5) 
+```
+
+
+:::
+
+```{.r .cell-code}
 cat("→ The intercept prior CHANGES with data scale!\n")
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+→ The intercept prior CHANGES with data scale!
+```
+
+
+:::
+:::
+
+
+
 
 **Key insight**: The intercept prior automatically scales with your data. This is convenient but has a problem: **if you don't specify priors, your prior assumptions implicitly depend on how you code your variables!**
 
@@ -124,8 +289,12 @@ When you don't specify priors, brms assigns defaults:
 
 For psycholinguistics, it's better to specify priors based on domain knowledge:
 
-```{r rt-priors}
-#| label: rt-priors
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
 # Define priors explicitly
 rt_priors <- c(
   prior(normal(6, 1.5), class = Intercept, lb = 4),  # log(RT) around 400ms, min ~55ms
@@ -136,8 +305,38 @@ rt_priors <- c(
 )
 
 cat("Our weakly informative priors:\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Our weakly informative priors:
+```
+
+
+:::
+
+```{.r .cell-code}
 print(rt_priors)
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          prior     class coef group resp dpar nlpar   lb   ub tag source
+ normal(6, 1.5) Intercept                               4 <NA>       user
+ normal(0, 0.5)         b                            <NA> <NA>       user
+ exponential(1)     sigma                            <NA> <NA>       user
+ exponential(1)        sd                            <NA> <NA>       user
+         lkj(2)       cor                            <NA> <NA>       user
+```
+
+
+:::
+:::
+
+
+
 
 ### Why These Numbers?
 
@@ -177,10 +376,12 @@ print(rt_priors)
 
 brms defaults use `student_t(3, μ, 2.5)` which has heavier tails than `normal()`. Why switch?
 
-```{r tail-comparison}
-#| label: tail-comparison
-#| fig-width: 8
-#| fig-height: 5
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
 # Compare tail behavior
 set.seed(456)
 n_samples <- 100000
@@ -191,11 +392,70 @@ normal_99 <- quantile(normal_samples, c(0.001, 0.999))
 studentt_99 <- quantile(studentt_samples, c(0.001, 0.999))
 
 cat("Tails comparison (1st and 99th percentiles):\n")
-cat("Normal(0, 0.5):       ", round(normal_99, 2), "\n")
-cat("Student-t(3) × 0.5:   ", round(studentt_99, 2), "\n")
-cat("Student-t ratio:      ", round(studentt_99[2] / normal_99[2], 2), "x wider\n\n")
-cat("Student-t allows extreme values 2x more likely than normal!\n\n")
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Tails comparison (1st and 99th percentiles):
+```
+
+
+:::
+
+```{.r .cell-code}
+cat("Normal(0, 0.5):       ", round(normal_99, 2), "\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Normal(0, 0.5):        -1.55 1.56 
+```
+
+
+:::
+
+```{.r .cell-code}
+cat("Student-t(3) × 0.5:   ", round(studentt_99, 2), "\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Student-t(3) × 0.5:    -5.26 5.16 
+```
+
+
+:::
+
+```{.r .cell-code}
+cat("Student-t ratio:      ", round(studentt_99[2] / normal_99[2], 2), "x wider\n\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Student-t ratio:       3.3 x wider
+```
+
+
+:::
+
+```{.r .cell-code}
+cat("Student-t allows extreme values 2x more likely than normal!\n\n")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Student-t allows extreme values 2x more likely than normal!
+```
+
+
+:::
+
+```{.r .cell-code}
 # Graphical comparison
 library(ggplot2)
 comparison_df <- data.frame(
@@ -221,6 +481,14 @@ ggplot(comparison_df, aes(x = value, fill = distribution, color = distribution))
   theme_minimal(base_size = 12) +
   theme(legend.position = "bottom")
 ```
+
+::: {.cell-output-display}
+![](01_setting_priors_files/figure-html/tail-comparison-1.png){width=768}
+:::
+:::
+
+
+
 
 **When to use each:**
 

@@ -4,6 +4,11 @@ subtitle: "Binary Outcomes: Grammaticality Judgment Example"
 date: today
 author: "Workshop Materials"
 format: 
+  html:
+    toc: true
+    number-sections: true
+    code-fold: false
+    embed-resources: true
   pdf:
     toc: true
     number-sections: true

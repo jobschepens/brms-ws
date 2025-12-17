@@ -3,9 +3,6 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - 'materials/scripts/*.html'
-      - '.github/workflows/render-quarto.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,6 +19,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+      
+      - name: Render Quarto files
+        run: quarto render materials/scripts --to html
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
