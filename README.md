@@ -77,14 +77,23 @@ docker run -d -p 2222:22 brms-workshop:working
 
 View the rendered tutorials directly in your browser:
 
-- [**05_loo.html**](https://jobschepens.github.io/brms-ws/05_loo.html) — LOO-PSIS: Model Comparison with Cross-Validation
+#### Module 1: Setting Priors
 - [**01_setting_priors.html**](https://jobschepens.github.io/brms-ws/01_setting_priors.html) — Setting Priors
 - [**01_setting_priors_gram.html**](https://jobschepens.github.io/brms-ws/01_setting_priors_gram.html) — Setting Priors (Grammaticality)
-- [**02_prior_predictive_checks_gram.html**](https://jobschepens.github.io/brms-ws/02_prior_predictive_checks_gram.html) — Prior Predictive Checks (Grammaticality)
+
+#### Module 2: Prior Predictive Checks
 - [**02_prior_predictive_checks_rt.html**](https://jobschepens.github.io/brms-ws/02_prior_predictive_checks_rt.html) — Prior Predictive Checks (RT)
-- [**03_posterior_predictive_checks_gram.html**](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_gram.html) — Posterior Predictive Checks (Grammaticality)
+- [**02_prior_predictive_checks_gram.html**](https://jobschepens.github.io/brms-ws/02_prior_predictive_checks_gram.html) — Prior Predictive Checks (Grammaticality)
+
+#### Module 3: Posterior Predictive Checks
 - [**03_posterior_predictive_checks_rt.html**](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) — Posterior Predictive Checks (RT)
+- [**03_posterior_predictive_checks_gram.html**](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_gram.html) — Posterior Predictive Checks (Grammaticality)
+
+#### Module 4: Comparing Priors
 - [**04_comparing_priors_rt.html**](https://jobschepens.github.io/brms-ws/04_comparing_priors_rt.html) — Comparing Priors (RT)
+
+#### Module 5: Model Comparison
+- [**05_loo.html**](https://jobschepens.github.io/brms-ws/05_loo.html) — LOO-PSIS: Model Comparison with Cross-Validation (RT)
 
 ### Workshop Notebooks
 
