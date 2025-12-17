@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   brms-workshop:
+    image: jobschepens/brms-workshop:working
     build:
       context: .
       dockerfile: Dockerfile
