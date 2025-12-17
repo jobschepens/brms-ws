@@ -18,5 +18,17 @@
   "02_prior_predictive_checks_gram.qmd": {
     "02_prior_predictive_checks_gram.html": "4e690207",
     "02_prior_predictive_checks_gram.tex": "07dcf683"
+  },
+  "01_setting_priors.qmd": {
+    "01_setting_priors.html": "a6695284",
+    "01_setting_priors.tex": "b0e983b1"
+  },
+  "03_posterior_predictive_checks_gram.qmd": {
+    "03_posterior_predictive_checks_gram.html": "29687166",
+    "03_posterior_predictive_checks_gram.tex": "0f299581"
+  },
+  "01_setting_priors_gram.qmd": {
+    "01_setting_priors_gram.html": "a8245f58",
+    "01_setting_priors_gram.tex": "b6959bce"
   }
 }

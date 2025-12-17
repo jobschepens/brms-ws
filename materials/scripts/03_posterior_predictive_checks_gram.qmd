@@ -1,13 +1,19 @@
 ---
 title: "Posterior Predictive Checks: Grammaticality Judgment Example"
-author: "brms Workshop"
-format:
+subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
+date: today
+author: "Job Schepens"
+format: 
   html:
     toc: true
     number-sections: true
-    code-fold: false
-    embed-resources: true
-editor: visual
+    code-fold: true
+    code-summary: "Show code"
+    keep-md: true
+    embed-resources: false
+    theme:
+      light: flatly
+      dark: darkly
 execute:
   cache: true
   warning: false

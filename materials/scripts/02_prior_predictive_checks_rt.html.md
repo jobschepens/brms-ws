@@ -10,7 +10,7 @@ format:
     code-fold: true
     code-summary: "Show code"
     keep-md: true
-    embed-resources: true
+    embed-resources: false
     theme:
       light: flatly
       dark: darkly

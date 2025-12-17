@@ -1,7 +1,8 @@
 ---
 title: "Posterior Predictive Checks: Reaction Time Example"
+subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
 date: today
-author: "Workshop Materials"
+author: "Job Schepens"
 format: 
   html:
     toc: true
@@ -9,6 +10,7 @@ format:
     code-fold: true
     code-summary: "Show code"
     keep-md: true
+    embed-resources: false
     theme:
       light: flatly
       dark: darkly

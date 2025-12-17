@@ -1,5 +1,6 @@
 ---
 title: "Prior Predictive Checks: Grammaticality Judgment Example"
+subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
 date: today
 author: "Job Schepens"
 format: 
@@ -9,7 +10,7 @@ format:
     code-fold: true
     code-summary: "Show code"
     keep-md: true
-    embed-resources: true
+    embed-resources: false
     theme:
       light: flatly
       dark: darkly
