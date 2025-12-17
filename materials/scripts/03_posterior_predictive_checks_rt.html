@@ -6,7 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="brms Workshop">
+<meta name="author" content="Workshop Materials">
+<meta name="dcterms.date" content="2025-12-17">
 
 <title>Posterior Predictive Checks: Reaction Time Example</title>
 <style>
@@ -58,24 +59,101 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="03_posterior_predictive_checks_rt_files/libs/clipboard/clipboard.min.js"></script>
-<script src="03_posterior_predictive_checks_rt_files/libs/quarto-html/quarto.js"></script>
-<script src="03_posterior_predictive_checks_rt_files/libs/quarto-html/popper.min.js"></script>
-<script src="03_posterior_predictive_checks_rt_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="03_posterior_predictive_checks_rt_files/libs/quarto-html/anchor.min.js"></script>
-<link href="03_posterior_predictive_checks_rt_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="03_posterior_predictive_checks_rt_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="03_posterior_predictive_checks_rt_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="03_posterior_predictive_checks_rt_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="03_posterior_predictive_checks_rt_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
 
 
 </head>
 
-<body class="fullcontent">
+<body>
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#posterior-predictive-checks-for-rt-data" id="toc-posterior-predictive-checks-for-rt-data" class="nav-link active" data-scroll-target="#posterior-predictive-checks-for-rt-data"><span class="header-section-number">1</span> Posterior Predictive Checks for RT Data</a>
+  <ul class="collapse">
+  <li><a href="#why-posterior-predictive-checks-matter" id="toc-why-posterior-predictive-checks-matter" class="nav-link" data-scroll-target="#why-posterior-predictive-checks-matter"><span class="header-section-number">1.1</span> Why Posterior Predictive Checks Matter</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup"><span class="header-section-number">1.2</span> Setup</a></li>
+  <li><a href="#load-or-fit-model" id="toc-load-or-fit-model" class="nav-link" data-scroll-target="#load-or-fit-model"><span class="header-section-number">1.3</span> Load or Fit Model</a></li>
+  <li><a href="#basic-posterior-predictive-checks" id="toc-basic-posterior-predictive-checks" class="nav-link" data-scroll-target="#basic-posterior-predictive-checks"><span class="header-section-number">1.4</span> Basic Posterior Predictive Checks</a>
+  <ul class="collapse">
+  <li><a href="#visual-checks" id="toc-visual-checks" class="nav-link" data-scroll-target="#visual-checks"><span class="header-section-number">1.4.1</span> Visual Checks</a></li>
+  <li><a href="#check-specific-statistics" id="toc-check-specific-statistics" class="nav-link" data-scroll-target="#check-specific-statistics"><span class="header-section-number">1.4.2</span> Check Specific Statistics</a></li>
+  </ul></li>
+  <li><a href="#extract-and-analyze-posterior-predictions" id="toc-extract-and-analyze-posterior-predictions" class="nav-link" data-scroll-target="#extract-and-analyze-posterior-predictions"><span class="header-section-number">1.5</span> Extract and Analyze Posterior Predictions</a>
+  <ul class="collapse">
+  <li><a href="#compare-observed-vs.-predicted" id="toc-compare-observed-vs.-predicted" class="nav-link" data-scroll-target="#compare-observed-vs.-predicted"><span class="header-section-number">1.5.1</span> Compare Observed vs.&nbsp;Predicted</a></li>
+  <li><a href="#check-posterior-predictive-intervals" id="toc-check-posterior-predictive-intervals" class="nav-link" data-scroll-target="#check-posterior-predictive-intervals"><span class="header-section-number">1.5.2</span> Check Posterior Predictive Intervals</a></li>
+  </ul></li>
+  <li><a href="#check-by-condition" id="toc-check-by-condition" class="nav-link" data-scroll-target="#check-by-condition"><span class="header-section-number">1.6</span> Check by Condition</a></li>
+  <li><a href="#how-data-quantity-affects-posterior-predictions" id="toc-how-data-quantity-affects-posterior-predictions" class="nav-link" data-scroll-target="#how-data-quantity-affects-posterior-predictions"><span class="header-section-number">1.7</span> How Data Quantity Affects Posterior Predictions</a>
+  <ul class="collapse">
+  <li><a href="#understanding-the-plots" id="toc-understanding-the-plots" class="nav-link" data-scroll-target="#understanding-the-plots"><span class="header-section-number">1.7.1</span> Understanding the Plots</a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">1.7.2</span> Interpretation</a></li>
+  </ul></li>
+  <li><a href="#convergence-analysis-population-mean" id="toc-convergence-analysis-population-mean" class="nav-link" data-scroll-target="#convergence-analysis-population-mean"><span class="header-section-number">1.8</span> Convergence Analysis: Population Mean</a>
+  <ul class="collapse">
+  <li><a href="#understanding-these-plots" id="toc-understanding-these-plots" class="nav-link" data-scroll-target="#understanding-these-plots"><span class="header-section-number">1.8.1</span> Understanding These Plots</a></li>
+  <li><a href="#key-insight-why-different-priors-dont-interfere" id="toc-key-insight-why-different-priors-dont-interfere" class="nav-link" data-scroll-target="#key-insight-why-different-priors-dont-interfere"><span class="header-section-number">1.8.2</span> Key Insight: Why Different Priors Don’t Interfere</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">1.9</span> Summary</a>
+  <ul class="collapse">
+  <li><a href="#key-diagnostics-checked" id="toc-key-diagnostics-checked" class="nav-link" data-scroll-target="#key-diagnostics-checked"><span class="header-section-number">1.9.1</span> Key Diagnostics Checked</a></li>
+  <li><a href="#common-problems-and-solutions" id="toc-common-problems-and-solutions" class="nav-link" data-scroll-target="#common-problems-and-solutions"><span class="header-section-number">1.9.2</span> Common Problems and Solutions</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps"><span class="header-section-number">1.9.3</span> Next Steps</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="03_posterior_predictive_checks_rt.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+    </div>
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -90,10 +168,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>brms Workshop </p>
+             <p>Workshop Materials </p>
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 17, 2025</p>
+    </div>
+  </div>
   
     
   </div>
@@ -103,27 +187,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="posterior-predictive-checks-for-rt-data" class="level1">
-<h1>Posterior Predictive Checks for RT Data</h1>
+<section id="posterior-predictive-checks-for-rt-data" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Posterior Predictive Checks for RT Data</h1>
 <p>After fitting your model, validate that it generates data similar to what you observed.</p>
-<section id="why-posterior-predictive-checks-matter" class="level2">
-<h2 class="anchored" data-anchor-id="why-posterior-predictive-checks-matter">Why Posterior Predictive Checks Matter</h2>
+<section id="why-posterior-predictive-checks-matter" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="why-posterior-predictive-checks-matter"><span class="header-section-number">1.1</span> Why Posterior Predictive Checks Matter</h2>
 <p>Posterior predictive checks answer: “If I were to generate new data from my fitted model, would it look like my actual data?” This validates that your model has captured the essential structure of your data.</p>
 </section>
-<section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<section id="setup" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="setup"><span class="header-section-number">1.2</span> Setup</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Set seed for reproducibility</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
-<section id="load-or-fit-model" class="level2">
-<h2 class="anchored" data-anchor-id="load-or-fit-model">Load or Fit Model</h2>
+<section id="load-or-fit-model" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="load-or-fit-model"><span class="header-section-number">1.3</span> Load or Fit Model</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create example RT data (same as in prior checks for consistency)</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n_subj <span class="ot">&lt;-</span> <span class="dv">20</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>n_trials <span class="ot">&lt;-</span> <span class="dv">50</span></span>
@@ -181,16 +270,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(fit_rt, model_file)</span>
 <span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Model saved to:"</span>, model_file, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading saved model from: fits/fit_rt.rds </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display model summary</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Model Summary ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 === Model Summary ===</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">summary</span>(fit_rt))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Family: gaussian 
   Links: mu = identity 
@@ -229,14 +325,17 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </div>
 </section>
-<section id="basic-posterior-predictive-checks" class="level2">
-<h2 class="anchored" data-anchor-id="basic-posterior-predictive-checks">Basic Posterior Predictive Checks</h2>
-<section id="visual-checks" class="level3">
-<h3 class="anchored" data-anchor-id="visual-checks">Visual Checks</h3>
+<section id="basic-posterior-predictive-checks" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="basic-posterior-predictive-checks"><span class="header-section-number">1.4</span> Basic Posterior Predictive Checks</h2>
+<section id="visual-checks" class="level3" data-number="1.4.1">
+<h3 data-number="1.4.1" class="anchored" data-anchor-id="visual-checks"><span class="header-section-number">1.4.1</span> Visual Checks</h3>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Default: density overlay of observed vs. simulated data</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pp_check</span>(fit_rt, <span class="at">ndraws =</span> <span class="dv">100</span>) <span class="sc">+</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Density overlay: Observed vs. Posterior predictions"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -252,9 +351,11 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <li>Small discrepancies are normal; large ones suggest model misspecification</li>
 </ul>
 </section>
-<section id="check-specific-statistics" class="level3">
-<h3 class="anchored" data-anchor-id="check-specific-statistics">Check Specific Statistics</h3>
+<section id="check-specific-statistics" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="check-specific-statistics"><span class="header-section-number">1.4.2</span> Check Specific Statistics</h3>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Did we get the mean right?</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">pp_check</span>(fit_rt, <span class="at">type =</span> <span class="st">"stat"</span>, <span class="at">stat =</span> <span class="st">"mean"</span>) <span class="sc">+</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Mean: Observed vs. Predicted"</span>)</span>
@@ -273,6 +374,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Display all plots</span></span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">|</span> p2) <span class="sc">/</span> (p3 <span class="sc">|</span> p4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -283,32 +385,46 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 </section>
 </section>
-<section id="extract-and-analyze-posterior-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="extract-and-analyze-posterior-predictions">Extract and Analyze Posterior Predictions</h2>
+<section id="extract-and-analyze-posterior-predictions" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="extract-and-analyze-posterior-predictions"><span class="header-section-number">1.5</span> Extract and Analyze Posterior Predictions</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw from posterior predictive distribution</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>post_pred <span class="ot">&lt;-</span> <span class="fu">posterior_predict</span>(fit_rt, <span class="at">ndraws =</span> <span class="dv">1000</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(post_pred)  <span class="co"># 1000 draws × n observations</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1000 3000</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Dimensions of posterior predictions:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Dimensions of posterior predictions:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Draws:"</span>, <span class="fu">nrow</span>(post_pred), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Draws: 1000 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Observations:"</span>, <span class="fu">ncol</span>(post_pred), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Observations: 3000 </code></pre>
 </div>
 </div>
-<section id="compare-observed-vs.-predicted" class="level3">
-<h3 class="anchored" data-anchor-id="compare-observed-vs.-predicted">Compare Observed vs.&nbsp;Predicted</h3>
+<section id="compare-observed-vs.-predicted" class="level3" data-number="1.5.1">
+<h3 data-number="1.5.1" class="anchored" data-anchor-id="compare-observed-vs.-predicted"><span class="header-section-number">1.5.1</span> Compare Observed vs.&nbsp;Predicted</h3>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare observed vs. predicted means</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>obs_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(rt_data<span class="sc">$</span>log_rt)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>pred_mean <span class="ot">&lt;-</span> <span class="fu">apply</span>(post_pred, <span class="dv">1</span>, mean)</span>
@@ -324,6 +440,7 @@ Dimensions of posterior predictions:</code></pre>
 <span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"lightblue"</span>, <span class="st">"red"</span>),</span>
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>),</span>
 <span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">lty =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -331,25 +448,36 @@ Dimensions of posterior predictions:</code></pre>
 </figure>
 </div>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Observed mean log-RT:"</span>, <span class="fu">round</span>(obs_mean, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Observed mean log-RT: 6.071 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Predicted mean log-RT (median):"</span>, <span class="fu">round</span>(<span class="fu">median</span>(pred_mean), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Predicted mean log-RT (median): 6.071 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"95% CI for predicted mean:"</span>, </span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">quantile</span>(pred_mean, <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>95% CI for predicted mean: 6.056 6.087 </code></pre>
 </div>
 </div>
 </section>
-<section id="check-posterior-predictive-intervals" class="level3">
-<h3 class="anchored" data-anchor-id="check-posterior-predictive-intervals">Check Posterior Predictive Intervals</h3>
+<section id="check-posterior-predictive-intervals" class="level3" data-number="1.5.2">
+<h3 data-number="1.5.2" class="anchored" data-anchor-id="check-posterior-predictive-intervals"><span class="header-section-number">1.5.2</span> Check Posterior Predictive Intervals</h3>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check 95% posterior predictive interval</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>post_pred_interval <span class="ot">&lt;-</span> <span class="fu">apply</span>(post_pred, <span class="dv">2</span>, quantile, <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -358,18 +486,27 @@ Observed mean log-RT: 6.071 </code></pre>
 <span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                 rt_data<span class="sc">$</span>log_rt <span class="sc">&lt;</span> post_pred_interval[<span class="dv">2</span>,])</span>
 <span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Posterior Predictive Interval Coverage:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Posterior Predictive Interval Coverage:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Proportion of observations within 95% interval:"</span>, <span class="fu">round</span>(coverage, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Proportion of observations within 95% interval: 0.951 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Expected: ~0.95</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Expected: ~0.95</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (coverage <span class="sc">&lt;</span> <span class="fl">0.90</span>) {</span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">⚠ Warning: Coverage is lower than expected.</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Model may be overconfident or missing important structure.</span><span class="sc">\n</span><span class="st">"</span>)</span>
@@ -379,6 +516,7 @@ Posterior Predictive Interval Coverage:</code></pre>
 <span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
 <span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">✓ Coverage looks good!</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ✓ Coverage looks good!</code></pre>
@@ -386,9 +524,11 @@ Posterior Predictive Interval Coverage:</code></pre>
 </div>
 </section>
 </section>
-<section id="check-by-condition" class="level2">
-<h2 class="anchored" data-anchor-id="check-by-condition">Check by Condition</h2>
+<section id="check-by-condition" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="check-by-condition"><span class="header-section-number">1.6</span> Check by Condition</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Group predictions by condition</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>rt_data_cond <span class="ot">&lt;-</span> rt_data <span class="sc">%&gt;%</span></span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(condition) <span class="sc">%&gt;%</span></span>
@@ -426,6 +566,7 @@ Posterior Predictive Interval Coverage:</code></pre>
 <span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>     <span class="at">breaks =</span> <span class="dv">30</span>,</span>
 <span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">range</span>(<span class="fu">c</span>(pred_mean_A, pred_mean_B)))</span>
 <span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v =</span> rt_data_cond<span class="sc">$</span>obs_mean[<span class="dv">2</span>], <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">3</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -433,33 +574,50 @@ Posterior Predictive Interval Coverage:</code></pre>
 </figure>
 </div>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">By Condition:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 By Condition:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Condition A - Observed:"</span>, <span class="fu">round</span>(rt_data_cond<span class="sc">$</span>obs_mean[<span class="dv">1</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Condition A - Observed: 5.99 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Condition A - Predicted:"</span>, <span class="fu">round</span>(<span class="fu">median</span>(pred_mean_A), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Condition A - Predicted: 5.99 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Condition B - Observed:"</span>, <span class="fu">round</span>(rt_data_cond<span class="sc">$</span>obs_mean[<span class="dv">2</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Condition B - Observed: 6.152 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Condition B - Predicted:"</span>, <span class="fu">round</span>(<span class="fu">median</span>(pred_mean_B), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Condition B - Predicted: 6.151 </code></pre>
 </div>
 </div>
 </section>
-<section id="how-data-quantity-affects-posterior-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="how-data-quantity-affects-posterior-predictions">How Data Quantity Affects Posterior Predictions</h2>
+<section id="how-data-quantity-affects-posterior-predictions" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="how-data-quantity-affects-posterior-predictions"><span class="header-section-number">1.7</span> How Data Quantity Affects Posterior Predictions</h2>
 <p>This section demonstrates how the posterior predictive distribution converges to the true data-generating value as we add more observations. We’ll fit models with increasing amounts of data and examine how well each recovers the residual SD.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample sizes to test</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>n_obs_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">1000</span>, <span class="dv">3000</span>)</span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -554,13 +712,19 @@ By Condition:</code></pre>
 <span id="cb44-92"><a href="#cb44-92" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-93"><a href="#cb44-93" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit models (this may take several minutes)</span></span>
 <span id="cb44-94"><a href="#cb44-94" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Fitting models with varying sample sizes...</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Fitting models with varying sample sizes...</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"This will take a few minutes. Progress:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>This will take a few minutes. Progress:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>fits_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(n_obs_levels)) {</span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> n_obs_levels[i]</span>
@@ -580,6 +744,7 @@ By Condition:</code></pre>
 <span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">" (fitted and cached)</span><span class="sc">\n</span><span class="st">"</span>)</span>
 <span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  [ 1/11] n =    0 observations... (loaded from cache)
   [ 2/11] n =    1 observations... (loaded from cache)
@@ -593,11 +758,16 @@ By Condition:</code></pre>
   [10/11] n = 1000 observations... (loaded from cache)
   [11/11] n = 3000 observations... (loaded from cache)</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Generating posterior predictive checks...</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Generating posterior predictive checks...</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create comparison plots</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -655,6 +825,7 @@ Generating posterior predictive checks...</code></pre>
 <span id="cb52-55"><a href="#cb52-55" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>)</span>
 <span id="cb52-56"><a href="#cb52-56" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb52-57"><a href="#cb52-57" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -663,8 +834,8 @@ Generating posterior predictive checks...</code></pre>
 </div>
 </div>
 </div>
-<section id="understanding-the-plots" class="level3">
-<h3 class="anchored" data-anchor-id="understanding-the-plots">Understanding the Plots</h3>
+<section id="understanding-the-plots" class="level3" data-number="1.7.1">
+<h3 data-number="1.7.1" class="anchored" data-anchor-id="understanding-the-plots"><span class="header-section-number">1.7.1</span> Understanding the Plots</h3>
 <p>Each subplot shows a posterior predictive check for the standard deviation statistic:</p>
 <p><strong>Visual Elements:</strong></p>
 <ul>
@@ -704,8 +875,8 @@ Generating posterior predictive checks...</code></pre>
 <li><strong>Dark blue line inside histogram</strong>: Model predictions match observed data</li>
 </ul>
 </section>
-<section id="interpretation" class="level3">
-<h3 class="anchored" data-anchor-id="interpretation">Interpretation</h3>
+<section id="interpretation" class="level3" data-number="1.7.2">
+<h3 data-number="1.7.2" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">1.7.2</span> Interpretation</h3>
 <p><strong>Key observations from the progression:</strong></p>
 <ol type="1">
 <li><p><strong>n = 0 (Prior only)</strong>: Wide uncertainty, no learning from data yet. Prior allows SD anywhere from 0 to ~3.</p></li>
@@ -730,8 +901,10 @@ Generating posterior predictive checks...</code></pre>
 <li><strong>Conservative inference</strong>: Hypothesis tests become less powerful - we’re more likely to fail to detect real effects</li>
 <li><strong>Misleading predictions</strong>: Prediction intervals will be too wide, suggesting more uncertainty about future observations than warranted</li>
 </ul>
-<p><strong>Key insight</strong>: Even when the model “correctly” learns from the data (blue histogram centered on T(y)), if the observed data arose from sampling variability (T(y) outside red bands), downstream inferences about effect sizes and standardized parameters will be systematically biased. This is why <strong>calibration checks</strong> (red bands) matter, not just <strong>posterior predictive checks</strong> (blue histogram). As sample size increases (n = 1000, 3000), the probability of such extreme sampling variation diminishes, and estimates converge to truth.</p>
+<p><strong>Key insight</strong>: Even when the model “correctly” learns from the data (blue histogram centered on T(y)), if the observed data arose from sampling variability (T(y) outside red bands), downstream inferences about effect sizes and standardized parameters will be systematically biased. As sample size increases (n = 1000, 3000), the probability of such extreme sampling variation diminishes, and estimates converge to truth.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract sigma estimates from each model</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>sigma_summary <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="fu">seq_along</span>(n_obs_levels), <span class="cf">function</span>(i) {</span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> n_obs_levels[i]</span>
@@ -763,6 +936,7 @@ Generating posterior predictive checks...</code></pre>
 <span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Estimated Residual SD (sigma)"</span></span>
 <span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -770,13 +944,19 @@ Generating posterior predictive checks...</code></pre>
 </figure>
 </div>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary table</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Convergence Summary ===</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 === Convergence Summary ===</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(sigma_summary, <span class="at">n =</span> <span class="cn">Inf</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 11 × 5
    n_obs median  lower upper  width
@@ -797,10 +977,12 @@ Generating posterior predictive checks...</code></pre>
 <p><strong>Practical takeaway</strong>: With the exponential(1) prior and ~100 observations, the posterior estimate becomes quite accurate. The wide Intercept prior <code>normal(6, 1.5)</code> doesn’t prevent learning the correct residual SD because they model different aspects of the data.</p>
 </section>
 </section>
-<section id="convergence-analysis-population-mean" class="level2">
-<h2 class="anchored" data-anchor-id="convergence-analysis-population-mean">Convergence Analysis: Population Mean</h2>
+<section id="convergence-analysis-population-mean" class="level2" data-number="1.8">
+<h2 data-number="1.8" class="anchored" data-anchor-id="convergence-analysis-population-mean"><span class="header-section-number">1.8</span> Convergence Analysis: Population Mean</h2>
 <p>Now let’s examine how the population mean estimate converges with increasing data:</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create comparison plots for MEAN</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>plots_list_mean <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_along</span>(n_obs_levels), <span class="cf">function</span>(i) {</span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> n_obs_levels[i]</span>
@@ -851,6 +1033,7 @@ Generating posterior predictive checks...</code></pre>
 <span id="cb58-48"><a href="#cb58-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>)</span>
 <span id="cb58-49"><a href="#cb58-49" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb58-50"><a href="#cb58-50" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -859,8 +1042,8 @@ Generating posterior predictive checks...</code></pre>
 </div>
 </div>
 </div>
-<section id="understanding-these-plots" class="level3">
-<h3 class="anchored" data-anchor-id="understanding-these-plots">Understanding These Plots</h3>
+<section id="understanding-these-plots" class="level3" data-number="1.8.1">
+<h3 data-number="1.8.1" class="anchored" data-anchor-id="understanding-these-plots"><span class="header-section-number">1.8.1</span> Understanding These Plots</h3>
 <p>Each subplot shows a posterior predictive check for the mean statistic:</p>
 <p><strong>Visual Elements:</strong></p>
 <ul>
@@ -896,6 +1079,8 @@ Generating posterior predictive checks...</code></pre>
 <li><strong>SD estimation</strong> requires enough data to observe variability</li>
 </ul>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract Intercept (mean) estimates from each model</span></span>
 <span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>mean_summary <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="fu">seq_along</span>(n_obs_levels), <span class="cf">function</span>(i) {</span>
 <span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> n_obs_levels[i]</span>
@@ -927,6 +1112,7 @@ Generating posterior predictive checks...</code></pre>
 <span id="cb59-29"><a href="#cb59-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Estimated Mean (log-RT scale)"</span></span>
 <span id="cb59-30"><a href="#cb59-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb59-31"><a href="#cb59-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -934,13 +1120,19 @@ Generating posterior predictive checks...</code></pre>
 </figure>
 </div>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summary table</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Mean Convergence Summary ===</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 === Mean Convergence Summary ===</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(mean_summary, <span class="at">n =</span> <span class="cn">Inf</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 11 × 5
    n_obs median lower upper  width
@@ -957,43 +1149,67 @@ Generating posterior predictive checks...</code></pre>
 10  1000   5.99  5.94  6.04 0.105 
 11  3000   5.99  5.96  6.02 0.0546</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Comparison: Mean vs. SD Convergence ===</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 === Comparison: Mean vs. SD Convergence ===</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Credible interval width at n=10:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Credible interval width at n=10:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Mean:"</span>, <span class="fu">round</span>(mean_summary<span class="sc">$</span>width[mean_summary<span class="sc">$</span>n_obs <span class="sc">==</span> <span class="dv">10</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  Mean: 0.561 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  SD:  "</span>, <span class="fu">round</span>(sigma_summary<span class="sc">$</span>width[sigma_summary<span class="sc">$</span>n_obs <span class="sc">==</span> <span class="dv">10</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  SD:   0.328 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Credible interval width at n=100:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Credible interval width at n=100:</code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  Mean:"</span>, <span class="fu">round</span>(mean_summary<span class="sc">$</span>width[mean_summary<span class="sc">$</span>n_obs <span class="sc">==</span> <span class="dv">100</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  Mean: 0.236 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"  SD:  "</span>, <span class="fu">round</span>(sigma_summary<span class="sc">$</span>width[sigma_summary<span class="sc">$</span>n_obs <span class="sc">==</span> <span class="dv">100</span>], <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  SD:   0.122 </code></pre>
 </div>
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"→ Mean converges faster: CI narrows more quickly with increasing data</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>→ Mean converges faster: CI narrows more quickly with increasing data</code></pre>
 </div>
 </div>
 </section>
-<section id="key-insight-why-different-priors-dont-interfere" class="level3">
-<h3 class="anchored" data-anchor-id="key-insight-why-different-priors-dont-interfere">Key Insight: Why Different Priors Don’t Interfere</h3>
+<section id="key-insight-why-different-priors-dont-interfere" class="level3" data-number="1.8.2">
+<h3 data-number="1.8.2" class="anchored" data-anchor-id="key-insight-why-different-priors-dont-interfere"><span class="header-section-number">1.8.2</span> Key Insight: Why Different Priors Don’t Interfere</h3>
 <p>This analysis demonstrates the original question: <strong>Why does <code>normal(6, 1.5)</code> for the Intercept not prevent learning <code>sigma = 0.3</code>?</strong></p>
 <p><strong>They model different aspects:</strong></p>
 <ol type="1">
@@ -1016,10 +1232,10 @@ Generating posterior predictive checks...</code></pre>
 </ul>
 </section>
 </section>
-<section id="summary" class="level2">
-<h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<section id="key-diagnostics-checked" class="level3">
-<h3 class="anchored" data-anchor-id="key-diagnostics-checked">Key Diagnostics Checked</h3>
+<section id="summary" class="level2" data-number="1.9">
+<h2 data-number="1.9" class="anchored" data-anchor-id="summary"><span class="header-section-number">1.9</span> Summary</h2>
+<section id="key-diagnostics-checked" class="level3" data-number="1.9.1">
+<h3 data-number="1.9.1" class="anchored" data-anchor-id="key-diagnostics-checked"><span class="header-section-number">1.9.1</span> Key Diagnostics Checked</h3>
 <ol type="1">
 <li><label><input type="checkbox" checked=""><strong>Visual inspection</strong> - Observed data overlaps with posterior predictions</label></li>
 <li><label><input type="checkbox" checked=""><strong>Mean</strong> - Central tendency captured correctly</label></li>
@@ -1030,8 +1246,8 @@ Generating posterior predictive checks...</code></pre>
 <li><label><input type="checkbox" checked=""><strong>Data quantity effect</strong> - Convergence from prior to data-driven estimates</label></li>
 </ol>
 </section>
-<section id="common-problems-and-solutions" class="level3">
-<h3 class="anchored" data-anchor-id="common-problems-and-solutions">Common Problems and Solutions</h3>
+<section id="common-problems-and-solutions" class="level3" data-number="1.9.2">
+<h3 data-number="1.9.2" class="anchored" data-anchor-id="common-problems-and-solutions"><span class="header-section-number">1.9.2</span> Common Problems and Solutions</h3>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 30%">
@@ -1069,8 +1285,8 @@ Generating posterior predictive checks...</code></pre>
 </tbody>
 </table>
 </section>
-<section id="next-steps" class="level3">
-<h3 class="anchored" data-anchor-id="next-steps">Next Steps</h3>
+<section id="next-steps" class="level3" data-number="1.9.3">
+<h3 data-number="1.9.3" class="anchored" data-anchor-id="next-steps"><span class="header-section-number">1.9.3</span> Next Steps</h3>
 <p>If posterior predictive checks reveal problems:</p>
 <ol type="1">
 <li><strong>Adjust model formula</strong> - Add missing predictors or interactions</li>
@@ -1079,7 +1295,10 @@ Generating posterior predictive checks...</code></pre>
 <li><strong>Check for outliers</strong> - May need to handle separately</li>
 </ol>
 <div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.1 (2024-06-14)
 Platform: x86_64-pc-linux-gnu
@@ -1104,45 +1323,45 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] rstan_2.32.7        StanHeaders_2.32.10 patchwork_1.3.2    
- [4] bayesplot_1.14.0    lubridate_1.9.3     forcats_1.0.0      
- [7] stringr_1.5.1       dplyr_1.1.4         purrr_1.0.2        
-[10] readr_2.1.5         tidyr_1.3.1         tibble_3.2.1       
-[13] ggplot2_4.0.0       tidyverse_2.0.0     brms_2.23.0        
-[16] Rcpp_1.0.13        
+ [1] patchwork_1.3.2  bayesplot_1.14.0 lubridate_1.9.3  forcats_1.0.0   
+ [5] stringr_1.5.1    dplyr_1.1.4      purrr_1.0.2      readr_2.1.5     
+ [9] tidyr_1.3.1      tibble_3.2.1     ggplot2_4.0.0    tidyverse_2.0.0 
+[13] brms_2.23.0      Rcpp_1.0.13     
 
 loaded via a namespace (and not attached):
  [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.8.1       
  [4] xfun_0.54             htmlwidgets_1.6.4     processx_3.8.4       
  [7] inline_0.3.21         lattice_0.22-6        tzdb_0.4.0           
-[10] vctrs_0.6.5           tools_4.4.1           ps_1.8.1             
+[10] ps_1.8.1              vctrs_0.6.5           tools_4.4.1          
 [13] generics_0.1.3        stats4_4.4.1          parallel_4.4.1       
 [16] fansi_1.0.6           cmdstanr_0.9.0        pkgconfig_2.0.3      
 [19] Matrix_1.7-0          checkmate_2.3.3       RColorBrewer_1.1-3   
 [22] S7_0.2.0              distributional_0.5.0  RcppParallel_5.1.11-1
 [25] lifecycle_1.0.4       compiler_4.4.1        farver_2.1.2         
 [28] Brobdingnag_1.2-9     codetools_0.2-20      htmltools_0.5.8.1    
-[31] yaml_2.3.10           pillar_1.9.0          bridgesampling_1.1-2 
-[34] abind_1.4-8           nlme_3.1-164          posterior_1.6.1.9000 
-[37] tidyselect_1.2.1      digest_0.6.37         mvtnorm_1.3-3        
-[40] stringi_1.8.4         reshape2_1.4.4        labeling_0.4.3       
-[43] fastmap_1.2.0         grid_4.4.1            cli_3.6.5            
-[46] magrittr_2.0.3        loo_2.8.0             pkgbuild_1.4.8       
-[49] utf8_1.2.4            withr_3.0.2           scales_1.4.0         
-[52] backports_1.5.0       estimability_1.5.1    timechange_0.3.0     
-[55] rmarkdown_2.30        matrixStats_1.5.0     emmeans_2.0.0        
-[58] gridExtra_2.3         hms_1.1.3             coda_0.19-4.1        
-[61] evaluate_1.0.1        knitr_1.50            rstantools_2.5.0     
-[64] rlang_1.1.6           xtable_1.8-4          glue_1.8.0           
-[67] jsonlite_1.8.9        plyr_1.8.9            R6_2.5.1             </code></pre>
+[31] yaml_2.3.10           pillar_1.9.0          StanHeaders_2.32.10  
+[34] bridgesampling_1.1-2  abind_1.4-8           nlme_3.1-164         
+[37] posterior_1.6.1.9000  rstan_2.32.7          tidyselect_1.2.1     
+[40] digest_0.6.37         mvtnorm_1.3-3         stringi_1.8.4        
+[43] reshape2_1.4.4        labeling_0.4.3        fastmap_1.2.0        
+[46] grid_4.4.1            cli_3.6.5             magrittr_2.0.3       
+[49] loo_2.8.0             pkgbuild_1.4.8        utf8_1.2.4           
+[52] withr_3.0.2           scales_1.4.0          backports_1.5.0      
+[55] estimability_1.5.1    timechange_0.3.0      rmarkdown_2.30       
+[58] matrixStats_1.5.0     emmeans_2.0.0         gridExtra_2.3        
+[61] hms_1.1.3             coda_0.19-4.1         evaluate_1.0.1       
+[64] knitr_1.50            rstantools_2.5.0      rlang_1.1.6          
+[67] xtable_1.8-4          glue_1.8.0            jsonlite_1.8.9       
+[70] plyr_1.8.9            R6_2.5.1             </code></pre>
 </div>
 </div>
+
+
 </section>
 </section>
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

@@ -2,5 +2,21 @@
   "05_loo.qmd": {
     "05_loo.html": "3ba73df6",
     "05_loo.tex": "62acfd1f"
+  },
+  "04_comparing_priors_rt.qmd": {
+    "04_comparing_priors_rt.html": "a7fcd21b",
+    "04_comparing_priors_rt.tex": "84af4904"
+  },
+  "03_posterior_predictive_checks_rt.qmd": {
+    "03_posterior_predictive_checks_rt.html": "e41c37fe",
+    "03_posterior_predictive_checks_rt.tex": "11334775"
+  },
+  "02_prior_predictive_checks_rt.qmd": {
+    "02_prior_predictive_checks_rt.html": "e8f3bd30",
+    "02_prior_predictive_checks_rt.tex": "b59732a3"
+  },
+  "02_prior_predictive_checks_gram.qmd": {
+    "02_prior_predictive_checks_gram.html": "4e690207",
+    "02_prior_predictive_checks_gram.tex": "07dcf683"
   }
 }

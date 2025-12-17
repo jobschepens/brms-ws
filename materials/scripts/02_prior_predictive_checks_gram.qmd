@@ -1,20 +1,28 @@
 ---
 title: "Prior Predictive Checks: Grammaticality Judgment Example"
-subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
 date: today
-author: "Workshop Materials"
+author: "Job Schepens"
 format: 
   html:
     toc: true
     number-sections: true
-    code-fold: false
+    code-fold: true
+    code-summary: "Show code"
+    keep-md: true
     embed-resources: true
+    theme:
+      light: flatly
+      dark: darkly
   pdf:
     toc: true
     number-sections: true
     colorlinks: true
-    code-fold: false
+    echo: false
     keep-md: false
+execute:
+  cache: true
+  warning: false
+  message: false
 ---
 
 # Prior Predictive Checks for Binary Data

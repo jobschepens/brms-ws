@@ -7,12 +7,17 @@ format:
   html:
     toc: true
     number-sections: true
-    code-fold: false
+    code-fold: true
+    code-summary: "Show code"
+    keep-md: true
+    theme:
+      light: flatly
+      dark: darkly
   pdf:
     toc: true
     number-sections: true
     colorlinks: true
-    code-fold: false
+    echo: false
     keep-md: false
 execute:
   cache: true
