@@ -6,15 +6,29 @@ author: "Job Schepens"
 format: 
   html:
     toc: true
+    toc-depth: 3
     number-sections: true
     code-fold: true
     code-summary: "Show code"
     keep-md: true
     embed-resources: false
+    link-external-newwindow: true
+    link-external-icon: true
     theme:
       light: flatly
       dark: darkly
+  pdf:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    documentclass: article
+    fontsize: 11pt
+    geometry: "top=1in,bottom=1in,left=0.75in,right=0.75in"
+    echo: false
+    keep-md: false
 execute:
+  freeze: auto
   cache: true
   warning: false
   message: false
