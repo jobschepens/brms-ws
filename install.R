@@ -2,14 +2,24 @@
 # This script runs during Docker image build
 # Do not modify lightly - changes will trigger full rebuild
 
-# Set CRAN mirror - use posit package manager for pre-built binaries (faster!)
-# For Ubuntu 24.04 (noble) - gets pre-compiled binary packages
-options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/noble/latest"))
+# Set CRAN mirror with fallback strategy
+# Try multiple mirrors in order of preference (speed + reliability)
+mirrors <- list(
+  "cloud" = "https://cloud.r-project.org",  # Very stable, good CDN
+  "posit" = "https://p3m.dev/cran/__linux__/noble/latest"  # Binary packages
+)
 
-# Alternative fallback mirror
-if (!require("curl", quietly = TRUE)) {
-  options(repos = c(CRAN = "https://cloud.r-project.org/"))
-}
+# Start with cloud.r-project (has good CDN coverage and stable)
+selected_mirror <- mirrors$cloud
+tryCatch({
+  options(repos = c(CRAN = selected_mirror))
+  # Quick test: try to download package metadata
+  available.packages()[1,1]  # Just get first package to test connectivity
+  cat("✓ Using mirror:", selected_mirror, "\n")
+}, error = function(e) {
+  cat("Mirror", selected_mirror, "failed, trying alternative...\n")
+  options(repos = c(CRAN = mirrors$posit))
+})
 
 # Suppress warnings for cleaner output
 options(warn = -1)
@@ -36,6 +46,10 @@ install.packages("cmdstanr",
 # Pre-install heavy C++ dependencies to avoid timeout issues during brms install
 # These packages compile from source and benefit from parallelization
 cat("Pre-installing heavy C++ dependencies (to avoid timeout)...\n")
+
+# Set timeout for downloads (30 seconds per file)
+options(timeout = 30)
+
 heavy_packages <- c(
   "Rcpp",           # Core C++ bindings
   "RcppEigen",      # Matrix computations (heavy!)
@@ -43,9 +57,15 @@ heavy_packages <- c(
 )
 for (pkg in heavy_packages) {
   cat(sprintf("  Installing %s...\n", pkg))
-  # Don't include dependencies for these - they have minimal deps
-  # This prevents cascading timeout issues
-  install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+  tryCatch({
+    # Don't include dependencies for these - they have minimal deps
+    # This prevents cascading timeout issues
+    install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+  }, error = function(e) {
+    cat(sprintf("  ERROR installing %s: %s\n", pkg, e$message))
+    cat("  Attempting retry...\n")
+    install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+  })
 }
 
 # Install brms (will use cmdstanr backend if available)
