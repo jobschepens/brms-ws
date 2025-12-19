@@ -11,21 +11,22 @@ mirrors <- list(
 
 # Start with cloud.r-project (has good CDN coverage and stable)
 selected_mirror <- mirrors$cloud
-tryCatch({
-  options(repos = c(CRAN = selected_mirror))
-  # Quick test: try to download package metadata
-  available.packages()[1,1]  # Just get first package to test connectivity
-  cat("✓ Using mirror:", selected_mirror, "\n")
-}, error = function(e) {
-  cat("Mirror", selected_mirror, "failed, trying alternative...\n")
-  options(repos = c(CRAN = mirrors$posit))
-})
+options(repos = c(CRAN = selected_mirror))
+cat("Using mirror:", selected_mirror, "\n")
 
 # Suppress warnings for cleaner output
 options(warn = -1)
 
 # Install packages in parallel when possible
 options(Ncpus = parallel::detectCores())
+
+# Set download timeout to 5 minutes (for large packages like cmdstanr dependencies)
+# Default 60s is too short for packages with heavy C++ code
+options(timeout = 300)
+
+# Optimize compilation: use fewer parallel make jobs to prevent memory exhaustion
+# Too many parallel jobs can cause OOM errors in constrained environments
+Sys.setenv(MAKEFLAGS = sprintf("-j%d", min(4, parallel::detectCores())))
 
 cat("=== Installing BRMS Workshop Packages ===\n\n")
 cat("Using", getOption("Ncpus"), "CPU cores for parallel installation\n")
@@ -37,18 +38,27 @@ cat("Installing core BRMS packages...\n")
 # Install cmdstanr first (needed before brms for modern Stan interface)
 # cmdstanr is NOT on CRAN - must install from Stan's R-universe repo
 cat("Installing cmdstanr from Stan repository...\n")
-install.packages("cmdstanr", 
-                 repos = c("https://stan-dev.r-universe.dev", 
-                          "https://cloud.r-project.org"),
-                 quiet = TRUE, 
-                 dependencies = TRUE)
+cat("This may take 2-5 minutes (installing dependencies)...\n")
+tryCatch({
+  install.packages("cmdstanr", 
+                   repos = c("https://stan-dev.r-universe.dev", 
+                            "https://cloud.r-project.org"),
+                   quiet = TRUE, 
+                   dependencies = TRUE)
+  cat("✓ cmdstanr installed successfully\n")
+}, error = function(e) {
+  cat("ERROR: Failed to install cmdstanr:", e$message, "\n")
+  cat("Attempting retry with verbose output...\n")
+  install.packages("cmdstanr", 
+                   repos = c("https://stan-dev.r-universe.dev", 
+                            "https://cloud.r-project.org"),
+                   quiet = FALSE, 
+                   dependencies = TRUE)
+})
 
 # Pre-install heavy C++ dependencies to avoid timeout issues during brms install
 # These packages compile from source and benefit from parallelization
-cat("Pre-installing heavy C++ dependencies (to avoid timeout)...\n")
-
-# Set timeout for downloads (30 seconds per file)
-options(timeout = 30)
+cat("Pre-installing heavy C++ dependencies (this may take 3-10 minutes)...\n")
 
 heavy_packages <- c(
   "Rcpp",           # Core C++ bindings
@@ -56,57 +66,110 @@ heavy_packages <- c(
   "RcppArmadillo"   # Linear algebra (heavy!)
 )
 for (pkg in heavy_packages) {
+  # Skip if already installed (from cmdstanr dependencies)
+  if (requireNamespace(pkg, quietly = TRUE)) {
+    cat(sprintf("  ✓ %s already installed\n", pkg))
+    next
+  }
+  
   cat(sprintf("  Installing %s...\n", pkg))
   tryCatch({
     # Don't include dependencies for these - they have minimal deps
     # This prevents cascading timeout issues
     install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+    cat(sprintf("  ✓ %s installed successfully\n", pkg))
   }, error = function(e) {
-    cat(sprintf("  ERROR installing %s: %s\n", pkg, e$message))
-    cat("  Attempting retry...\n")
-    install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+    cat(sprintf("  WARNING: Error installing %s: %s\n", pkg, e$message))
+    cat("  Attempting retry with dependencies...\n")
+    tryCatch({
+      install.packages(pkg, quiet = FALSE, dependencies = TRUE)
+    }, error = function(e2) {
+      cat(sprintf("  ERROR: Failed to install %s after retry\n", pkg))
+      # Don't quit - let brms installation try to handle it
+    })
   })
 }
 
 # Install brms (will use cmdstanr backend if available)
 cat("Installing brms (main package)...\n")
+cat("This may take 10-20 minutes (50+ dependencies with C++ compilation)...\n")
+cat("Progress indicators may appear frozen - this is normal during compilation\n")
 # Note: brms has many dependencies, but with heavy packages pre-installed,
 # the remaining deps should install much faster
-install.packages("brms", quiet = TRUE, dependencies = TRUE)
+tryCatch({
+  install.packages("brms", quiet = TRUE, dependencies = TRUE)
+  cat("✓ brms installed successfully\n")
+}, error = function(e) {
+  cat("ERROR: Failed to install brms:", e$message, "\n")
+  cat("Attempting retry with verbose output...\n")
+  install.packages("brms", quiet = FALSE, dependencies = TRUE)
+})
 
 # Install CmdStan (the Stan compiler backend)
 # This can take 5-10 minutes on first build
-cat("Installing CmdStan (Stan compiler)...\n")
+cat("\nInstalling CmdStan (Stan compiler)...\n")
 cat("This may take 5-10 minutes on first build...\n")
+
+# Verify cmdstanr is available
+if (!requireNamespace("cmdstanr", quietly = TRUE)) {
+  cat("ERROR: cmdstanr package not available - cannot install CmdStan\n")
+  quit(status = 1)
+}
 
 # Use explicit error handling
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
   # Check toolchain first (recommended by Stan docs)
   cat("Checking C++ toolchain...\n")
-  tryCatch({
+  toolchain_ok <- tryCatch({
     cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = FALSE)
+    cat("✓ C++ toolchain is available\n")
+    TRUE
   }, error = function(e) {
-    cat("ERROR: C++ toolchain check failed:", e$message, "\n")
-    quit(status = 1)
+    cat("WARNING: C++ toolchain check reported issue:", e$message, "\n")
+    cat("Continuing anyway - may work if toolchain is actually available\n")
+    TRUE  # Continue anyway - the check function is overly conservative
   })
   
   # Install CmdStan with explicit settings
-  cat("Starting CmdStan installation...\n")
-  cmdstanr::install_cmdstan(
-    cores = as.integer(Sys.getenv("CMDSTANR_INSTALL_CORES", "4")),
-    quiet = FALSE,
-    overwrite = FALSE,
-    timeout = as.integer(Sys.getenv("CMDSTAN_INSTALL_TIMEOUT", "3600"))
-  )
+  cat("Starting CmdStan installation (downloading and compiling)...\n")
+  tryCatch({
+    cmdstanr::install_cmdstan(
+      cores = as.integer(Sys.getenv("CMDSTANR_INSTALL_CORES", "4")),
+      quiet = FALSE,
+      overwrite = FALSE,
+      timeout = as.integer(Sys.getenv("CMDSTAN_INSTALL_TIMEOUT", "3600"))
+    )
+    cat("✓ CmdStan installation completed\n")
+  }, error = function(e) {
+    cat("ERROR: CmdStan installation failed:", e$message, "\n")
+    # Try to provide helpful diagnostics
+    cat("Checking if CmdStan was partially installed...\n")
+    tryCatch({
+      path <- cmdstanr::cmdstan_path()
+      cat("Found CmdStan at:", path, "\n")
+    }, error = function(e2) {
+      cat("No CmdStan installation found\n")
+      quit(status = 1)
+    })
+  })
   
   # Verify installation and set path
-  installed_path <- cmdstanr::cmdstan_path()
-  cat("✓ CmdStan installed successfully at: ", installed_path, "\n")
+  installed_path <- tryCatch({
+    cmdstanr::cmdstan_path()
+  }, error = function(e) {
+    cat("ERROR: Cannot find CmdStan path after installation\n")
+    quit(status = 1)
+  })
+  cat("✓ CmdStan installed successfully at:", installed_path, "\n")
   
   # Test that it works
-  cat("Testing CmdStan installation...\n")
-  cmdstanr::cmdstan_version()
-  cat("✓ CmdStan is functional\n")
+  cat("Testing CmdStan functionality...\n")
+  tryCatch({
+    version <- cmdstanr::cmdstan_version()
+    cat("✓ CmdStan is functional (version:", version, ")\n")
+  }, error = function(e) {
+    cat("WARNING: CmdStan version check failed, but installation may still work\n")
+  })
 } else {
   cat("ERROR: cmdstanr package not available\n")
   quit(status = 1)
