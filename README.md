@@ -1,11 +1,11 @@
 # BRMS Workshop 
 
-### 🐳 **GitHub Container Registry** (Pre-built Image) 
-**Ready-to-use container image.**
+### 🐳 **GitHub Container Registry** (Alternative) 
+**For users familiar with GitHub Packages.**
 
 [![GitHub Actions Build](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml/badge.svg)](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml)
 
-A containerized Bayesian Regression Models using Stan (BRMS) workshop environment
+This is the primary source of the image, but for simplicity, we recommend using the Docker Hub image above. Accessing this image directly requires authenticating with GitHub to avoid download rate limits. See [instructions here](./README-ghcr.md).
 
 
 ### 🐳 **Docker Hub** (Pre-built Image)
@@ -13,7 +13,16 @@ A containerized Bayesian Regression Models using Stan (BRMS) workshop environmen
 
 [![Docker Image](https://img.shields.io/badge/Docker%20Hub-jobschepens%2Fbrms--workshop-blue?logo=docker)](https://hub.docker.com/r/jobschepens/brms-workshop)
 
-- Also uploaded here for easy access
+The easiest way to run the workshop locally. Just pull the image and run:
+```bash
+# Pull the image from Docker Hub
+docker pull jobschepens/brms-workshop
+
+# Run the container
+docker run -d -p 8787:8787 -v "$(pwd)/materials:/home/rstudio/workshop/materials" jobschepens/brms-workshop
+```
+Open your browser to `http://localhost:8787` (login: `rstudio` / `workshop`).
+
 
 ### ⭐ **Binder** (Can be practical for Workshops)
 **Zero installation.** One click and you're coding!
