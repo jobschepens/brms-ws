@@ -35,12 +35,12 @@ cat("This may take 5-10 minutes on first build...\n")
 if (requireNamespace("cmdstanr", quietly = TRUE)) {
   # Check toolchain first (recommended by Stan docs)
   cat("Checking C++ toolchain...\n")
-  toolchain_ok <- cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = FALSE)
-  
-  if (!toolchain_ok) {
-    cat("ERROR: C++ toolchain check failed. CmdStan installation will fail.\n")
+  tryCatch({
+    cmdstanr::check_cmdstan_toolchain(fix = TRUE, quiet = FALSE)
+  }, error = function(e) {
+    cat("ERROR: C++ toolchain check failed:", e$message, "\n")
     quit(status = 1)
-  }
+  })
   
   # Install CmdStan with explicit settings
   cat("Starting CmdStan installation...\n")
