@@ -2,13 +2,28 @@
 # This script runs during Docker image build
 # Do not modify lightly - changes will trigger full rebuild
 
-# Set CRAN mirror
-options(repos = c(CRAN = "https://cloud.r-project.org/"))
+# Set CRAN mirror - use posit package manager for pre-built binaries (faster!)
+# For Ubuntu 24.04 (noble) - gets pre-compiled binary packages
+options(repos = c(CRAN = "https://p3m.dev/cran/__linux__/noble/latest"))
+
+# Alternative fallback mirror
+if (!require("curl", quietly = TRUE)) {
+  options(repos = c(CRAN = "https://cloud.r-project.org/"))
+}
 
 # Suppress warnings for cleaner output
 options(warn = -1)
 
+# Install packages in parallel when possible
+options(Ncpus = parallel::detectCores())
+
+# OPTIMIZATION: Use pre-built binary packages when available (MUCH faster than source!)
+# This is critical for preventing timeouts on heavy packages like RcppEigen, rstan, etc.
+options(pkgType = "binary")
+
 cat("=== Installing BRMS Workshop Packages ===\n\n")
+cat("Using", getOption("Ncpus"), "CPU cores for parallel installation\n")
+cat("Repository:", getOption("repos")[1], "\n\n")
 
 # ------ CORE BAYESIAN PACKAGES ------
 cat("Installing core BRMS packages...\n")
@@ -22,8 +37,20 @@ install.packages("cmdstanr",
                  quiet = TRUE, 
                  dependencies = TRUE)
 
+# Pre-install heavy C++ dependencies to avoid timeout issues during brms install
+cat("Pre-installing heavy C++ dependencies (to avoid timeout)...\n")
+heavy_packages <- c(
+  "Rcpp",           # Core C++ bindings
+  "RcppEigen",      # Matrix computations (heavy!)
+  "RcppArmadillo"   # Linear algebra (heavy!)
+)
+for (pkg in heavy_packages) {
+  cat(sprintf("  Installing %s...\n", pkg))
+  install.packages(pkg, quiet = TRUE, dependencies = FALSE)
+}
+
 # Install brms (will use cmdstanr backend if available)
-cat("Installing brms...\n")
+cat("Installing brms (main package)...\n")
 install.packages("brms", quiet = TRUE, dependencies = TRUE)
 
 # Install CmdStan (the Stan compiler backend)
