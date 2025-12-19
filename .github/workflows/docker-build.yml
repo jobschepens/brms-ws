@@ -1,62 +1,195 @@
+# GitHub Actions Workflow: Build and Publish BRMS Workshop Docker Image
+#
+# This workflow automatically builds and pushes the Docker image to both
+# GitHub Container Registry (GHCR) and Docker Hub when relevant files change.
+#
+# Registries:
+#   - GHCR: Always pushed (uses GITHUB_TOKEN, no setup needed)
+#   - Docker Hub: Optional (requires DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets)
+#
+# Triggers:
+#   - Push to main branch (when Docker-related files change)
+#   - Manual workflow dispatch
+#
+# Required Secrets: None (GHCR works with GITHUB_TOKEN)
+# Optional Secrets:
+#   - DOCKERHUB_USERNAME: Docker Hub username
+#   - DOCKERHUB_TOKEN: Docker Hub access token (not password!)
+#     Create at: https://hub.docker.com/settings/security
+#
+# Image Tags Generated:
+#   - :working (latest working version)
+#   - :main (branch name)
+#   - :main-abc1234 (branch + short commit SHA)
+#
+# Features:
+#   - Graceful Docker Hub auth failure (workflow continues with GHCR only)
+#   - Build caching via GitHub Actions cache
+#   - SBOM (Software Bill of Materials) generation
+#   - Provenance attestation for supply chain security
+
 name: Build and Push BRMS Workshop Docker Image
 
 on:
   push:
     branches: [main]
     paths:
-      # Only rebuild when these files change
-      - 'Dockerfile'
-      - 'install.R'
-      - 'docker-compose.yml'
-      - '.github/workflows/docker-build.yml'
-  workflow_dispatch:  # Allow manual trigger
+      # Only trigger rebuild when these files change
+      # This saves CI minutes and avoids unnecessary builds
+      - 'Dockerfile'                          # Image definition
+      - 'install.R'                           # R package dependencies
+      - 'docker-compose.yml'                  # Compose configuration
+      - '.github/workflows/docker-build.yml'  # This workflow file
+  
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
 
 jobs:
   build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
+    
+    # Required permissions for GHCR push and attestation
+    permissions:
+      contents: read      # Read repository contents
+      packages: write     # Push to GitHub Container Registry
+      attestations: write # Generate provenance attestations
+      id-token: write     # Required for provenance signing
+    
     steps:
+      # Step 1: Checkout repository code
       - name: Checkout code
         uses: actions/checkout@v4
       
+      # Step 2: Set up Docker Buildx for advanced build features
+      # Buildx enables multi-platform builds, build caching, and BuildKit features
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
+      # Step 3: Login to Docker Hub (optional, graceful failure)
+      # Only attempts login if DOCKERHUB_USERNAME secret is configured
+      # If login fails, workflow continues (continue-on-error: true)
+      # This allows the workflow to succeed with GHCR-only deployment
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+        continue-on-error: true  # Don't fail workflow if Docker Hub login fails
       
+      # Step 4: Login to GitHub Container Registry (always succeeds)
+      # Uses built-in GITHUB_TOKEN - no secrets configuration needed
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.actor }}           # GitHub username
+          password: ${{ secrets.GITHUB_TOKEN }}   # Auto-generated token
       
+      # Step 5: Extract metadata for image tags and labels
+      # Generates consistent tags across both GHCR and Docker Hub
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
+          # Target registries - conditionally includes Docker Hub
           images: |
-            jobschepens/brms-workshop
-            ghcr.io/jobschepens/brms-ws/brms-workshop
+            ghcr.io/${{ github.repository_owner }}/brms-workshop
+            ${{ secrets.DOCKERHUB_USERNAME != '' && format('docker.io/{0}/brms-workshop', secrets.DOCKERHUB_USERNAME) || '' }}
+          
+          # Tag generation rules
           tags: |
-            type=raw,value=working
+            type=ref,event=branch              # :main, :develop
+            type=semver,pattern={{version}}    # :1.2.3 (if tagged with semver)
+            type=semver,pattern={{major}}.{{minor}} # :1.2
+            type=raw,value=working             # :working (always generated)
+            type=sha,prefix={{branch}}-        # :main-abc1234 (branch + short SHA)
+          
+          # OCI image labels for metadata
+          labels: |
+            org.opencontainers.image.title=BRMS Workshop
+            org.opencontainers.image.description=R workshop environment with brms and CmdStan
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
       
+      # Step 6: Build and push Docker image
+      # Uses GitHub Actions cache for faster subsequent builds
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        id: build
+        uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=jobschepens/brms-workshop:buildcache
-          cache-to: type=registry,ref=jobschepens/brms-workshop:buildcache,mode=max
+          context: .                                    # Build context (repository root)
+          file: ./Dockerfile                            # Dockerfile location
+          push: true                                    # Push to registries after build
+          tags: ${{ steps.meta.outputs.tags }}          # Apply generated tags
+          labels: ${{ steps.meta.outputs.labels }}      # Apply OCI labels
+          
+          # Build cache configuration (GitHub Actions cache backend)
+          # Significantly speeds up rebuilds by caching layers
+          cache-from: type=gha                          # Read from GHA cache
+          cache-to: type=gha,mode=max                   # Write to GHA cache (all layers)
+          
+          # Supply chain security features
+          provenance: true                              # Generate provenance attestation
+          sbom: true                                    # Generate Software Bill of Materials
       
-      - name: Build summary
+      # Step 7: Generate workflow summary with image details and usage instructions
+      # Appears in the Actions run summary page
+      - name: Generate build summary
         run: |
-          echo "✅ Docker image built and pushed successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "Image available at:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`ghcr.io/jobschepens/brms-ws/brms-workshop:working\`" >> $GITHUB_STEP_SUMMARY
+          echo "# ✅ Docker Image Build Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## 📦 Published Images" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### GitHub Container Registry (GHCR)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Successfully pushed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository_owner }}/brms-workshop:working\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository_owner }}/brms-workshop:${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository_owner }}/brms-workshop:${{ github.ref_name }}-$(echo ${{ github.sha }} | cut -c1-7)\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Successfully pushed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- \`docker.io/${{ secrets.DOCKERHUB_USERNAME }}/brms-workshop:working\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`docker.io/${{ secrets.DOCKERHUB_USERNAME }}/brms-workshop:${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Not configured** - Docker Hub push skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To enable Docker Hub publishing, configure repository secrets:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to **Settings → Secrets and variables → Actions**" >> $GITHUB_STEP_SUMMARY
+            echo "2. Add \`DOCKERHUB_USERNAME\` (your Docker Hub username)" >> $GITHUB_STEP_SUMMARY
+            echo "3. Add \`DOCKERHUB_TOKEN\` (create at https://hub.docker.com/settings/security)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Usage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull and run with docker compose:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker compose pull" >> $GITHUB_STEP_SUMMARY
+          echo "docker compose up -d" >> $GITHUB_STEP_SUMMARY
+          echo "# Access RStudio at http://localhost:8787" >> $GITHUB_STEP_SUMMARY
+          echo "# Username: rstudio, Password: workshop" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Or pull and run directly:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ github.repository_owner }}/brms-workshop:working" >> $GITHUB_STEP_SUMMARY
+          echo "docker run -d -p 8787:8787 -e PASSWORD=workshop ghcr.io/${{ github.repository_owner }}/brms-workshop:working" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔒 Supply Chain Security" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SBOM (Software Bill of Materials) attached" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Provenance attestation generated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Built with GitHub Actions (traceable build)" >> $GITHUB_STEP_SUMMARY

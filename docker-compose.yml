@@ -1,29 +1,88 @@
+# Docker Compose configuration for BRMS Workshop
+# This sets up an RStudio Server environment with brms (Bayesian Regression Models using Stan)
+# and CmdStan for Bayesian statistical modeling
+#
+# Usage:
+#   docker compose up -d              # Start in detached mode
+#   docker compose logs -f            # View logs
+#   docker compose down               # Stop and remove containers
+#   docker compose build --no-cache   # Rebuild from scratch
+#
+# Access RStudio Server at: http://localhost:8787
+# Default credentials: username=rstudio, password=workshop
+
 version: '3.8'
 
 services:
   brms-workshop:
+    # Image configuration
     image: jobschepens/brms-workshop:working
     build:
       context: .
       dockerfile: Dockerfile
     container_name: brms-workshop
+    
+    # Network configuration
     ports:
-      - "8787:8787"
+      - "8787:8787"  # RStudio Server web interface
+    
+    # RStudio Server configuration
     environment:
-      - PASSWORD=workshop
-      - USERID=1000
-      - ROOT=true
+      - PASSWORD=workshop              # RStudio login password (change in production!)
+      - USERID=1000                    # Match host user ID to avoid permission issues
+      - ROOT=true                      # Allow sudo access inside container
+      # Optional: Set timezone (defaults to Etc/UTC)
+      # - TZ=Europe/Brussels
+    
+    # Volume mounts for persistent data
     volumes:
-      # Mount local materials (for development/editing)
+      # Mount workshop materials (for development/editing)
+      # Changes in ./materials/ are immediately reflected in RStudio
       - ./materials:/home/rstudio/workshop/materials
-      # Optional: persist results
+      
+      # Persist analysis results outside container
+      # Ensures your work isn't lost when container is removed
       - ./results:/home/rstudio/workshop/results
-    restart: unless-stopped
-    # Performance optimizations for AMD Ryzen 5 7640HS
-    cpus: '8'           # Use 8 threads (out of 12 available)
-    mem_limit: 12g      # Allocate 12GB RAM
-    shm_size: 2g        # Increase shared memory for Stan
-    # Uncomment for debugging
-    # stdin_open: true
-    # tty: true
-    # command: /bin/bash
+      
+      # Optional: Mount additional data or scripts
+      # - ./data:/home/rstudio/workshop/data:ro  # :ro = read-only
+    
+    # Container lifecycle policy
+    restart: unless-stopped  # Auto-restart on failure, but not after manual stop
+    
+    # Resource limits and reservations
+    # Note: These are docker-compose style limits. For production/swarm, see deploy section below
+    cpus: '8'           # Limit to 8 CPU cores (adjust based on your system)
+    mem_limit: 12g      # Maximum RAM allocation
+    mem_reservation: 4g # Guaranteed minimum RAM (soft limit)
+    shm_size: 2g        # Shared memory for Stan compilation (important for parallel chains)
+    
+    # Alternative: Use deploy section for more control (works with docker compose v3.8+)
+    # Uncomment below and comment out cpus/mem_limit above to use
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '8'
+    #       memory: 12G
+    #     reservations:
+    #       cpus: '4'
+    #       memory: 4G
+    
+    # Health check to verify RStudio Server is responding
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Allow time for CmdStan installation on first run
+    
+    # Metadata labels for documentation and management
+    labels:
+      com.brms-workshop.description: "RStudio Server with brms and CmdStan"
+      com.brms-workshop.version: "R-4.5.2"
+      com.brms-workshop.service: "rstudio-server"
+    
+    # Debugging options (uncomment when troubleshooting)
+    # stdin_open: true   # Keep STDIN open
+    # tty: true          # Allocate pseudo-TTY
+    # command: /bin/bash # Override entrypoint for shell access
