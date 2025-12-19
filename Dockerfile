@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     libcurl4-openssl-dev \
     libssl-dev \
+    libudunits2-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -44,8 +45,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # - tlmgr update --self: Update TeX Live package manager itself
 # - unicode-math: Unicode math fonts support
 # - xetex: XeTeX engine for modern font support
+# Install common LaTeX packages needed for R Markdown PDF output
+# This prevents knitr/rmarkdown from trying to download them on the fly
+# unicode-math/xetex: For modern font support
+# amsfonts, booktabs, caption: Common packages for academic papers
 RUN tlmgr update --self \
-    && tlmgr install unicode-math xetex \
+    && tlmgr install unicode-math xetex amsfonts booktabs caption \
     && rm -rf /tmp/*
 
 # Set working directory for workshop materials

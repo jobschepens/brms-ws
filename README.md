@@ -1,21 +1,21 @@
-# BRMS Workshop Container
+# BRMS Workshop 
 
-A production-ready, containerized Bayesian Regression Models using Stan (BRMS) workshop environment. Everything you need is pre-installed—just choose your deployment method!
+### 🐳 **GitHub Container Registry** (Pre-built Image) 
+**Ready-to-use container image.**
 
----
+[![GitHub Actions Build](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml/badge.svg)](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml)
 
-## 🚀 Quick Start: Choose Your Path
+A containerized Bayesian Regression Models using Stan (BRMS) workshop environment
+
 
 ### 🐳 **Docker Hub** (Pre-built Image)
 **Ready-to-use container image.**
 
 [![Docker Image](https://img.shields.io/badge/Docker%20Hub-jobschepens%2Fbrms--workshop-blue?logo=docker)](https://hub.docker.com/r/jobschepens/brms-workshop)
 
-- Pre-built and tested image
-- Fast startup, no build time
-- Perfect for reproducible environments
+- Also uploaded here for easy access
 
-### ⭐ **Binder** (Recommended for Workshops)
+### ⭐ **Binder** (Can be practical for Workshops)
 **Zero installation.** One click and you're coding!
 
 [![Binder (GHCR)](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jobschepens/brms-ws/main?urlpath=rstudio)
@@ -26,7 +26,7 @@ A production-ready, containerized Bayesian Regression Models using Stan (BRMS) w
 - Perfect for participants
 - Uses pre-built Docker image from GitHub Container Registry
 
-### 🔧 **GitHub Codespaces** (Best for Development)
+### 🔧 **GitHub Codespaces** 
 **Cloud IDE with full compute.**
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jobschepens/brms-ws)
@@ -46,7 +46,7 @@ docker-compose up
 # Open http://localhost:8787 | Login: rstudio / workshop
 ```
 
-### 🔗 **VS Code Remote** (For Teams)
+### 🔗 **VS Code Remote** (Recommended)
 **Connect to a running container from your IDE.**
 
 ```bash
@@ -120,6 +120,8 @@ docker-compose up
 # Open http://localhost:8787 | Login: rstudio / workshop
 docker-compose down  # When done
 ```
+For detailed instructions on how to pull and run the image, please see the **[Docker Hub README](./README-docker.md)**.
+
 
 ## 📋 System Requirements
 
@@ -134,6 +136,3 @@ docker-compose down  # When done
 
 
 Happy Bayesian modeling! 🎓
-
-*Last Updated: November 7, 2025*
-

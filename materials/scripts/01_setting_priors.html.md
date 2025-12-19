@@ -34,10 +34,6 @@ execute:
   message: false
 ---
 
-
-
-
-
 # Setting Priors in brms (20 min)
 
 ## Default vs. Weakly Informative Priors
@@ -60,9 +56,6 @@ $$\text{posterior} \propto \text{likelihood} \times \text{prior}$$
 ### The Intercept Adapts to Your Data!
 
 This is important: The default intercept prior depends on `mean(y)`. Let's see this in action:
-
-
-
 
 ::: {.cell}
 
@@ -91,13 +84,7 @@ rt_data_extreme <- data.frame(
 ```
 :::
 
-
-
-
 Now let's check what default priors brms suggests:
-
-
-
 
 ::: {.cell}
 
@@ -273,9 +260,6 @@ cat("→ The intercept prior CHANGES with data scale!\n")
 :::
 :::
 
-
-
-
 **Key insight**: The intercept prior automatically scales with your data. This is convenient but has a problem: **if you don't specify priors, your prior assumptions implicitly depend on how you code your variables!**
 
 ## Default brms Priors
@@ -302,9 +286,6 @@ When you don't specify priors, brms assigns defaults:
 ## Setting Weakly Informative Priors for Reaction Times
 
 For psycholinguistics, it's better to specify priors based on domain knowledge:
-
-
-
 
 ::: {.cell}
 
@@ -349,9 +330,6 @@ print(rt_priors)
 :::
 :::
 
-
-
-
 ### Why These Numbers?
 
 #### `normal(6, 1.5)` for Intercept with `lb = 4`
@@ -389,9 +367,6 @@ print(rt_priors)
 ### Comparison: Normal vs. Student-t
 
 brms defaults use `student_t(3, μ, 2.5)` which has heavier tails than `normal()`. Why switch?
-
-
-
 
 ::: {.cell}
 
@@ -500,9 +475,6 @@ ggplot(comparison_df, aes(x = value, fill = distribution, color = distribution))
 ![](01_setting_priors_files/figure-html/tail-comparison-1.png){width=768}
 :::
 :::
-
-
-
 
 **When to use each:**
 

@@ -57,26 +57,22 @@ jobs:
       id-token: write     # Required for provenance signing
     
     steps:
-      # Step 1: Checkout repository code
+      # --------------------------------------------------------------------
+      # STEP 1: Checkout repository code
+      # --------------------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      # Step 2: Set up Docker Buildx for advanced build features
+
+      # --------------------------------------------------------------------
+      # STEP 2: Set up Docker Buildx for advanced build features
+      # --------------------------------------------------------------------
       # Buildx enables multi-platform builds, build caching, and BuildKit features
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      # Step 3: Login to Docker Hub (optional, graceful failure)
-      # If secrets are not configured, login will fail silently
-      # Workflow continues with GHCR-only deployment (continue-on-error: true)
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        continue-on-error: true  # Don't fail workflow if Docker Hub login fails
-      
-      # Step 4: Login to GitHub Container Registry (always succeeds)
+
+      # --------------------------------------------------------------------
+      # STEP 3: Login to GitHub Container Registry (always succeeds)
+      # --------------------------------------------------------------------
       # Uses built-in GITHUB_TOKEN - no secrets configuration needed
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -84,17 +80,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}           # GitHub username
           password: ${{ secrets.GITHUB_TOKEN }}   # Auto-generated token
-      
-      # Step 5: Extract metadata for image tags and labels
-      # Generates consistent tags across both GHCR and Docker Hub
+
+      # --------------------------------------------------------------------
+      # STEP 4: Extract metadata (tags, labels) for Docker
+      # --------------------------------------------------------------------
+      # Generates consistent tags for the GHCR image
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          # Target registries
-          # Docker Hub will be added only if credentials are available during build
-          images: |
-            ghcr.io/${{ github.repository_owner }}/brms-workshop
+          # Target registry
+          images: ghcr.io/${{ github.repository_owner }}/brms-workshop
           
           # Tag generation rules
           tags: |

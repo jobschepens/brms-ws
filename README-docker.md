@@ -1,82 +1,71 @@
 # BRMS Workshop Docker Image
 
-A production-ready, containerized Bayesian Regression Models using Stan (BRMS) workshop environment. Everything you need is pre-installed. Note that the cmdstanr is currently only available in root (e.g. use attach to running container in vs code instead of RStudio server).
+[![GitHub Actions Build](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml/badge.svg)](https://github.com/jobschepens/brms-ws/actions/workflows/docker-build.yml)
+[![Docker Hub Size](https://img.shields.io/docker/image-size/jobschepens/brms-workshop/working)](https://hub.docker.com/r/jobschepens/brms-workshop)
+[![Docker Hub Pulls](https://img.shields.io/docker/pulls/jobschepens/brms-workshop)](https://hub.docker.com/r/jobschepens/brms-workshop)
 
-## Quick Start
+This Docker image provides a complete, self-contained RStudio Server environment for the **BRMS (Bayesian Regression Models using Stan)** workshop. It includes R, RStudio, the `brms` package, `CmdStan`, and all necessary dependencies and system libraries.
 
-### Pull the image
+The environment is built on top of the official `rocker/verse` image, which provides a robust foundation with the Tidyverse and common development tools pre-installed.
+
+---
+
+### What's Included
+
+*   **R & RStudio:** A recent version of R (`4.5.2`) and RStudio Server.
+*   **Bayesian Stack:**
+    *   `brms`: The main package for Bayesian regression modeling.
+    *   `cmdstanr`: The modern R interface to Stan.
+    *   `CmdStan`: The underlying Stan compiler, pre-installed and configured.
+    *   Helper packages: `bayesplot`, `tidybayes`, `loo`, `shinystan`, and more.
+*   **Tidyverse:** The full suite of Tidyverse packages for data manipulation and visualization.
+*   **PDF Generation:** LaTeX is included for knitting R Markdown documents to PDF.
+
+---
+
+### Usage
+
+#### Recommended: Docker Compose
+
+The easiest way to run this image is with the `docker-compose.yml` file from the [GitHub repository](https://github.com/jobschepens/brms-ws). This automatically configures resource limits and volume mounts for you.
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/jobschepens/brms-ws.git
+    cd brms-ws
+    ```
+
+2.  **Pull the latest image:**
+    ```bash
+    docker compose pull
+    ```
+
+3.  **Start the container:**
+    ```bash
+    docker compose up -d
+    ```
+
+#### Manual: `docker run`
+
+You can also run the image manually. Be sure to include the volume mounts and increase the shared memory size (`--shm-size`) for Stan to work efficiently.
+
 ```bash
-docker pull jobschepens/brms-workshop:working
-```
-
-### Run with Docker Compose
-```bash
-git clone https://github.com/jobschepens/brms-ws.git
-cd brms-ws
-docker-compose up
-```
-
-Then open your browser to `http://localhost:8787`
-
-**Login credentials:**
-- Username: `rstudio`
-- Password: `workshop`
-
-### Run standalone
-```bash
-docker run -d -p 8787:8787 \
+docker run -d \
+  --name brms-workshop \
+  -p 8787:8787 \
   -e PASSWORD=workshop \
+  -v ./materials:/home/rstudio/workshop/materials \
+  -v ./results:/home/rstudio/workshop/results \
+  --shm-size=2g \
   jobschepens/brms-workshop:working
 ```
 
-Then access RStudio Server at `http://localhost:8787`
+---
 
-## What's Included
+### Accessing the Environment
 
-| Component | Version |
-|-----------|---------|
-| **R** | 4.4.1 |
-| **BRMS** | 2.22.0+ |
-| **CmdStan** | Latest (pre-compiled) |
-| **RStudio Server** | Latest |
-| **Analysis Tools** | bayesplot, tidybayes, loo, projpred |
-| **Data Tools** | tidyverse, ggplot2, dplyr |
-| **Reporting** | R Markdown, knitr, bookdown, LaTeX |
+*   **URL:** [http://localhost:8787](http://localhost:8787)
+*   **Username:** `rstudio`
+*   **Password:** `workshop` (or whatever you set in the `PASSWORD` environment variable)
 
-## Features
-
-✅ **Bayesian modeling** with BRMS and Stan  
-✅ **Data science tools** for analysis and visualization  
-✅ **Publication-ready** with LaTeX and bookdown  
-✅ **RStudio Server** for web-based development  
-✅ **Pre-compiled** CmdStan for fast model fitting  
-✅ **Full TeX Live** for document generation
-
-## Volume Mounts
-
-When using docker-compose, the following volumes are automatically mounted:
-
-- `./materials:/home/rstudio/workshop/materials` - Workshop materials
-- `./results:/home/rstudio/workshop/results` - Output results
-
-## Environment Variables
-
-- `PASSWORD` - RStudio login password (default: `workshop`)
-- `USERID` - RStudio user ID (default: `1000`)
-
-## Documentation
-
-For more information and alternative deployment methods, see:
-- **GitHub Repository**: https://github.com/jobschepens/brms-ws
-- **Binder** (web-based, no installation): [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jobschepens/brms-ws/main?urlpath=rstudio)
-- **GitHub Codespaces** (cloud IDE): [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jobschepens/brms-ws)
-
-## License
-
-See LICENSE file in the [GitHub repository](https://github.com/jobschepens/brms-ws)
-
-## Support
-
-For issues and questions:
-- Open an issue on [GitHub](https://github.com/jobschepens/brms-ws/issues)
-- Check the main [README](https://github.com/jobschepens/brms-ws/blob/main/README.md)
+The `materials` and `results` folders from your local directory will be available on the RStudio file pane inside the `workshop` folder.

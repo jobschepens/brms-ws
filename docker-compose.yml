@@ -11,15 +11,16 @@
 # Access RStudio Server at: http://localhost:8787
 # Default credentials: username=rstudio, password=workshop
 
-version: '3.8'
-
 services:
   brms-workshop:
-    # Image configuration
-    image: jobschepens/brms-workshop:working
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Image configuration - Points to the GitHub Container Registry (GHCR)
+    # The :working tag is always the latest successful build from the main branch
+    image: ghcr.io/jobschepens/brms-workshop:working
+    # The 'build' section is commented out to ensure we pull from the registry
+    # instead of building locally. Uncomment to resume local development.
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: brms-workshop
     
     # Network configuration
