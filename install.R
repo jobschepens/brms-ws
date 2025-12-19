@@ -17,10 +17,6 @@ options(warn = -1)
 # Install packages in parallel when possible
 options(Ncpus = parallel::detectCores())
 
-# OPTIMIZATION: Use pre-built binary packages when available (MUCH faster than source!)
-# This is critical for preventing timeouts on heavy packages like RcppEigen, rstan, etc.
-options(pkgType = "binary")
-
 cat("=== Installing BRMS Workshop Packages ===\n\n")
 cat("Using", getOption("Ncpus"), "CPU cores for parallel installation\n")
 cat("Repository:", getOption("repos")[1], "\n\n")
@@ -38,6 +34,7 @@ install.packages("cmdstanr",
                  dependencies = TRUE)
 
 # Pre-install heavy C++ dependencies to avoid timeout issues during brms install
+# These packages compile from source and benefit from parallelization
 cat("Pre-installing heavy C++ dependencies (to avoid timeout)...\n")
 heavy_packages <- c(
   "Rcpp",           # Core C++ bindings
@@ -46,11 +43,15 @@ heavy_packages <- c(
 )
 for (pkg in heavy_packages) {
   cat(sprintf("  Installing %s...\n", pkg))
+  # Don't include dependencies for these - they have minimal deps
+  # This prevents cascading timeout issues
   install.packages(pkg, quiet = TRUE, dependencies = FALSE)
 }
 
 # Install brms (will use cmdstanr backend if available)
 cat("Installing brms (main package)...\n")
+# Note: brms has many dependencies, but with heavy packages pre-installed,
+# the remaining deps should install much faster
 install.packages("brms", quiet = TRUE, dependencies = TRUE)
 
 # Install CmdStan (the Stan compiler backend)
