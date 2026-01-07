@@ -21,6 +21,9 @@ declare -a files=(
   "03_posterior_predictive_checks_gram.qmd"
   "04_comparing_priors_rt.qmd"
   "05_loo.qmd"
+  "06_rope.qmd"
+  "07_bayes_factors.qmd"
+  "08_convergence.qmd"
 )
 
 total=${#files[@]}

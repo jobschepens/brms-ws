@@ -1,0 +1,1284 @@
+---
+title: "Hypothesis Testing and ROPE"
+subtitle: "Bayesian Mixed Effects Models with brms for Linguists"
+date: today
+author: "Job Schepens"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-summary: "Show code"
+    keep-md: true
+    embed-resources: false
+    link-external-newwindow: true
+    link-external-icon: true
+    theme:
+      light: flatly
+      dark: darkly
+  pdf:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    colorlinks: true
+    documentclass: article
+    fontsize: 11pt
+    geometry: "top=1in,bottom=1in,left=0.75in,right=0.75in"
+    echo: false
+    keep-md: false
+execute:
+  freeze: auto
+  cache: true
+  warning: false
+  message: false
+---
+
+# The Problem: Does It Matter?
+
+## Research Scenario
+
+Imagine you've run a psycholinguistic experiment and fitted a Bayesian model. You have posterior distributions for your effects. Now you face the critical question:
+
+**"Is this effect meaningful in practice?"**
+
+- You have an estimate (e.g., β = 0.12 log-RT units)
+- You have uncertainty (95% CI: [0.08, 0.16])
+- But: Is this difference big enough to matter?
+
+**Practical significance** is different from **statistical significance**:
+- Statistical: "Is there an effect?" (distinguishable from noise)
+- Practical: "Does it matter?" (large enough to care about)
+
+## Why Practical Significance Matters
+
+Consider these scenarios:
+
+**Scenario A: Statistically credible but trivial**
+
+- Effect: 2ms difference in reading time
+- 95% CI: [1ms, 3ms] (clearly non-zero!)
+- But: Readers can't perceive < 20ms differences
+- **Conclusion**: Real effect, but irrelevant
+
+**Scenario B: Uncertain but potentially important**
+
+- Effect: 50ms difference (noticeable to readers)
+- 95% CI: [-10ms, 110ms] (wide uncertainty)
+- Traditional conclusion: "not significant"
+- But: Most credible values are meaningful
+- **Conclusion**: Worth investigating further
+
+**Scenario C: Strong evidence for negligible effect**
+
+- Effect: 3ms difference
+- 95% CI: [1ms, 5ms] (very precise!)
+- All credible values are below perception threshold
+- **Conclusion**: We can accept "no meaningful effect"
+
+## Preview: Our Tools
+
+Today we'll learn three complementary approaches:
+
+1. **ROPE (Region of Practical Equivalence)**: Define what's "too small to matter"
+   - Set boundaries based on domain knowledge
+   - Check if effect falls inside/outside ROPE
+   
+2. **emmeans**: Estimate and compare means in factorial designs
+   - All pairwise comparisons automatically
+   - Works seamlessly with brms models
+   
+3. **marginaleffects**: Flexible predictions and comparisons
+   - Unified interface for any model type
+   - Custom contrasts and transformations
+
+# Where We Are in the Analysis Workflow
+
+## The Bayesian Workflow So Far
+
+Let's review where we've been:
+
+1. **Module 01**: Set priors
+2. **Module 02**: Prior predictive checks 
+3. **Module 03**: Posterior predictive checks
+4. **Module 04**: Compare priors → Sensitivity analysis
+5. **Module 05**: Compare models → Evaluate predictive performance (LOO)
+6. **Today (Module 06)**: Practical significance (ROPE + comparisons)
+7. **Module 07**: Bayes factors & hypothesis comparison
+
+## When to Use Each Approach
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  QUESTION                          │  TOOL                   │
+├─────────────────────────────────────────────────────────────┤
+│  Which model structure is better?  │  LOO (Module 05)        │
+│  Is effect meaningful?             │  ROPE (Module 06)       │
+│  Compare multiple groups?          │  emmeans (Module 06)    │
+│  Custom predictions/contrasts?     │  marginaleffects (M06)  │
+│  Evidence for hypothesis?          │  Bayes Factor (M07)     │
+│  Are estimates robust to priors?   │  Prior comparison (M04) │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Decision Framework
+
+**Use ROPE when:**
+
+- You need to define "meaningfully different from zero"
+- You want to declare "effect too small to matter"
+- You're testing practical equivalence
+- You need clear decision rules (accept/reject/undecided)
+
+**Use emmeans when:**
+
+- You have factorial designs (multiple groups/conditions)
+- You want all pairwise comparisons
+- You're comfortable with traditional EMMs framework
+- You need marginal means averaging over other factors
+
+**Use marginaleffects when:**
+
+- You want a unified interface for any model
+- You need custom predictions at specific covariate values
+- You're working with complex models (GAMs, interactions)
+- You want modern, flexible comparison tools
+
+**Use Bayes Factors (Module 07) when:**
+
+- You want to quantify evidence for one hypothesis over another
+- You're comparing specific theoretical predictions
+- You need to report evidence ratios for publication
+
+**Use LOO (Module 05) when:**
+
+- Comparing different model structures
+- Doing feature selection
+- Predictive performance is primary concern
+
+## Setup
+
+```{r}
+#| label: setup
+#| message: false
+
+library(brms)
+library(tidyverse)
+library(bayesplot)
+library(posterior)
+library(tidybayes)
+library(bayestestR)  # For ROPE analysis
+library(emmeans)      # For factorial design comparisons
+library(marginaleffects)  # For flexible predictions/comparisons
+
+# Set plotting theme
+theme_set(theme_minimal(base_size = 14))
+```
+
+## Generate Reaction Time Data
+
+We'll generate RT data similar to previous modules, but with specific properties useful for hypothesis testing demonstrations:
+
+- Clear directional effect (Condition B slower than A)
+- Effect size in a realistic range for psycholinguistics
+- Adequate sample size for stable estimates
+
+```{r}
+#| label: generate-data
+
+set.seed(2026)  # For reproducibility
+
+# Sample sizes
+n_subj <- 30
+n_item <- 24
+n_trials_per_cond <- n_item  # Each subject sees each item once
+
+# Generate data
+rt_data <- expand_grid(
+  subject = factor(1:n_subj),
+  item = factor(1:n_item),
+  condition = factor(c("A", "B"))
+) %>%
+  # Add random effects
+  group_by(subject) %>%
+  mutate(
+    subj_intercept = rnorm(1, mean = 0, sd = 0.15),
+    subj_slope = rnorm(1, mean = 0, sd = 0.08)
+  ) %>%
+  group_by(item) %>%
+  mutate(
+    item_intercept = rnorm(1, mean = 0, sd = 0.10)
+  ) %>%
+  ungroup() %>%
+  # Generate log-RT
+  mutate(
+    condition_effect = if_else(condition == "B", 0.12, 0),  # 12% slower
+    log_rt = 6.0 +  # baseline ≈ 400ms
+             subj_intercept + 
+             item_intercept + 
+             condition_effect + 
+             (condition == "B") * subj_slope +
+             rnorm(n(), mean = 0, sd = 0.20),  # residual noise
+    rt = exp(log_rt)
+  ) %>%
+  select(subject, item, condition, log_rt, rt)
+
+# Data summary
+cat("=== DATA SUMMARY ===\n")
+rt_data %>%
+  group_by(condition) %>%
+  summarise(
+    n = n(),
+    mean_rt = mean(rt) %>% round(0),
+    median_rt = median(rt) %>% round(0),
+    sd_rt = sd(rt) %>% round(0),
+    mean_log_rt = mean(log_rt) %>% round(3),
+    .groups = "drop"
+  ) %>%
+  print()
+
+cat("\nEffect size (log scale):", 
+    round(mean(rt_data$log_rt[rt_data$condition == "B"]) - 
+          mean(rt_data$log_rt[rt_data$condition == "A"]), 3), "\n")
+```
+
+## Visualize the Data
+
+```{r}
+#| label: visualize-data
+#| fig-width: 10
+#| fig-height: 5
+
+p1 <- ggplot(rt_data, aes(x = condition, y = rt, fill = condition)) +
+  geom_violin(alpha = 0.6) +
+  geom_jitter(width = 0.2, alpha = 0.3, size = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", 
+               width = 0.2, color = "red", linewidth = 1) +
+  labs(title = "Reaction Times by Condition",
+       y = "RT (ms)", x = "Condition") +
+  theme(legend.position = "none")
+
+p2 <- ggplot(rt_data, aes(x = condition, y = log_rt, fill = condition)) +
+  geom_violin(alpha = 0.6) +
+  geom_jitter(width = 0.2, alpha = 0.3, size = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar",
+               width = 0.2, color = "red", linewidth = 1) +
+  labs(title = "Log-Transformed RTs",
+       y = "log(RT)", x = "Condition") +
+  theme(legend.position = "none")
+
+library(patchwork)
+p1 + p2
+```
+
+## Fit the Model
+
+```{r}
+#| label: fit-model
+#| cache: true
+#| output: false
+
+# Define priors
+rt_priors <- c(
+  prior(normal(6, 1), class = Intercept),     # Baseline around 400ms
+  prior(normal(0, 0.5), class = b),           # Effects typically < 50% change
+  prior(exponential(1), class = sd),          # Moderate random effects
+  prior(exponential(2), class = sigma),       # Residual noise
+  prior(lkj(2), class = cor)                  # Slight correlation regularization
+)
+
+# Fit model
+rt_model <- brm(
+  log_rt ~ condition + (1 + condition | subject) + (1 | item),
+  data = rt_data,
+  family = gaussian(),
+  prior = rt_priors,
+  iter = 2000,
+  warmup = 1000,
+  chains = 4,
+  cores = 4,
+  seed = 2026,
+  backend = "cmdstanr",
+  control = list(adapt_delta = 0.95)
+)
+```
+
+## Model Summary
+
+```{r}
+#| label: model-summary
+#| class-output: "r"
+
+summary(rt_model)
+```
+
+# Region of Practical Equivalence (ROPE)
+
+## Theory: What is "Practically Equivalent"?
+
+
+## Theory: What is "Practically Equivalent"?
+
+Statistical significance tells us if an effect differs from zero. But:
+
+- **Statistical question:** Is the effect *exactly* zero?
+- **Practical question:** Is the effect *close enough* to zero to ignore?
+
+This is where **ROPE** (Region of Practical Equivalence) comes in.
+
+### The ROPE Framework (Kruschke, 2011)
+
+Instead of testing if β = 0 exactly, we define a small interval around zero:
+
+$$\text{ROPE} = [-\varepsilon, +\varepsilon]$$
+
+where $\varepsilon$ is the **smallest effect size we care about** (domain-specific).
+
+**Decision rules:**
+
+1. **95% HDI entirely inside ROPE** → Accept practical equivalence (effect negligible)
+2. **95% HDI entirely outside ROPE** → Reject equivalence (effect matters)  
+3. **95% HDI overlaps ROPE** → Uncertain (collect more data or accept uncertainty)
+
+### Setting ROPE Boundaries
+
+::: {.callout-important}
+## Common Pitfall #2: Post-Hoc ROPE Boundaries
+
+ROPE boundaries must be set **before seeing results** based on:
+
+- Domain knowledge (e.g., "RT differences < 50ms are imperceptible")
+- Practical constraints (e.g., "cost savings < $100 not worth effort")
+- Standardized effect sizes (e.g., "Cohen's d < 0.1 considered negligible")
+
+**Mistake:** Setting ROPE after looking at posterior to get desired conclusion.
+
+**Why it matters:** Post-hoc boundaries invalidate the test (like p-hacking).
+:::
+
+### For RT Data (log-scale)
+
+For our analysis:
+
+- **ROPE = [-0.05, +0.05]**
+- On original scale: $e^{-0.05}$ to $e^{0.05}$ = 0.95 to 1.05 (5% difference)
+- **Interpretation:** RT differences < 5% are too small to be practically meaningful
+## Manual ROPE Calculation
+
+Let's implement the ROPE decision rules ourselves:
+
+```{r}
+#| label: manual-rope
+
+# Define ROPE boundaries (domain-specific!)
+rope_lower <- -0.05
+rope_upper <- 0.05
+
+# Extract posterior samples for condition effect
+posterior_samples <- as_draws_df(rt_model)
+condition_effect <- posterior_samples$b_conditionB
+
+# Calculate proportions
+prop_in_rope <- mean(condition_effect > rope_lower & condition_effect < rope_upper)
+prop_below_rope <- mean(condition_effect < rope_lower)
+prop_above_rope <- mean(condition_effect > rope_upper)
+
+# Calculate 95% HDI
+hdi_95 <- HDInterval::hdi(condition_effect, credMass = 0.95)
+
+cat("ROPE Analysis (manual calculation)\n")
+cat("═══════════════════════════════════════\n")
+cat("ROPE boundaries: [", rope_lower, ",", rope_upper, "]\n")
+cat("95% HDI: [", round(hdi_95[1], 3), ",", round(hdi_95[2], 3), "]\n\n")
+
+cat("Proportion of posterior:\n")
+cat("  Below ROPE (<", rope_lower, "): ", round(prop_below_rope * 100, 1), "%\n", sep = "")
+cat("  Inside ROPE:             ", round(prop_in_rope * 100, 1), "%\n", sep = "")
+cat("  Above ROPE (>", rope_upper, "):  ", round(prop_above_rope * 100, 1), "%\n\n", sep = "")
+
+# Decision based on HDI
+cat("Decision:\n")
+if (hdi_95[1] > rope_upper) {
+  cat("→ REJECT equivalence: Effect is practically significant (positive)\n")
+  cat("   (95% HDI entirely above ROPE)\n")
+} else if (hdi_95[2] < rope_lower) {
+  cat("→ REJECT equivalence: Effect is practically significant (negative)\n")
+  cat("   (95% HDI entirely below ROPE)\n")
+} else if (hdi_95[1] > rope_lower && hdi_95[2] < rope_upper) {
+  cat("→ ACCEPT equivalence: Effect is practically negligible\n")
+  cat("   (95% HDI entirely inside ROPE)\n")
+} else {
+  cat("→ UNCERTAIN: Effect overlaps ROPE\n")
+  cat("   (Need more data or accept uncertainty)\n")
+}
+```
+
+### Visualizing ROPE
+
+```{r}
+#| label: rope-visualization
+#| fig-width: 10
+#| fig-height: 5
+
+library(tidybayes)
+library(patchwork)
+
+# Create density plot with ROPE shading
+p1 <- posterior_samples %>%
+  ggplot(aes(x = b_conditionB)) +
+  # Shade ROPE region
+  annotate("rect", 
+           xmin = rope_lower, xmax = rope_upper,
+           ymin = 0, ymax = Inf,
+           fill = "skyblue", alpha = 0.3) +
+  # Posterior density
+  stat_halfeye(.width = c(0.95, 0.89), fill = "steelblue") +
+  # ROPE boundaries
+  geom_vline(xintercept = c(rope_lower, rope_upper), 
+             linetype = "dashed", color = "blue", linewidth = 1) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "gray50") +
+  # Labels
+  annotate("text", x = 0, y = Inf, label = "ROPE", 
+           vjust = -0.5, color = "blue", fontface = "bold") +
+  labs(
+    title = "Posterior Distribution with ROPE",
+    subtitle = paste0("ROPE: [", rope_lower, ", ", rope_upper, "]"),
+    x = "Condition B Effect (log RT)",
+    y = "Density"
+  ) +
+  theme_minimal(base_size = 12)
+
+# Create proportion bar chart
+rope_data <- data.frame(
+  Region = factor(c("Below ROPE", "Inside ROPE", "Above ROPE"),
+                  levels = c("Below ROPE", "Inside ROPE", "Above ROPE")),
+  Proportion = c(prop_below_rope, prop_in_rope, prop_above_rope)
+)
+
+p2 <- ggplot(rope_data, aes(x = Region, y = Proportion, fill = Region)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(round(Proportion * 100, 1), "%")),
+            vjust = -0.5, size = 4, fontface = "bold") +
+  scale_fill_manual(values = c("Below ROPE" = "coral", 
+                                "Inside ROPE" = "skyblue",
+                                "Above ROPE" = "lightgreen")) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(
+    title = "Posterior Mass in Each Region",
+    x = NULL,
+    y = "Proportion of Posterior"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+
+# Combine plots
+p1 + p2 + plot_annotation(
+  title = "Manual ROPE Analysis",
+  theme = theme(plot.title = element_text(size = 14, face = "bold"))
+)
+```
+
+## Using bayestestR Package
+
+The `bayestestR` package provides convenient functions for ROPE analysis.
+
+```{r}
+#| label: bayestestr-rope
+#| class-output: "r"
+
+library(bayestestR)
+
+# Automatic ROPE analysis
+rope_result <- rope(rt_model, ci = 0.95, range = c(rope_lower, rope_upper))
+
+print(rope_result)
+```
+
+### Interpretation
+
+The output shows:
+
+- **% in ROPE**: Proportion of 95% HDI inside ROPE
+- Interpretation automatically provided
+
+### Visualizing with bayestestR
+
+```{r}
+#| label: bayestestr-plot
+#| fig-width: 8
+#| fig-height: 5
+
+# Create ROPE plot
+plot(rope_result) +
+  labs(title = "ROPE Analysis using bayestestR") +
+  theme_minimal()
+```
+
+### Equivalence Test
+
+The `equivalence_test()` function provides an integrated view:
+
+```{r}
+#| label: equivalence-test
+#| class-output: "r"
+
+# Perform equivalence test
+equiv_test <- equivalence_test(rt_model, range = c(rope_lower, rope_upper))
+
+print(equiv_test)
+```
+
+This shows for each parameter:
+
+- **% in ROPE**: How much of the posterior falls in ROPE
+- **Decision**: Accepted/Rejected/Undecided
+
+## Comparison: Manual vs bayestestR
+
+Both approaches should give the same results:
+
+```{r}
+#| label: compare-methods
+#| class-output: "r"
+
+cat("Manual Calculation:\n")
+cat("  - % in ROPE:", round(prop_in_rope * 100, 1), "%\n")
+cat("  - Decision:", ifelse(hdi_95[1] > rope_upper || hdi_95[2] < rope_lower, 
+                            "Rejected", 
+                            ifelse(hdi_95[1] > rope_lower && hdi_95[2] < rope_upper,
+                                   "Accepted", "Undecided")), "\n\n")
+
+cat("bayestestR Package:\n")
+print(rope_result)
+
+cat("\n✓ Results should match!\n")
+```
+
+::: {.callout-tip}
+## When to Use Manual vs Package
+
+**Use manual calculation when:**
+
+- You want to understand the mechanics
+- You need custom ROPE boundaries for different parameters
+- You're teaching/explaining the concept
+
+**Use bayestestR when:**
+
+- You want quick, standardized results
+- You're analyzing many models
+- You want built-in visualization
+:::
+
+# Complete Workflow: Combining hypothesis() and ROPE
+
+Now let's see how to use both tools together for a complete analysis.
+
+## The Complete Decision Framework
+
+```{r}
+#| label: complete-workflow
+
+cat("═══════════════════════════════════════════════════\n")
+cat("COMPLETE HYPOTHESIS TESTING WORKFLOW\n")
+cat("═══════════════════════════════════════════════════\n\n")
+
+cat("STEP 1: Test Direction (hypothesis)\n")
+cat("───────────────────────────────────────────────────\n")
+h_test <- hypothesis(rt_model, "conditionB > 0")
+cat("H1: conditionB > 0\n")
+cat("  Evidence Ratio:", round(h_test$hypothesis$Evid.Ratio, 1), "\n")
+cat("  Posterior Prob:", round(h_test$hypothesis$Post.Prob, 3), "\n")
+
+if (h_test$hypothesis$Evid.Ratio > 10) {
+  cat("  → Strong evidence for positive effect\n\n")
+} else if (h_test$hypothesis$Evid.Ratio > 3) {
+  cat("  → Moderate evidence for positive effect\n\n")
+} else {
+  cat("  → Weak or no evidence for positive effect\n\n")
+}
+
+cat("STEP 2: Test Practical Significance (ROPE)\n")
+cat("───────────────────────────────────────────────────\n")
+rope_result <- rope(rt_model, ci = 0.95, range = c(-0.05, 0.05))
+cat("ROPE: [-0.05, +0.05] (5% RT difference)\n")
+cat("  % in ROPE:", round(rope_result$ROPE_Percentage[2], 1), "%\n")
+
+hdi_95 <- HDInterval::hdi(condition_effect, credMass = 0.95)
+if (hdi_95[1] > 0.05) {
+  cat("  → Effect is practically significant (HDI > ROPE)\n\n")
+} else if (hdi_95[2] < -0.05) {
+  cat("  → Effect is practically significant (HDI < ROPE)\n\n")
+} else if (hdi_95[1] > -0.05 && hdi_95[2] < 0.05) {
+  cat("  → Effect is practically negligible (HDI ⊂ ROPE)\n\n")
+} else {
+  cat("  → Uncertain (HDI overlaps ROPE)\n\n")
+}
+
+cat("STEP 3: Integrated Conclusion\n")
+cat("───────────────────────────────────────────────────\n")
+
+evid_strong <- h_test$hypothesis$Evid.Ratio > 10
+effect_large <- hdi_95[1] > 0.05
+
+if (evid_strong && effect_large) {
+  cat("✓ STRONG CONCLUSION: Effect is real AND meaningful\n")
+  cat("  → Condition B is reliably slower than A\n")
+  cat("  → The difference is large enough to matter\n")
+} else if (evid_strong && !effect_large) {
+  cat("⚠ WEAK EFFECT: Effect is real but small\n")
+  cat("  → Condition B is reliably different from A\n")
+  cat("  → But the difference may not be practically important\n")
+} else if (!evid_strong) {
+  cat("✗ NO CONCLUSION: Insufficient evidence\n")
+  cat("  → Cannot determine if effect exists\n")
+  cat("  → Need more data or better design\n")
+}
+
+cat("═══════════════════════════════════════════════════\n")
+```
+
+## Visualizing the Complete Picture
+
+```{r}
+#| label: complete-visualization
+#| fig-width: 12
+#| fig-height: 5
+
+library(patchwork)
+
+# Panel 1: Posterior with ROPE
+p1 <- posterior_samples %>%
+  ggplot(aes(x = b_conditionB)) +
+  annotate("rect", xmin = -0.05, xmax = 0.05,
+           ymin = 0, ymax = Inf, fill = "skyblue", alpha = 0.3) +
+  stat_halfeye(.width = c(0.95, 0.89), fill = "steelblue") +
+  geom_vline(xintercept = c(-0.05, 0.05), 
+             linetype = "dashed", color = "blue", linewidth = 1) +
+  geom_vline(xintercept = 0, linetype = "dotted", color = "gray50") +
+  annotate("text", x = 0, y = Inf, label = "ROPE", 
+           vjust = -0.5, color = "blue", fontface = "bold") +
+  labs(title = "Practical Significance (ROPE)",
+       x = "Effect Size (log RT)",
+       y = "Density") +
+  theme_minimal()
+
+# Panel 2: Evidence ratios for multiple thresholds
+threshold_tests <- data.frame(
+  Threshold = c("0", "0.05", "0.10", "0.15"),
+  Hypothesis = c("conditionB > 0", "conditionB > 0.05", 
+                 "conditionB > 0.10", "conditionB > 0.15")
+)
+
+threshold_tests$Evid_Ratio <- sapply(threshold_tests$Hypothesis, function(h) {
+  hypothesis(rt_model, h)$hypothesis$Evid.Ratio
+})
+
+threshold_tests$Threshold <- factor(threshold_tests$Threshold, 
+                                    levels = c("0", "0.05", "0.10", "0.15"))
+
+p2 <- ggplot(threshold_tests, aes(x = Threshold, y = Evid_Ratio)) +
+  geom_col(fill = "steelblue", width = 0.6) +
+  geom_hline(yintercept = c(3, 10, 30), linetype = "dotted", color = "gray50") +
+  geom_text(aes(label = round(Evid_Ratio, 1)), vjust = -0.5, fontface = "bold") +
+  annotate("text", x = 4.5, y = 3, label = "Moderate", 
+           hjust = 1, color = "gray50", size = 3) +
+  annotate("text", x = 4.5, y = 10, label = "Strong", 
+           hjust = 1, color = "gray50", size = 3) +
+  annotate("text", x = 4.5, y = 30, label = "Very Strong", 
+           hjust = 1, color = "gray50", size = 3) +
+  scale_y_log10() +
+  labs(title = "Statistical Evidence (hypothesis)",
+       x = "Effect Size Threshold",
+       y = "Evidence Ratio (log scale)") +
+  theme_minimal()
+
+# Combine
+p1 + p2 + plot_annotation(
+  title = "Complete Hypothesis Testing Workflow",
+  subtitle = "Left: Is the effect large enough to matter? Right: How strong is the evidence?",
+  theme = theme(plot.title = element_text(size = 14, face = "bold"))
+)
+```
+
+## Practical Reporting Template
+
+When writing up your results, include both statistical and practical significance:
+
+```{r}
+#| label: reporting-template
+#| eval: false
+
+# Example reporting (copy and adapt for your own results)
+cat("
+The condition effect on log-RT was estimated at β = 0.12 (95% HDI: [0.09, 0.15]).
+
+STATISTICAL SIGNIFICANCE:
+There was strong evidence that Condition B was slower than Condition A
+(posterior probability > 0.999, evidence ratio > 100:1 in favor of positive effect).
+
+PRACTICAL SIGNIFICANCE:
+Using a ROPE of ±0.05 log-units (corresponding to ±5% change in RT), we found that
+the entire 95% HDI fell above the ROPE, indicating the effect was not only 
+statistically credible but also practically meaningful.
+
+On the original RT scale, this corresponds to Condition B being approximately
+12% slower than Condition A (95% HDI: [9%, 15%]).
+")
+```
+
+# When to Use What: Decision Framework
+
+::: {.callout-tip}
+## Quick Decision Tree
+
+**Question 1: What do you want to test?**
+
+→ "Is the effect positive/negative?" → Use `hypothesis()`  
+→ "Is the effect big enough to matter?" → Use ROPE  
+→ "Both!" → Use both (recommended!)
+
+**Question 2: What's your research goal?**
+
+→ Theory testing (directional predictions) → `hypothesis()`  
+→ Practical decision-making → ROPE  
+→ Publishing/reporting → Both + model comparison (LOO)
+
+**Question 3: What have you learned so far in this workshop?**
+
+→ Module 03: Model comparison with LOO → For selecting between competing models  
+→ Module 04: Prior sensitivity → For checking robustness  
+→ Module 05: Prior predictive checks → For setting reasonable priors  
+→ **Module 06 (now):** hypothesis() & ROPE → For testing specific claims
+
+:::
+
+## Detailed Comparison
+
+```{r}
+#| label: decision-table
+#| echo: false
+
+library(knitr)
+
+decision_framework <- data.frame(
+  Tool = c("hypothesis()", "ROPE", "LOO (Module 03)", "Posterior Intervals"),
+  "Research Question" = c(
+    "Is effect > threshold?",
+    "Is effect negligible?",
+    "Which model predicts better?",
+    "What is effect size?"
+  ),
+  "Output" = c(
+    "Evidence ratio, posterior prob",
+    "% in ROPE, decision rule",
+    "elpd difference, model weights",
+    "95% CI, posterior mean"
+  ),
+  "Use When" = c(
+    "Theory predicts direction",
+    "Need practical significance",
+    "Comparing model structures",
+    "Estimating effect magnitude"
+  ),
+  check.names = FALSE
+)
+
+kable(decision_framework, 
+      caption = "Choosing the Right Tool for Your Research Question")
+```
+
+## Integration with Previous Modules
+
+### Module 03: Model Comparison with LOO
+
+**When to use LOO vs hypothesis():**
+
+- **LOO:** Which model structure is better? (e.g., with/without random slopes)
+- **hypothesis():** Within a model, is parameter A > B?
+
+```r
+# Example combining both:
+# 1. Use LOO to select best model structure
+loo_compare(model_simple, model_complex)
+
+# 2. Then test hypotheses in the winning model
+hypothesis(model_complex, "conditionB > conditionA")
+```
+
+### Module 04: Prior Sensitivity
+
+**Important:** hypothesis() evidence ratios are **sensitive to priors**!
+
+```r
+# Always check: Does conclusion change with different priors?
+model_weak_prior <- brm(..., prior = normal(0, 10), sample_prior = "yes")
+model_strong_prior <- brm(..., prior = normal(0, 1), sample_prior = "yes")
+
+hypothesis(model_weak_prior, "x > 0")   # Compare evidence ratios
+hypothesis(model_strong_prior, "x > 0")
+```
+
+::: {.callout-warning}
+## Common Pitfall #3: Using Default Priors for Bayes Factors
+
+Default (flat) priors lead to undefined or unreliable Bayes factors!
+
+**Problem:** hypothesis() uses prior-to-posterior change, which requires informative priors.
+
+**Solution:** Set weakly informative priors based on your measurement scale (Module 05).
+:::
+
+### Module 05: Prior Predictive Checks
+
+**Workflow integration:**
+
+1. **Before fitting:** Use prior predictive checks to ensure priors are reasonable
+2. **After fitting:** Use hypothesis() or ROPE for testing
+3. **Robustness:** Check that conclusions hold under alternative priors (Module 04)
+
+# Common Pitfalls and How to Avoid Them
+
+::: {.callout-warning}
+## Pitfall #1: Forgetting sample_prior = "yes"
+
+**The Problem:**
+```r
+# WRONG
+model <- brm(y ~ x, data = data, prior = my_priors)
+hypothesis(model, "x > 0")
+# Error or Evid.Ratio = NA
+```
+
+**The Solution:**
+```r
+# CORRECT
+model <- brm(y ~ x, data = data, prior = my_priors, 
+             sample_prior = "yes")  # <-- Essential!
+hypothesis(model, "x > 0")
+```
+
+**Why:** Savage-Dickey density ratio needs prior samples to compute p(θ|data)/p(θ|prior).
+:::
+
+::: {.callout-warning}
+## Pitfall #2: Post-Hoc ROPE Boundaries
+
+**The Problem:**
+```r
+# WRONG: Looking at posterior first, then choosing ROPE
+summary(model)  # Hmm, effect is around 0.08...
+rope_result <- rope(model, range = c(-0.07, 0.07))  # Chosen to exclude effect!
+```
+
+**The Solution:**
+
+- Set ROPE boundaries **before** looking at results
+- Base on domain knowledge, not convenience
+- Document your rationale
+
+**Examples of good justification:**
+
+- "Previous meta-analysis showed minimum detectable effect = 0.5 SD"
+- "Cost-benefit analysis requires >10% improvement to justify intervention"  
+- "Perception threshold for RT differences is ~50ms"
+:::
+
+::: {.callout-warning}
+## Pitfall #3: Misinterpreting Evid.Ratio = 0 or Inf
+
+**The Problem:**
+
+When all posterior mass is on one side of the threshold:
+
+```r
+hypothesis(model, "x > 0")
+# Evid.Ratio = Inf  (or 0)
+```
+
+This doesn't mean "infinite evidence"!
+
+**The Interpretation:**
+
+- **Evid.Ratio = Inf:** All posterior samples > 0 (Post.Prob ≈ 1.00)
+- **Evid.Ratio = 0:** All posterior samples < 0 (Post.Prob ≈ 0.00)
+
+Both indicate very strong evidence, but are limited by finite samples (n = 4000).
+
+**Better reporting:**
+
+- "Evidence ratio > 1000:1" (don't report exact Inf)
+- "Posterior probability > 0.999"
+- Show posterior distribution visually
+:::
+
+::: {.callout-warning}
+## Pitfall #4: Ignoring ROPE Overlap
+
+**The Problem:**
+
+95% HDI overlaps ROPE, but you want a clear answer!
+
+```r
+# 95% HDI: [-0.02, 0.12], ROPE: [-0.05, 0.05]
+# Decision: UNDECIDED
+```
+
+**Tempting (wrong) responses:**
+
+- ❌ "Let's just call it significant" (ignores uncertainty)
+- ❌ "Let's widen ROPE until it fits" (post-hoc manipulation)
+- ❌ "Let's only report the hypothesis test" (selective reporting)
+
+**Appropriate responses:**
+
+- ✅ Report the uncertainty honestly
+- ✅ Collect more data if possible
+- ✅ Use decision theory (e.g., "accept uncertainty and proceed")
+- ✅ Report both % in ROPE and evidence ratio
+:::
+
+## Avoiding Pitfalls: Checklist
+
+Before running hypothesis tests:
+
+- [ ] **sample_prior = "yes"** in your brm() call?
+- [ ] Priors are **weakly informative** (not flat)?  
+- [ ] ROPE boundaries defined **before** seeing results?
+- [ ] ROPE boundaries **justified** with domain knowledge?
+- [ ] Hypotheses based on **theory**, not data exploration?
+
+When interpreting results:
+
+- [ ] Report **both** evidence ratios and effect sizes?
+- [ ] Report **uncertainty** (don't hide ROPE overlaps)?
+- [ ] Check **prior sensitivity** (Module 04)?
+- [ ] Show **posterior distributions visually**?
+- [ ] Interpret on the **original scale** when possible?
+
+# Summary and Best Practices
+
+## Key Takeaways
+
+1. **`hypothesis()` tests specific predictions** about model parameters
+   - Returns evidence ratios and posterior probabilities
+   - More informative than p-values
+   
+2. **ROPE distinguishes practical from statistical significance**
+   - Must be defined a priori based on domain knowledge
+   - Provides decision framework for inference
+
+3. **Combine both approaches** for robust inference
+   - Statistical evidence (hypothesis test)
+   - Practical significance (ROPE)
+   - Transparent reporting of both
+
+## Workflow Checklist
+
+- [ ] Define hypotheses a priori based on theory
+- [ ] Set ROPE boundaries based on domain knowledge (not data)
+- [ ] Fit model with appropriate priors
+- [ ] Test directional hypotheses with `hypothesis()`
+- [ ] Conduct ROPE analysis on effects of interest
+- [ ] Visualize posterior distributions with ROPE
+- [ ] Report both statistical and practical significance
+- [ ] Interpret results in context of theory and application
+
+## Literature and Resources
+
+### Essential Reading
+
+**ROPE Framework:**
+
+- **Kruschke, J. K. (2018).** Rejecting or accepting parameter values in Bayesian estimation. *Advances in Methods and Practices in Psychological Science*, 1(2), 270-280. 
+  - 📖 The definitive paper on ROPE
+  - Explains decision rules and practical implementation
+  - Discusses HDI + ROPE approach in detail
+  - DOI: [10.1177/2515245918771304](https://doi.org/10.1177/2515245918771304)
+  - 📦 **Packages:** Conceptual foundation for `bayestestR::rope()`, applicable to any Bayesian package
+
+- **Kruschke, J. K. (2015).** *Doing Bayesian Data Analysis: A Tutorial with R, JAGS, and Stan* (2nd ed.). Academic Press.
+  - Chapter 12: Bayesian approaches to testing a point (null) value
+  - Chapter 25: Model comparison and ROPE
+  - The textbook that popularized ROPE in psychology
+  - 📦 **Packages:** JAGS examples (concepts transfer to **brms**, **rstanarm**)
+
+**Hypothesis Testing with brms:**
+
+- **Bürkner, P.-C. (2017).** brms: An R package for Bayesian multilevel models using Stan. *Journal of Statistical Software*, 80(1), 1-28. 
+  - DOI: [10.18637/jss.v080.i01](https://doi.org/10.18637/jss.v080.i01)
+  - Section 3.4: Hypothesis testing
+  - Official documentation on `hypothesis()` function
+  - 📦 **Packages:** **brms::hypothesis()** - the main tool covered in this module
+
+- **Bürkner, P.-C. (2021).** Bayesian item response modeling in R with brms and Stan. *Journal of Statistical Software*, 100(5), 1-54.
+  - Advanced examples of hypothesis testing in IRT models
+  - DOI: [10.18637/jss.v100.i05](https://doi.org/10.18637/jss.v100.i05)
+  - 📦 **Packages:** **brms::hypothesis()** in complex models
+
+**Model Interpretation & Marginal Effects:**
+
+- **Arel-Bundock, V., Greifer, N., & Heiss, A. (2024).** How to Interpret Statistical Models Using marginaleffects for R and Python. *Journal of Statistical Software*, 111(9), 1-32.
+  - DOI: [10.18637/jss.v111.i09](https://doi.org/10.18637/jss.v111.i09)
+  - Comprehensive tutorial on model interpretation
+  - Free book: [https://marginaleffects.com](https://marginaleffects.com)
+  - 📦 **Packages:** **marginaleffects** (`predictions()`, `comparisons()`, `hypotheses()`)
+  - ✅ Supports brms models natively
+  - Alternative to `hypothesis()` with more flexible interface
+
+- **Lenth, R. V. (2016).** Least-squares means: The R Package emmeans. *Journal of Statistical Software*, 69(1), 1-33.
+  - DOI: [10.18637/jss.v069.i01](https://doi.org/10.18637/jss.v069.i01)
+  - Foundation paper for estimated marginal means
+  - 📦 **Packages:** **emmeans** (`emmeans()`, `pairs()`, `contrast()`)
+  - ✅ Supports brms models with full Bayesian uncertainty
+  - Best for factorial designs with automatic pairwise comparisons
+
+**Savage-Dickey Method (Theoretical Foundation):**
+
+- **Wagenmakers, E.-J., Lodewyckx, T., Kuriyal, H., & Grasman, R. (2010).** Bayesian hypothesis testing for psychologists: A tutorial on the Savage-Dickey method. *Cognitive Psychology*, 60(3), 158-189.
+  - DOI: [10.1016/j.cogpsych.2009.12.001](https://doi.org/10.1016/j.cogpsych.2009.12.001)
+  - Explains the method behind `hypothesis()` Evidence Ratios
+  - Includes WinBUGS code (adaptable to brms)
+  - 📦 **Packages:** Theoretical foundation for **brms::hypothesis()** Bayes Factors
+  - Includes 3 worked examples (proportions, hierarchical models)
+
+**Applied Linguistics:**
+
+- **Nicenboim, B., Schad, D., & Vasishth, S. (2023).** *An Introduction to Bayesian Data Analysis for Cognitive Science*. 
+  - Chapter 5: Comparing two groups
+  - Chapter 6: Evaluating hypotheses with Bayes factor
+  - Free online: [https://vasishth.github.io/bayescogsci/](https://vasishth.github.io/bayescogsci/)
+  - Focused on psycholinguistics applications
+  - 📦 **Packages:** **brms::hypothesis()**, **bridgesampling**
+
+- **Vasishth, S., Nicenboim, B., Beckman, M. E., Li, F., & Kong, E. J. (2018).** Bayesian data analysis in the phonetic sciences: A tutorial introduction. *Journal of Phonetics*, 71, 147-161.
+  - DOI: [10.1016/j.wocn.2018.07.008](https://doi.org/10.1016/j.wocn.2018.07.008)
+  - Tutorial specifically for phonetics/linguistics
+  - Includes hypothesis testing examples
+  - 📦 **Packages:** **brms**, **rstan**
+
+### Online Tutorials and Books
+
+**Comprehensive brms Resources:**
+
+- **Kurz, A. S. (2023).** *Statistical Rethinking with brms, ggplot2, and the tidyverse* (version 1.3.0).
+  - Free online book: [https://bookdown.org/content/3890/](https://bookdown.org/content/3890/)
+  - Chapter 3.3: Sampling from the posterior (hypothesis testing)
+  - Chapter 7: Ulysses' Compass (model comparison)
+  - Recodes McElreath's *Statistical Rethinking* using brms
+  - Excellent for understanding workflow integration
+  - 📦 **Packages:** **brms**, **tidybayes**, **ggplot2**
+
+- **Kurz, A. S. (2023).** *Applied Longitudinal Data Analysis in brms and the tidyverse*.
+  - Free online: [https://bookdown.org/content/4857/](https://bookdown.org/content/4857/)
+  - Hypothesis testing in multilevel/longitudinal contexts
+  - 📦 **Packages:** **brms**, **tidybayes**, **marginaleffects**
+
+**bayestestR Package:**
+
+- **Makowski, D., Ben-Shachar, M. S., & Lüdecke, D. (2019).** bayestestR: Describing effects and their uncertainty, existence and significance within the Bayesian framework. *Journal of Open Source Software*, 4(40), 1541.
+  - DOI: [10.21105/joss.01541](https://doi.org/10.21105/joss.01541)
+  - Official paper on bayestestR package
+  - 📦 **Packages:** **bayestestR** (`rope()`, `equivalence_test()`, `p_direction()`, `hdi()`)
+  - ✅ Works with brms models
+  - Used extensively in this module for ROPE analysis
+
+- **bayestestR documentation:** [https://easystats.github.io/bayestestR/](https://easystats.github.io/bayestestR/)
+  - Vignettes on ROPE, equivalence testing, Bayes factors
+  - Tutorial: "Comparison of Indices of Effect Existence"
+  - 📦 **Packages:** **bayestestR** comprehensive reference
+
+### Official Documentation
+
+**brms Documentation:**
+
+- **hypothesis() function reference:** [https://paulbuerkner.com/brms/reference/hypothesis.brmsfit.html](https://paulbuerkner.com/brms/reference/hypothesis.brmsfit.html)
+  - Complete API documentation
+  - Examples of syntax and usage
+  - Details on Savage-Dickey density ratio computation
+  - 📦 **Packages:** **brms::hypothesis()**
+
+- **brms overview:** [https://paulbuerkner.com/brms/](https://paulbuerkner.com/brms/)
+  - Package homepage with tutorials
+  - Links to vignettes and examples
+  - 📦 **Packages:** **brms** (all functions)
+
+- **Paul Bürkner's blog posts on brms:** [https://paulbuerkner.com/software/brms-blogposts.html](https://paulbuerkner.com/software/brms-blogposts.html)
+  - Curated list of community blog posts
+  - Includes posts on hypothesis testing and model comparison
+  - 📦 **Packages:** **brms**, various integration examples
+
+**emmeans Documentation:**
+
+- **emmeans website:** [https://rvlenth.github.io/emmeans/](https://rvlenth.github.io/emmeans/)
+  - Comprehensive vignettes on estimated marginal means
+  - Vignette: "Basics of estimated marginal means"
+  - Vignette: "Working with emmeans objects"
+  - Vignette: "Models supported by emmeans" (includes brms!)
+  - 📦 **Packages:** **emmeans** complete reference
+
+- **emmeans with Bayesian models:** [https://rvlenth.github.io/emmeans/articles/models.html](https://rvlenth.github.io/emmeans/articles/models.html)
+  - Section on brms support
+  - How to use with posterior samples
+  - 📦 **Packages:** **emmeans** + **brms** integration
+
+**marginaleffects Documentation:**
+
+- **marginaleffects book:** [https://marginaleffects.com](https://marginaleffects.com)
+  - Free comprehensive book: "Model to Meaning"
+  - Chapters on predictions, comparisons, slopes
+  - Section on Bayesian models (brms, rstanarm)
+  - 📦 **Packages:** **marginaleffects** complete guide
+
+- **marginaleffects vignettes:** [https://marginaleffects.com/articles/](https://marginaleffects.com/articles/)
+  - "Bayesian Models" vignette shows brms integration
+  - "Hypothesis Tests and Equivalence Tests"
+  - 📦 **Packages:** **marginaleffects** with **brms**
+
+**Stan Documentation:**
+
+- **Stan User's Guide - Bayesian Inference:** [https://mc-stan.org/docs/stan-users-guide/bayesian-inference.html](https://mc-stan.org/docs/stan-users-guide/bayesian-inference.html)
+  - Chapter on hypothesis testing and model comparison
+  - Technical details on computation
+  - 📦 **Packages:** **rstan**, **cmdstanr** (backends for **brms**)
+
+### Philosophical and Methodological Background
+
+- **Wagenmakers, E.-J., Lee, M., Lodewyckx, T., & Iverson, G. J. (2008).** Bayesian versus frequentist inference. In H. Hoijtink, I. Klugkist, & P. A. Boelen (Eds.), *Bayesian evaluation of informative hypotheses* (pp. 181-207). Springer.
+  - Comparison of Bayesian and frequentist approaches
+  - Philosophy of hypothesis testing
+  - 📦 **Packages:** Conceptual (not software-specific)
+
+- **Gelman, A., & Carlin, J. (2014).** Beyond power calculations: Assessing Type S (sign) and Type M (magnitude) errors. *Perspectives on Psychological Science*, 9(6), 641-651.
+  - Why effect sizes matter more than significance
+  - Relationship to ROPE framework
+  - 📦 **Packages:** Conceptual (applicable to all Bayesian packages)
+
+### Community Blogs and Tutorials
+
+**Highly Recommended Blogs:**
+
+- **Solomon Kurz's Blog:** [https://solomonkurz.netlify.app/](https://solomonkurz.netlify.app/)
+  - Author of the Statistical Rethinking recoding
+  - Regular posts on brms workflows
+  - 📦 **Packages:** **brms**, **tidybayes**, **ggplot2**
+
+- **Richard McElreath's Statistical Rethinking 2023 Lectures:** [https://github.com/rmcelreath/stat_rethinking_2023](https://github.com/rmcelreath/stat_rethinking_2023)
+  - Video lectures with code examples
+  - Though uses rethinking package, concepts transfer to brms
+  - 📦 **Packages:** **rethinking** (concepts applicable to **brms**)
+
+- **Matti Vuorre's Blog:** [https://mvuorre.github.io/](https://mvuorre.github.io/)
+  - Posts on Bayesian methods in psychology
+  - brms examples and visualizations
+  - 📦 **Packages:** **brms**, **tidybayes**, **ggplot2**
+
+- **TJ Mahr's Blog:** [https://www.tjmahr.com/](https://www.tjmahr.com/)
+  - Co-author of tidybayes
+  - Excellent brms + tidyverse integration tutorials
+  - 📦 **Packages:** **brms**, **tidybayes**, **ggplot2**
+
+### Package Ecosystem Quick Reference
+
+**Primary hypothesis testing tools covered in this module:**
+
+| Package | Main Functions | Use Case | brms Support |
+|---------|---------------|----------|--------------|
+| **brms** | `hypothesis()` | Directional tests, evidence ratios | Native (is brms!) |
+| **bayestestR** | `rope()`, `equivalence_test()` | ROPE analysis, HDI | ✅ Yes |
+| **emmeans** | `emmeans()`, `pairs()`, `contrast()` | Factorial designs, pairwise comparisons | ✅ Yes |
+| **marginaleffects** | `predictions()`, `comparisons()`, `hypotheses()` | General predictions, contrasts | ✅ Yes |
+| **tidybayes** | `spread_draws()`, `stat_halfeye()` | Posterior visualization | ✅ Yes |
+
+**When to use each:**
+
+- **`hypothesis()`**: Direct test of specific linear combination (fast, built-in)
+- **`rope()`**: Test practical equivalence (ROPE analysis)
+- **`emmeans()`**: Factorial designs with all pairwise comparisons
+- **`marginaleffects`**: Most flexible predictions and comparisons
+- **Combine them!**: Use multiple approaches for robust inference
+
+### Practical Recommendations for Different Audiences
+
+**If you're new to Bayesian statistics:**
+1. Start with Kruschke (2015) *Doing Bayesian Data Analysis*
+2. Work through Kurz's *Statistical Rethinking with brms*
+3. Read Nicenboim et al. (2023) for linguistics applications
+4. 📦 Focus on **brms** + **bayestestR** first
+
+**If you're familiar with Bayesian methods but new to brms:**
+1. Read Bürkner (2017) JSS paper on brms
+2. Review the official hypothesis() documentation
+3. Work through examples in Kurz's online book
+4. 📦 Add **emmeans** or **marginaleffects** for richer comparisons
+
+**If you want to understand ROPE deeply:**
+1. **Must read:** Kruschke (2018) paper on ROPE
+2. Study Chapter 12 of Kruschke (2015) book
+3. Compare with Makowski et al. (2019) bayestestR paper
+4. 📦 Use **bayestestR::rope()** for implementation
+
+**If you want to move beyond hypothesis() for comparisons:**
+1. Learn **emmeans** for factorial designs (familiar to traditional stats users)
+2. Learn **marginaleffects** for general approach (modern, unified interface)
+3. Read Arel-Bundock et al. (2024) JSS paper
+4. 📦 Both integrate seamlessly with **brms**
+
+**If you're writing a methods section:**
+
+- Cite Kruschke (2018) for ROPE framework
+- Cite Bürkner (2017) for brms package
+- Cite Makowski et al. (2019) if using bayestestR
+- Cite Lenth (2016) if using emmeans
+- Cite Arel-Bundock et al. (2024) if using marginaleffects
+- Include your ROPE boundary justification!
+- 📦 Always cite the packages you actually use
+
+### Discussion Forums and Help
+
+- **Stan Discourse Forum:** [https://discourse.mc-stan.org/](https://discourse.mc-stan.org/)
+  - Very active community
+  - Paul Bürkner frequently answers brms questions
+  - Search before posting - many questions already answered
+  - Topics: **brms**, **hypothesis()**, **Stan**, **cmdstanr**
+
+- **brms GitHub Issues:** [https://github.com/paul-buerkner/brms/issues](https://github.com/paul-buerkner/brms/issues)
+  - For bug reports and feature requests
+  - Many closed issues are useful troubleshooting resources
+  - **brms** specific technical questions
+
+- **Stack Overflow [brms] tag:** [https://stackoverflow.com/questions/tagged/brms](https://stackoverflow.com/questions/tagged/brms)
+  - Good for specific coding questions
+  - Tags: **brms**, **bayesian**, **stan**
+
+- **marginaleffects GitHub Discussions:** [https://github.com/vincentarelbundock/marginaleffects/discussions](https://github.com/vincentarelbundock/marginaleffects/discussions)
+  - Help with **marginaleffects** package
+  - Questions about brms integration
+
+- **emmeans support:** [https://github.com/rvlenth/emmeans/issues](https://github.com/rvlenth/emmeans/issues)
+  - **emmeans** specific questions
+  - Bayesian model support
+
+### Related Workshop Materials
+
+Other modules in this workshop series:
+
+- Module 01-02: Introduction and prior specification
+- Module 03: Posterior predictive checks
+- Module 04: Prior sensitivity analysis  
+- Module 05: Model comparison with LOO
+- **Module 06 (this):** hypothesis() and ROPE
+  - 📦 **Key packages:** **brms**, **bayestestR**, **emmeans**, **marginaleffects**
+- Module 07 (upcoming): Bayes factors and model selection
+- **Module 06 (this):** hypothesis() and ROPE
+- Module 07 (upcoming): Bayes factors and model selection
+
+## Session Info
+
+```{r}
+#| label: session-info
+
+sessionInfo()
+```

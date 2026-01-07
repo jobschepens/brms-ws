@@ -104,6 +104,28 @@ View the rendered tutorials directly in your browser:
 #### Module 5: Model Comparison
 - [**05_loo.html**](https://jobschepens.github.io/brms-ws/05_loo.html) — LOO-PSIS: Model Comparison with Cross-Validation (RT)
 
+#### Module 6: Practical Significance and Effect Estimation
+- [**06_rope.html**](https://jobschepens.github.io/brms-ws/06_rope.html) — ROPE, emmeans, and marginaleffects
+  - Region of Practical Equivalence (ROPE) with decision-theoretic foundations
+  - Estimated marginal means for factorial designs
+  - Flexible predictions and comparisons
+  - Integration of practical significance testing
+
+#### Module 7: Bayes Factors and Hypothesis Testing
+- [**07_bayes_factors.html**](https://jobschepens.github.io/brms-ws/07_bayes_factors.html) — Hypothesis Testing with Bayes Factors
+  - Savage-Dickey density ratio method
+  - Bridge sampling for model comparison
+  - Evidence quantification and interpretation
+  - Comparison with ROPE approach
+
+#### Module 8: Convergence Diagnostics
+- [**08_convergence.html**](https://jobschepens.github.io/brms-ws/08_convergence.html) — MCMC Convergence Diagnostics
+  - Trace plots and visual inspection
+  - R-hat and effective sample size (ESS)
+  - Autocorrelation analysis
+  - Troubleshooting convergence issues
+  - Iteration doubling tests
+
 ### Workshop Notebooks
 
 Workshop notebooks in `materials/notebooks/`:

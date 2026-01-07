@@ -30,5 +30,17 @@
   "01_setting_priors_gram.qmd": {
     "01_setting_priors_gram.html": "a8245f58",
     "01_setting_priors_gram.tex": "b6959bce"
+  },
+  "06_rope.qmd": {
+    "06_rope.html": "8a6d1e02",
+    "06_rope.tex": "2a83f604"
+  },
+  "07_bayes_factors.qmd": {
+    "07_bayes_factors.html": "3b3ac957",
+    "07_bayes_factors.tex": "a5b95de0"
+  },
+  "08_convergence.qmd": {
+    "08_convergence.html": "711f48af",
+    "08_convergence.tex": "4fe2ae20"
   }
 }

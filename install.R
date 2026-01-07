@@ -182,7 +182,17 @@ install.packages(c(
   "tidybayes",      # Tidy data tools for Bayesian analysis
   "loo",            # Leave-one-out cross-validation
   "projpred",       # Projection predictive inference
-  "shinystan"       # Interactive posterior analysis
+  "shinystan",      # Interactive posterior analysis
+  "bayestestR",     # ROPE analysis and Bayesian hypothesis testing
+  "emmeans",        # Estimated marginal means for factorial designs
+  "marginaleffects",# Flexible predictions and comparisons for any model
+  "HDInterval",     # HDI calculations for ROPE analysis
+  "see",            # Visualization for easystats packages (bayestestR plots)
+  "parameters",     # Extract and format model parameters (easystats)
+  "performance",    # Model diagnostics and fit indices (easystats)
+  "effectsize",     # Compute standardized effects (easystats)
+  "modelbased",     # Model diagnostic summaries and predictions (easystats)
+  "collapse"        # Required by marginaleffects for brms models
 ), quiet = TRUE)
 
 # ------ DATA MANIPULATION & VISUALIZATION ------
@@ -225,6 +235,8 @@ cat("\n=== Installation Complete ===\n")
 cat("Packages installed:\n")
 cat("✓ BRMS, cmdstanr, CmdStan\n")
 cat("✓ Bayesian tools: bayesplot, tidybayes, loo, projpred, shinystan\n")
+cat("✓ ROPE & comparisons: bayestestR, emmeans, marginaleffects, HDInterval\n")
+cat("✓ easystats: see, parameters, performance, effectsize, modelbased\n")
 cat("✓ Data tools: tidyverse, ggplot2, dplyr, tidyr, scales\n")
 cat("✓ Reporting: knitr, rmarkdown, bookdown, DT\n")
 cat("✓ Dev tools: devtools, roxygen2, testthat\n")

@@ -49,8 +49,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # This prevents knitr/rmarkdown from trying to download them on the fly
 # unicode-math/xetex: For modern font support
 # amsfonts, booktabs, caption: Common packages for academic papers
+# tcolorbox, pdfcol, fontawesome5, float: Required by Quarto for callouts and formatting
 RUN tlmgr update --self \
     && tlmgr install unicode-math xetex amsfonts booktabs caption \
+                     tcolorbox pdfcol fontawesome5 float \
     && rm -rf /tmp/*
 
 # Set working directory for workshop materials
