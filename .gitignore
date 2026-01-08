@@ -1,5 +1,6 @@
 # Environment files with user-specific settings
 .env
+docker-compose.override.yml
 
 # SSH keys (NEVER commit these!)
 *.pem

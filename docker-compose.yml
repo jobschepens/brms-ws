@@ -17,9 +17,9 @@ services:
     # The :working tag is always the latest successful build from the main branch
     image: ghcr.io/jobschepens/brms-workshop:working
     # The 'build' section is enabled for local development with updated packages
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: brms-workshop
     
     # Network configuration
