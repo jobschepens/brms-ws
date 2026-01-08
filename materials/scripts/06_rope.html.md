@@ -341,26 +341,26 @@ Formula: log_rt ~ condition + (1 + condition | subject) + (1 | item)
 Multilevel Hyperparameters:
 ~item (Number of levels: 24) 
               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.11      0.02     0.08     0.16 1.00      870     1458
+sd(Intercept)     0.11      0.02     0.08     0.15 1.00      965     1722
 
 ~subject (Number of levels: 30) 
                           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-sd(Intercept)                 0.17      0.02     0.13     0.22 1.00      790
-sd(conditionB)                0.06      0.02     0.02     0.09 1.00      879
-cor(Intercept,conditionB)     0.03      0.26    -0.45     0.54 1.00     2095
+sd(Intercept)                 0.17      0.02     0.13     0.22 1.00      828
+sd(conditionB)                0.06      0.02     0.02     0.09 1.00      797
+cor(Intercept,conditionB)     0.04      0.26    -0.45     0.55 1.00     2292
                           Tail_ESS
-sd(Intercept)                 1296
-sd(conditionB)                 726
-cor(Intercept,conditionB)     2035
+sd(Intercept)                 1621
+sd(conditionB)                 423
+cor(Intercept,conditionB)     2137
 
 Regression Coefficients:
            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept      5.98      0.04     5.90     6.05 1.01      478      992
-conditionB     0.11      0.02     0.08     0.14 1.00     2917     2927
+Intercept      5.98      0.04     5.90     6.05 1.01      568      802
+conditionB     0.11      0.01     0.08     0.14 1.00     2387     2584
 
 Further Distributional Parameters:
       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma     0.20      0.00     0.19     0.21 1.00     4011     3063
+sigma     0.20      0.00     0.19     0.21 1.00     4298     2793
 
 Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -396,6 +396,19 @@ where $\varepsilon$ is the **smallest effect size we care about** (domain-specif
 1. **95% HDI entirely inside ROPE** → Accept practical equivalence (effect negligible)
 2. **95% HDI entirely outside ROPE** → Reject equivalence (effect matters)  
 3. **95% HDI overlaps ROPE** → Uncertain (collect more data or accept uncertainty)
+
+::: {.callout-note}
+## Terminology: HDI vs. HPD
+
+Throughout this document, we use **HDI** (Highest Density Interval) to refer to the credible interval containing the 95% most probable parameter values with the shortest width. This is also called **HPD** (Highest Posterior Density) or **HPDI** in some literature.
+
+**All three terms refer to the same concept:**
+- HDI = Highest Density Interval (most common in modern usage)
+- HPD = Highest Posterior Density (common in older literature)  
+- HPDI = Highest Posterior Density Interval (explicit combination)
+
+The R package `HDInterval::hdi()` and the emmeans output column `lower.HPD`/`upper.HPD` both compute this same interval type.
+:::
 
 ### Setting ROPE Boundaries
 
@@ -670,47 +683,116 @@ For our analysis:
 
 ### Excursion to Decision Analysis: The Implicit Utility Function (Gelman et al., 2013)
 
-Let's make explicit what ROPE boundaries mean in decision-theoretic terms (Gelman et al., 2013, Chapter 9; [Stan User's Guide on Decision Analysis](https://mc-stan.org/docs/stan-users-guide/decision-analysis.html)):
+Let's make explicit what ROPE boundaries mean in decision-theoretic terms (Gelman et al., 2013, Chapter 9; [Stan User's Guide on Decision Analysis](https://mc-stan.org/docs/stan-users-guide/decision-analysis.html)).
+
+Following the formal framework of Bayesian decision analysis:
+
+#### **Step 1: Define Decisions and Outcomes**
+
+$$
+\begin{aligned}
+D &= \{\text{claim meaningful}, \text{claim negligible}, \text{undecided}\} \\
+X &= \mathbb{R} \quad \text{(true effect size } \beta \text{)}
+\end{aligned}
+$$
+
+- **Decisions**: We must choose one of three actions:
+
+  - Claim the effect is **meaningful** (reject practical equivalence)
+  - Claim the effect is **negligible** (accept practical equivalence)
+  - Remain **undecided** (collect more data)
+- **Outcomes**: The true but unknown effect size $\beta$ (e.g., difference in log RT)
+
+#### **Step 2: Define Probability Distribution of Outcomes**
+
+$$
+p(\beta \mid d, \text{data}) = \int p(\beta \mid \theta) \cdot p(\theta \mid \text{data}) \, d\theta
+$$
+
+- This is our **posterior distribution** from the Bayesian model
+- Represents uncertainty about the true effect size $\beta$ given observed data
+- The posterior is independent of our decision $d$ (decisions don't change reality!)
+
+#### **Step 3: Define Utility Function**
+
+$$
+U(\beta, d) = \begin{cases}
+|\beta| & \text{if } d = \text{claim meaningful and } |\beta| > \text{ROPE} \\
+-2|\beta| - 0.3 & \text{if } d = \text{claim meaningful and } |\beta| \leq \text{ROPE (false positive)} \\
+1 - |\beta| & \text{if } d = \text{claim negligible and } |\beta| \leq \text{ROPE} \\
+-1.5|\beta| - 0.3 & \text{if } d = \text{claim negligible and } |\beta| > \text{ROPE (false negative)} \\
+-0.15 & \text{if } d = \text{undecided (cost of data collection)}
+\end{cases}
+$$
+
+**Utility interpretation:**
+
+- **Correct decisions** have positive utility that depends on effect magnitude
+- **Incorrect decisions** incur loss: fixed penalty (-0.3) + proportional penalty
+- **False positives** penalized more (-2×) than false negatives (-1.5×)
+- **Remaining undecided** has fixed cost (-0.15) representing study time, participant recruitment, delayed publication
+
+#### **Step 4: Choose Decision with Highest Expected Utility**
+
+$$
+d^* = \arg\max_d \mathbb{E}[U(\beta, d) \mid \text{data}] = \arg\max_d \int U(\beta, d) \cdot p(\beta \mid \text{data}) \, d\beta
+$$
+
+The **Bayes optimal decision** maximizes expected utility by integrating utility over the posterior:
+
+```
+For each decision d:
+  Expected_Utility(d) = ∫ U(β, d) × p(β | data) dβ
+  
+Choose d* with max Expected_Utility
+```
+
+**In practice:**
+
+- **Scenario 1** (posterior outside ROPE): $\mathbb{E}[U \mid \text{claim meaningful}]$ is highest
+- **Scenario 2** (posterior spans ROPE): $\mathbb{E}[U \mid \text{undecided}]$ is highest (uncertainty cost > data cost)
+- **Scenario 3** (posterior inside ROPE): $\mathbb{E}[U \mid \text{claim negligible}]$ is highest
 
 **Scenario**: You must decide whether to claim "Condition B is meaningfully slower" or "Condition B is essentially equivalent to A".
-
-**Utility function** (simplified for illustration):
 
 
 ::: {.cell}
 
 ```{.r .cell-code}
-# Define utility function
+# ============================================================================
+# STEP 3: Define utility function U(β, d)
+# ============================================================================
+
 utility <- function(beta, decision, rope_bounds) {
   rope_lower <- rope_bounds[1]
   rope_upper <- rope_bounds[2]
   
   if (decision == "claim_meaningful") {
     # Utility of claiming meaningful effect
-    # Correct if |beta| > rope_upper, costly error if inside ROPE
+    # U(β, "meaningful") = |β| if correct, -(2|β| + 0.3) if false positive
     ifelse(abs(beta) > rope_upper,
-           abs(beta),           # Utility increases with effect size
-           -2 * abs(beta) - 0.3)  # Loss for false positive: 
-                                  # -0.3 = fixed penalty for being wrong
-                                  # -2*|beta| = proportional penalty (more wrong = worse)
+           abs(beta),           # Correct: utility increases with effect size
+           -2 * abs(beta) - 0.3)  # False positive: fixed (-0.3) + proportional (-2|β|) loss
   } else if (decision == "claim_negligible") {
     # Utility of claiming negligible effect  
-    # Correct if |beta| < rope_upper, costly error if outside ROPE
+    # U(β, "negligible") = 1-|β| if correct, -(1.5|β| + 0.3) if false negative
     ifelse(abs(beta) < rope_upper,
-           1 - abs(beta),       # Utility decreases as beta approaches boundary
-           -1.5 * abs(beta) - 0.3)  # Loss for false negative:
-                                    # -0.3 = fixed penalty for being wrong
-                                    # -1.5*|beta| = proportional penalty (less severe than false positive)
+           1 - abs(beta),       # Correct: utility decreases as β approaches boundary
+           -1.5 * abs(beta) - 0.3)  # False negative: less severe than false positive
   } else {
     # Utility of remaining undecided (collect more data)
-    -0.15  # Fixed cost of additional data collection
-           # This represents: study time, participant costs, delayed publication
+    # U(β, "undecided") = -0.15 (fixed cost independent of true β)
+    -0.15  # Cost: study time, participant recruitment, delayed publication
   }
 }
 
-# Visualize utility function across possible beta values
-# Extend range to show "large" effects (Cohen's d = 0.8 ≈ 0.16 on log scale with SD=0.20)
-beta_range <- seq(-0.2, 0.5, length.out = 300)
+# ============================================================================
+# STEP 1: Define decision space and outcome space
+# ============================================================================
+# D = {claim_meaningful, claim_negligible, undecided}
+# X = ℝ (true effect size β)
+
+beta_range <- seq(-0.2, 0.5, length.out = 300)  # Outcome space
 utility_data <- expand.grid(
   beta = beta_range,
   decision = c("claim_meaningful", "claim_negligible", "undecided")
@@ -720,14 +802,18 @@ utility_data <- expand.grid(
                      MoreArgs = list(rope_bounds = c(-0.05, 0.05)))
   )
 
-# Define Cohen's d reference points (assuming pooled SD ≈ 0.20)
+# Cohen's d reference points (assuming pooled SD ≈ 0.20)
 cohens_d_refs <- tibble(
   label = c("Small\n(d=0.2)", "Medium\n(d=0.5)", "Large\n(d=0.8)"),
   beta_value = c(0.04, 0.10, 0.16),
   utility_y = c(0.04, 0.10, 0.16)
 )
 
-# Get posterior samples for the effect (actual data)
+# ============================================================================
+# STEP 2: Define probability distribution p(β | data)
+# ============================================================================
+# Extract posterior samples (represents our uncertainty about true β)
+
 posterior_samples <- as_draws_df(rt_model)
 beta_samples <- posterior_samples$b_conditionB
 
@@ -740,11 +826,11 @@ posterior_df_1 <- tibble(
   scenario = "Scenario 1: Clear Effect",
   optimal = "claim_meaningful"
 ) %>%
-  mutate(scaled_density = (density / max(density)) * 0.8 - 0.4)  # Scale to show only above baseline
+  mutate(scaled_density = (density / max(density)) * 0.8 - 0.4)
 
 # Scenario 2: Hypothetical wide uncertain posterior (spans ROPE → undecided)
 set.seed(123)
-beta_samples_2 <- rnorm(4000, mean = 0.02, sd = 0.06)  # Wide uncertainty, mean near ROPE edge
+beta_samples_2 <- rnorm(4000, mean = 0.02, sd = 0.06)  # High uncertainty
 posterior_density_2 <- density(beta_samples_2)
 posterior_df_2 <- tibble(
   beta = posterior_density_2$x,
@@ -756,7 +842,7 @@ posterior_df_2 <- tibble(
 
 # Scenario 3: Hypothetical narrow posterior inside ROPE (claim negligible)
 set.seed(456)
-beta_samples_3 <- rnorm(4000, mean = 0.01, sd = 0.015)  # Tight, centered near zero
+beta_samples_3 <- rnorm(4000, mean = 0.01, sd = 0.015)  # Tight, near zero
 posterior_density_3 <- density(beta_samples_3)
 posterior_df_3 <- tibble(
   beta = posterior_density_3$x,
@@ -776,16 +862,22 @@ utility_data_faceted <- bind_rows(
   utility_data %>% mutate(scenario = "Scenario 3: Negligible Effect")
 )
 
+# ============================================================================
+# STEP 4: Compute expected utility and choose optimal decision
+# ============================================================================
+# For each scenario, E[U(d)] = ∫ U(β, d) × p(β | data) dβ
+# Optimal decision d* = argmax_d E[U(d)]
+
 ggplot(utility_data_faceted, aes(x = beta, y = utility, color = decision)) +
   geom_line(linewidth = 1) +
   # Add baseline for posterior
   geom_hline(yintercept = -0.4, linetype = "dotted", color = "gray40", linewidth = 0.3) +
-  # Add posterior distribution (only the bump above baseline)
+  # Add posterior distribution p(β | data) - the purple curve represents uncertainty
   geom_ribbon(data = all_posteriors, aes(x = beta, ymin = -0.4, ymax = scaled_density), 
             fill = "purple", alpha = 0.3, inherit.aes = FALSE) +
   geom_line(data = all_posteriors, aes(x = beta, y = scaled_density), 
             color = "purple", linewidth = 0.8, inherit.aes = FALSE) +
-  # ROPE boundaries
+  # ROPE boundaries (from domain knowledge/pilot studies)
   geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", linewidth = 0.5) +
   geom_vline(xintercept = 0, linetype = "dotted", color = "gray50", linewidth = 0.5) +
   annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
@@ -808,8 +900,8 @@ ggplot(utility_data_faceted, aes(x = beta, y = utility, color = decision)) +
   facet_wrap(~ scenario, ncol = 1) +
   labs(
     title = "How Posterior Uncertainty Determines Optimal Decision",
-    subtitle = "Purple = posterior distribution; Green line utility grows with effect size (showing Small/Medium/Large benchmarks)",
-    x = expression("True ffect Size (" * beta * ")"),
+    subtitle = "Purple = posterior p(β|data); Colored lines = utility U(β, d); Optimal d* maximizes ∫U(β,d)×p(β|data)dβ",
+    x = expression("True Effect Size (" * beta * ")"),
     y = "Utility / Scaled Posterior Density"
   ) +
   theme_minimal(base_size = 12) +
@@ -848,51 +940,88 @@ ggplot(utility_data_faceted, aes(x = beta, y = utility, color = decision)) +
 ::: {.callout-note collapse="true"}
 ## Understanding the utility curves
 
-1. **Why different maximum values?**
-   - **Orange line (claim_negligible)**: `utility = 1 - |β|` when correct
-     * Maximum = 1.0 when β = 0 exactly (finding true null is maximally valuable)
-     * Decreases as β moves toward ROPE boundary
-     * Reflects: "Confirming no effect is valuable, but less so as effect approaches boundary"
-   - **Green line (claim_meaningful)**: `utility = |β|` when correct  
-     * Utility = effect size itself (no upper bound)
-     * At β = 0.12, utility = 0.12; at β = 0.25, utility = 0.25
-     * Reflects: "Larger effects are more valuable to discover (stronger evidence, bigger impact)"
-   - This asymmetry is a **modeling choice** - you could define utilities differently based on your field's values
+The three colored lines represent different utility functions $U(\beta, d)$ for each decision $d \in D$. Here's how to interpret them:
 
-2. **Inside ROPE** (|β| < 0.05): "Claim negligible" has highest utility (orange line near +1 when β ≈ 0)
-3. **Outside ROPE** (|β| > 0.05): "Claim meaningful" has highest utility (green line increases with |β|)
-4. **At ROPE boundaries** (|β| = 0.05): Both claim decisions have negative utility
-   - At β = ±0.05 exactly:
-     * claim_meaningful utility: -2(0.05) - 0.3 = **-0.40** (wrong decision, heavy penalty)
-     * claim_negligible utility: -1.5(0.05) - 0.3 = **-0.375** (wrong decision, moderate penalty)
-     * undecided utility: **-0.15** (cost of more data)
-   - Both wrong decisions incur the -0.3 penalty (conceptual cost of "being wrong" - misleading literature, wasted resources, wrong theory) plus proportional loss
-5. **When "undecided" is optimal**:
-   - **KEY**: This plot shows utility IF the true β is known, but we don't know β - we have uncertainty (posterior)
-   - "Undecided" is optimal when **posterior uncertainty spans the boundaries**
-   - If your 95% HDI covers, say, [-0.02, 0.08]:
-     * Some posterior mass inside ROPE (favors "negligible")  
-     * Some posterior mass outside ROPE (favors "meaningful")
-     * **Expected utility** of either claim is lowered by risk of being wrong
-     * **Expected utility** of "undecided" (-0.15) can beat both risky claims
-   - The grey line isn't "highest" at any single β value, but wins when averaging across uncertain β
-6. **Asymmetric losses**: False positive penalty stronger than false negative
-   - **Green line inside ROPE**: Drops to -2×|β| - 0.3 (steep slope, heavy penalty)
-   - **Orange line outside ROPE**: Drops to -1.5×|β| - 0.3 (moderate slope, lighter penalty)
-   - This asymmetry means: claiming a meaningful effect when it's negligible (false positive) is penalized more heavily
-7. **The ROPE boundaries (±0.05) are where the utility functions cross zero**
-   - Inside: orange (claim negligible) is positive, green (claim meaningful) is negative
-   - Outside: green (claim meaningful) is positive, orange (claim negligible) is negative
-   - This defines the decision boundary
-   - Larger true effects → higher utility for correct "meaningful" claim (green line increases)
-   - Effects closer to zero → higher utility for correct "negligible" claim (orange increases toward 1 as β→0)
-   - Being wrong by a lot is worse than being wrong by a little
+#### **Why different maximum values?**
+
+The utility functions reflect different research goals:
+
+- **Orange line** ($d =$ claim_negligible): $U(\beta, \text{negligible}) = 1 - |\beta|$ when $|\beta| \leq \text{ROPE}$
+  * Maximum = 1.0 when $\beta = 0$ exactly (confirming true null is maximally valuable)
+  * Decreases linearly as $\beta$ approaches ROPE boundary
+  * **Interpretation**: "Establishing equivalence is valuable, but less so as effect approaches practical significance threshold"
+  
+- **Green line** ($d =$ claim_meaningful): $U(\beta, \text{meaningful}) = |\beta|$ when $|\beta| > \text{ROPE}$  
+  * Utility equals effect size itself (no upper bound)
+  * Example: At $\beta = 0.12$, utility = 0.12; at $\beta = 0.25$, utility = 0.25
+  * **Interpretation**: "Discovering larger effects has greater scientific value (stronger evidence, bigger practical impact)"
+
+- **Gray line** ($d =$ undecided): $U(\beta, \text{undecided}) = -0.15$ (constant)
+  * Fixed cost independent of true $\beta$
+  * Represents: study time, participant recruitment, delayed publication
+
+**Note**: This asymmetry is a **modeling choice** reflecting common research values. You can define different utilities based on your domain.
+
+
+#### **Why are there different penalties for incorrect decisions?**
+
+At $\beta = \pm 0.05$ exactly (the ROPE boundary):
+
+$$
+\begin{aligned}
+U(0.05, \text{meaningful}) &= -2(0.05) - 0.3 = -0.40 \quad \text{(false positive: heavy penalty)} \\
+U(0.05, \text{negligible}) &= -1.5(0.05) - 0.3 = -0.375 \quad \text{(false negative: moderate penalty)} \\
+U(0.05, \text{undecided}) &= -0.15 \quad \text{(cost of data collection)}
+\end{aligned}
+$$
+
+Both wrong decisions incur:
+
+- **Fixed penalty** (-0.3): Cost of misleading the literature, wasted resources, incorrect theory
+- **Proportional penalty**: More wrong = worse (scaled by distance from truth)
+
+**Asymmetric loss structure**: False positives penalized more heavily (-2×) than false negatives (-1.5×), reflecting greater harm from claiming non-existent effects.
+
+#### **When is "undecided" optimal?**
+
+**KEY INSIGHT**: The plot shows utility if true $\beta$ were known, but we have **uncertainty** (posterior distribution).
+
+The optimal decision maximizes **expected utility**:
+
+$$
+d^* = \arg\max_d \mathbb{E}[U(\beta, d) \mid \text{data}] = \arg\max_d \int U(\beta, d) \cdot p(\beta \mid \text{data}) \, d\beta
+$$
+
+- **Low uncertainty, posterior inside ROPE**: $\mathbb{E}[U(\text{negligible})]$ highest
+- **Low uncertainty, posterior outside ROPE**: $\mathbb{E}[U(\text{meaningful})]$ highest
+- **High uncertainty spanning boundaries**: $\mathbb{E}[U(\text{undecided})]$ can be highest
+
+**Example**: If your 95% HDI = [-0.02, 0.08]:
+
+- Posterior mass inside ROPE → favors "negligible"
+- Posterior mass outside ROPE → favors "meaningful"
+- Risk of being wrong for either claim is high
+- Expected utility of both claims reduced by uncertainty
+- Fixed cost of "undecided" (-0.15) may beat both risky claims
+
+The gray line isn't highest at any single $\beta$ value, but wins when **averaging across uncertain $\beta$ values weighted by posterior probability**.
+
+
+#### **Why does Utility grow with distance from boundaries**
+
+- **Larger true effects** → Higher utility for correct "meaningful" claim (green increases)
+- **Effects closer to zero** → Higher utility for correct "negligible" claim (orange increases toward 1)
+- **Being wrong by more** → Larger proportional loss (steeper slopes in penalty regions)
+
+This encourages decisive conclusions when data strongly favor one region, but caution when near boundaries.
 :::
 
 ::: {.callout-important}
 ## ROPE Boundaries = Utility Crossover Points
 
-Your ROPE boundaries should be set where the utilities of "claim meaningful" and "claim negligible" are equal. This is your **smallest effect size of interest (SESOI)**.
+Your ROPE boundaries should be set where the utilities of "claim meaningful" and "claim negligible" are equal. This is your **smallest effect size of interest (SESOI)**: the threshold where scientific conclusions qualitatively change.
+
+In formal decision theory terms: ROPE defines the partition of outcome space $X$ where different decisions $d \in D$ have maximal utility.
 :::
 
 **Computing expected utilities:**
@@ -901,11 +1030,12 @@ Your ROPE boundaries should be set where the utilities of "claim meaningful" and
 ::: {.cell}
 
 ```{.r .cell-code}
-# Get posterior samples
+# Get posterior samples (represents p(β | data))
 posterior_samples <- as_draws_df(rt_model)
 beta_samples <- posterior_samples$b_conditionB
 
-# Compute expected utility for each decision
+# Compute expected utility for each decision via Monte Carlo integration:
+# E[U(d)] ≈ (1/M) Σ U(β^(m), d) where β^(m) ~ p(β | data)
 expected_utilities <- data.frame(
   decision = c("claim_meaningful", "claim_negligible", "undecided"),
   expected_utility = c(
@@ -953,7 +1083,17 @@ The HDI-based rule works well when:
 For asymmetric losses or complex decisions, computing expected utilities explicitly (as shown above) provides more principled decisions.
 :::
 
+::: {.callout-important}
+## Why ROPE Boundaries Matter
 
+ROPE is not arbitrary! It's the Bayesian optimal decision given:
+
+1. Your posterior beliefs (from the model)
+2. Your utility function (encoded in ROPE boundaries)
+3. Your decision threshold (e.g., 95% credibility)
+
+**Changing ROPE boundaries = changing your utility function** = changing what you consider "meaningful enough to matter".
+:::
 
 ### The Same Graph But Simpler
 
@@ -1112,6 +1252,7 @@ Reject H₀:                                      UNDECIDED:
 ROPE is simpler than computing utilities explicitly and works well for most research questions.
 
 **In practice, we usually use the HDI-based ROPE approximation** rather than computing expected utilities explicitly. This is computationally simpler and works well when:
+
 - Losses are approximately symmetric (false positive ≈ false negative)
 - We want standard 95% decision threshold  
 - We prefer simple rules over custom utility functions
@@ -1198,16 +1339,6 @@ decision
 :::
 :::
 
-
-::: {.callout-note}
-## Concepts So Far
-
-Before moving on, you should understand:
-- ROPE boundaries represent the smallest effect you care about
-- Three possible decisions: Accept H₀, Accept H₁, or remain undecided
-- Decision based on whether 95% HDI overlaps, excludes, or is inside ROPE
-- This approximates choosing the decision with maximum expected utility
-:::
 
 ::: {.callout-tip}
 ## Decision Rule = Maximizing Expected Utility
@@ -1305,117 +1436,18 @@ p1 + p2 + plot_annotation(
 
 ## Warning
 
-::: {.callout-warning}
-## The Precision Problem
+### Three Checks Before Trusting ROPE (Note: Just Informal Best Practice Checks)
 
-**From Kruschke (2015, Section 12.2.1.1):** Even with very little data, you can "accept" the null if the posterior is flat enough!
-
-This is one of the most overlooked caveats about ROPE analysis.
-:::
-
-::: {.callout-note collapse="true"}
-### Dangerous Example: Accepting H₀ with Poor Data
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# Scenario: Only 2 coin flips, 1 head, 1 tail
-# Question: Is the coin fair (θ = 0.5)?
-
-n <- 2
-z <- 1
-
-# With uninformative prior Beta(0.01, 0.01):
-posterior_alpha <- z + 0.01
-posterior_beta <- n - z + 0.01
-
-# The posterior is EXTREMELY FLAT (very little information)
-theta <- seq(0, 1, length.out = 1000)
-posterior_density <- dbeta(theta, posterior_alpha, posterior_beta)
-
-# Calculate HDI
-samples <- rbeta(10000, posterior_alpha, posterior_beta)
-hdi_result <- HDInterval::hdi(samples, credMass = 0.95)
-
-# Define ROPE around fair coin
-rope_bounds <- c(0.45, 0.55)
-
-# Visualize
-tibble(theta = theta, density = posterior_density) %>%
-  ggplot(aes(x = theta, y = density)) +
-  geom_rect(xmin = rope_bounds[1], xmax = rope_bounds[2],
-            ymin = -Inf, ymax = Inf,
-            fill = "gray80", alpha = 0.5) +
-  geom_line(color = "steelblue", linewidth = 1.2) +
-  geom_area(fill = "steelblue", alpha = 0.2) +
-  geom_segment(x = hdi_result[1], xend = hdi_result[2],
-               y = 0, yend = 0,
-               color = "darkblue", linewidth = 3) +
-  annotate("text", x = 0.5, y = max(posterior_density) * 0.9,
-           label = "ROPE\n(fair coin)", size = 4, fontface = "bold") +
-  annotate("text", x = 0.5, y = max(posterior_density) * 0.5,
-           label = "Posterior is FLAT\n(very uncertain!)",
-           size = 4, color = "red", fontface = "bold") +
-  annotate("text", x = 0.5, y = -0.1,
-           label = "95% HDI spans almost entire range!",
-           size = 3.5, color = "darkblue", fontface = "bold") +
-  labs(
-    title = "Danger: 'Accepting' H₀ with Insufficient Data",
-    subtitle = "HDI technically inside ROPE, but only because we have almost no information",
-    x = "Probability of Heads (θ)",
-    y = "Posterior Density"
-  ) +
-  theme_minimal(base_size = 14)
-```
-
-::: {.cell-output-display}
-![](06_rope_files/figure-html/precision-problem-demo-1.png){width=960}
-:::
-
-```{.r .cell-code}
-# Print summary
-tibble(
-  Measure = c("Data", "95% HDI for θ", "HDI Width"),
-  Value = c(
-    "1 head out of 2 flips",
-    sprintf("[%.3f, %.3f]", hdi_result[1], hdi_result[2]),
-    round(hdi_result[2] - hdi_result[1], 3)
-  )
-)
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-# A tibble: 3 × 2
-  Measure       Value                
-  <chr>         <chr>                
-1 Data          1 head out of 2 flips
-2 95% HDI for θ [0.039, 0.986]       
-3 HDI Width     0.947                
-```
-
-
-:::
-:::
-
-
-**Kruschke's solution (p. 348):**
-
-> "High precision demands a large sample size... But when we are trying to accept a specific value of θ, it seems logically appropriate that we should have a reasonably precise estimate indicating that specific value."
-:::
-
-### Three Checks Before Trusting ROPE 
-
-Before trusting ROPE conclusions when accepting H₀, verify precision with these three checks:
+Before trusting ROPE conclusions when accepting H₀, verify precision and reliability with these three checks:
 
 **1. HDI Width: Is your estimate precise enough?**
 
    - **Rule**: HDI width should be < half the ROPE width
    - **Rationale**: If HDI is wide relative to ROPE, you lack precision to confidently say effect is negligible
    - **Example**: ROPE = [-0.05, 0.05] (width 0.10) → HDI width should be < 0.05
+   - **Measures**: Overall precision of your estimate
    - **If fail**: Collect more data before claiming negligible effect
+   - **Source**: Kruschke (2018, 2015), Lakens (2018)
 
 **2. Effective Sample Size (ESS): Is your posterior reliable?**
 
@@ -1423,14 +1455,30 @@ Before trusting ROPE conclusions when accepting H₀, verify precision with thes
    - **Rationale**: Low ESS means MCMC chains haven't converged well - posterior estimates unreliable
    - **ESS bulk**: Measures sampling efficiency for central posterior
    - **ESS tail**: Measures sampling efficiency for HDI boundaries (critical for ROPE!)
+   - **Measures**: Quality of MCMC sampling, not data quantity
    - **If fail**: Increase MCMC iterations, check convergence diagnostics (R̂), consider reparameterization
+   - **Source**: e.g.: Vehtari et al. (2021) "Rank-Normalization, Folding, and Localization: An Improved R̂ for Assessing Convergence of MCMC"; Stan Development Team documentation on MCMC diagnostics
 
-**3. Posterior SD: Is uncertainty manageable relative to ROPE?**
+**3. HDI Position: Is the effect centered near zero? (ONLY when accepting H₀)**
 
-   - **Rule**: Posterior SD < half the ROPE width (SD/ROPE ratio < 0.5)
-   - **Rationale**: Large SD means high uncertainty - even if HDI is inside ROPE, estimate may be unstable
-   - **Example**: ROPE width = 0.10 → Posterior SD should be < 0.05
-   - **If fail**: Either collect more data OR accept that you're at the limits of what your design can resolve
+   - **Rule**: HDI midpoint should be close to zero (e.g., within inner 50% of ROPE)
+   - **Rationale**: HDI inside ROPE but far from zero suggests bias or one-sided effect
+   - **Example**: ROPE = [-0.05, 0.05], HDI = [0.03, 0.045] → midpoint = 0.0375 (close to boundary, suspicious!)
+   - **Better example**: HDI = [-0.01, 0.02] → midpoint = 0.005 (centered near zero, reassuring)
+   - **Measures**: Location of effect, not just precision
+   - **Applies to**: ONLY when accepting H₀ (claiming negligible effect); skip this check when rejecting H₀
+   - **If fail**: Re-examine priors, check for model misspecification, or acknowledge effect may be small but non-zero
+   - **Source**: Practical heuristic not explicitly stated in literature, but follows from Kruschke's (2018, p. 275) emphasis that accepting null requires "the estimated value be compatible with the null value" - an HDI asymmetrically positioned near a ROPE boundary questions this compatibility
+
+::: {.callout-tip}
+## Why these three checks?
+
+- **Check 1 (HDI width)**: Ensures sufficient **precision** - can you distinguish effect from zero? (Kruschke, 2018) - *Always needed*
+- **Check 2 (ESS)**: Ensures **reliability** - are the posterior estimates trustworthy? (Vehtari et al., 2021) - *Always needed*
+- **Check 3 (HDI position)**: Ensures **centrality** - is the effect truly centered near zero, or just barely inside ROPE? (Practical heuristic derived from Kruschke's compatibility principle) - *Only for accepting H₀*
+
+All three can pass even with small sample size if the effect is truly negligible and model converges well. All three can fail with large sample size if MCMC struggles or effect is near boundary.
+:::
 
 
 ::: {.cell}
@@ -1448,10 +1496,33 @@ hdi_width <- hdi_result[2] - hdi_result[1]
 ess_bulk <- as.numeric(summarise_draws(post, ess_bulk)$ess_bulk[2])  # For b_conditionB
 ess_tail <- as.numeric(summarise_draws(post, ess_tail)$ess_tail[2])
 
-# 3. Check posterior SD
-post_sd <- sd(effect_samples)
+# 3. Check HDI position (is it centered near zero?)
+# NOTE: This check only applies when HDI is inside ROPE (accepting H₀)
+hdi_midpoint <- (hdi_result[1] + hdi_result[2]) / 2
+rope_bounds <- c(-0.05, 0.05)
 rope_width <- 0.10  # Our ROPE is [-0.05, 0.05]
 threshold_width <- 0.05  # Threshold for HDI width check
+
+# Check if HDI is inside ROPE
+hdi_inside_rope <- (hdi_result[1] > rope_bounds[1]) && (hdi_result[2] < rope_bounds[2])
+
+if (hdi_inside_rope) {
+  # Define "inner 50% of ROPE" as [-0.025, 0.025]
+  inner_rope <- rope_width * 0.25  # Half of half = 25% on each side
+  # Define "close to boundary" as outer 20% of ROPE (within 0.01 of boundary)
+  near_boundary <- 0.01
+  
+  # Determine position status
+  position_status <- if (abs(hdi_midpoint) < inner_rope) {
+    paste0("✓ PASS (centered near zero: within ±", round(inner_rope, 3), ")")
+  } else if (abs(hdi_midpoint) > (rope_bounds[2] - near_boundary)) {
+    paste0("✗ FAIL (midpoint = ", round(hdi_midpoint, 4), ", very close to ROPE boundary ±", rope_bounds[2], ")")
+  } else {
+    paste0("⚠ CAUTION (midpoint = ", round(hdi_midpoint, 4), ", outside inner 50% but within ROPE)")
+  }
+} else {
+  position_status <- "N/A (Check only applies when accepting H₀ - HDI inside ROPE)"
+}
 
 # Display precision checks
 tibble(
@@ -1461,8 +1532,8 @@ tibble(
     "2. Effective Sample Size (bulk)",
     "   Effective Sample Size (tail)",
     "   Status",
-    "3. Posterior SD",
-    "   SD/ROPE Ratio",
+    "3. HDI Position (midpoint)",
+    "   Distance from zero",
     "   Status"
   ),
   Value = c(
@@ -1475,11 +1546,9 @@ tibble(
     ifelse(ess_bulk > 1000 && ess_tail > 1000,
            "✓ PASS (> 1000)",
            "✗ WARNING (< 1000) - Posterior not well-estimated"),
-    round(post_sd, 4),
-    round(post_sd / rope_width, 2),
-    ifelse(post_sd < rope_width / 2,
-           "✓ PASS (< half ROPE)",
-           "⚠ CAUTION (large relative to ROPE)")
+    round(hdi_midpoint, 4),
+    round(abs(hdi_midpoint), 4),
+    position_status
   )
 )
 ```
@@ -1488,16 +1557,16 @@ tibble(
 
 ```
 # A tibble: 8 × 2
-  Check                             Value                           
-  <chr>                             <chr>                           
-1 "1. HDI Width"                    0.0576                          
-2 "   Status"                       ✗ FAIL (> 0.05) - Need more data
-3 "2. Effective Sample Size (bulk)" 2387                            
-4 "   Effective Sample Size (tail)" 2584                            
-5 "   Status"                       ✓ PASS (> 1000)                 
-6 "3. Posterior SD"                 0.0146                          
-7 "   SD/ROPE Ratio"                0.15                            
-8 "   Status"                       ✓ PASS (< half ROPE)            
+  Check                             Value                                       
+  <chr>                             <chr>                                       
+1 "1. HDI Width"                    0.0576                                      
+2 "   Status"                       ✗ FAIL (> 0.05) - Need more data            
+3 "2. Effective Sample Size (bulk)" 2387                                        
+4 "   Effective Sample Size (tail)" 2584                                        
+5 "   Status"                       ✓ PASS (> 1000)                             
+6 "3. HDI Position (midpoint)"      0.1132                                      
+7 "   Distance from zero"           0.1132                                      
+8 "   Status"                       N/A (Check only applies when accepting H₀ -…
 ```
 
 
@@ -1511,18 +1580,24 @@ tibble(
 
 **Scenario 1: Wide HDI Inside ROPE**
 
-- 95% HDI: [0.01, 0.04] (width = 0.03)
+- 95% HDI: [0.01, 0.04] (width = 0.03, midpoint = 0.025)
 - ROPE: [-0.05, 0.05]
 - ✗ WRONG: "Effect is negligible"
-- ✓ RIGHT: "HDI inside ROPE, but width (0.03) suggests moderate uncertainty. More data needed."
+- ✓ RIGHT: "HDI inside ROPE, but width suggests moderate uncertainty AND midpoint close to boundary. More data needed."
 
-**Scenario 2: Narrow HDI Inside ROPE**
+**Scenario 2: Narrow HDI Centered Near Zero**
 
-- 95% HDI: [0.015, 0.025] (width = 0.01)
+- 95% HDI: [-0.005, 0.015] (width = 0.02, midpoint = 0.005)
 - ROPE: [-0.05, 0.05]
-- ✓ RIGHT: "Effect is negligible. HDI is narrow (0.01) and falls well within ROPE."
+- ✓ RIGHT: "Effect is negligible. HDI is narrow, centered near zero, and falls well within ROPE."
 
-**Scenario 3: HDI Overlaps ROPE Boundary**
+**Scenario 3: Narrow HDI But Off-Center**
+
+- 95% HDI: [0.03, 0.045] (width = 0.015, midpoint = 0.0375)
+- ROPE: [-0.05, 0.05]
+- ⚠ CAUTION: "HDI is narrow and technically inside ROPE, but midpoint (0.0375) is close to upper boundary. Effect may be small but systematically positive. Consider whether this is practically negligible."
+
+**Scenario 4: HDI Overlaps ROPE Boundary**
 
 - 95% HDI: [0.03, 0.08]
 - ROPE: [-0.05, 0.05]
@@ -1536,13 +1611,13 @@ Before using ROPE to **accept H₀** (claim negligible effect), verify:
 **For RT effects (log-scale):**
 
 - HDI width < 0.05 log-units
-- Posterior SD < 0.025 (half the typical ROPE width)
-  - *Why?* Larger SD means too much uncertainty about whether the effect is truly negligible.
+- HDI midpoint within ±0.025 of zero (inner 50% of typical ROPE)
+  - *Why?* If midpoint is near ROPE boundary, effect may be small but non-negligible.
 
 **For accuracy (probability scale):**
 
 - HDI width < 0.10
-- Posterior SD < 0.05
+- HDI midpoint within ±0.05 of zero
 
 **For all analyses:**
 
@@ -2036,11 +2111,11 @@ tibble(
 
 ```
 # A tibble: 3 × 4
-  Prior                            Estimate `95% HDI`      `% in ROPE`
-  <chr>                               <dbl> <chr>                <dbl>
-1 1. Weakly informative: N(0, 0.5)    0.088 [0.013, 0.160]         0.1
-2 2. Skeptical: N(0, 0.10)            0.077 [0.008, 0.149]         0.2
-3 3. Diffuse: N(0, 2)                 0.089 [0.011, 0.165]         0.1
+  Prior                            Estimate `95% HDI`       `% in ROPE`
+  <chr>                               <dbl> <chr>                 <dbl>
+1 1. Weakly informative: N(0, 0.5)    0.037 [-0.307, 0.381]         0.2
+2 2. Skeptical: N(0, 0.10)            0.223 [-0.194, 0.597]         0.1
+3 3. Diffuse: N(0, 2)                 0.35  [-0.180, 0.850]         0.1
 ```
 
 
@@ -2069,86 +2144,6 @@ NHST doesn't have this diagnostic—it can give you "p < 0.05" even with barely 
 
 Bayesian analysis makes sensitivity **explicit and quantifiable**.
 :::
-:::
-
-# Understanding Why ROPE Works: Decision Theory
-
-::: {.callout-note}
-## From Practice to Theory
-
-Now that you've seen ROPE in action, let's understand **why** it works. This section explains the decision-theoretic foundations. While not required for using ROPE, it helps you understand what ROPE boundaries mean and when to adjust them.
-:::
-
-## The Decision-Theoretic Framework
-
-### Making Decisions Under Uncertainty
-
-When we analyze data, we're ultimately making **decisions**:
-
-- Should we claim an effect exists and is meaningful?
-- Should we claim it's negligible?
-- Should we collect more data?
-
-Each decision has **consequences** (utilities or losses):
-
-- **Claiming meaningful effect when it's negligible**: False positive (wasted resources, misleading literature)
-- **Claiming negligible effect when it's meaningful**: False negative (missed opportunity, wrong theory)
-- **Remaining undecided**: Cost of additional data collection
-
-This is **Bayesian decision analysis** (Gelman et al., 2013; see [Stan User's Guide](https://mc-stan.org/docs/stan-users-guide/decision-analysis.html)):
-
-**Theoretical Framework (Four Components):**
-
-1. **Define outcomes and decisions**
-   - Outcomes: Possible values of the effect (β)
-   - Decisions: {Accept H₀ (negligible), Accept H₁ (meaningful), Remain undecided}
-
-2. **Define probability distribution**
-   - Our posterior distribution p(β | Data)
-   - Quantifies uncertainty about the effect size
-
-3. **Define utility (or loss) function**
-   - U(β, decision): What's the cost/benefit of each decision for each possible true effect?
-   - This is where **domain knowledge** enters!
-
-4. **Choose optimal decision**
-   - Maximize expected utility (minimize expected loss)
-   - d* = arg max_d E[U(β, d) | Data]
-   - (Translation: "Choose decision d that maximizes expected utility, averaging over posterior uncertainty in β")
-
-### ROPE as Decision Analysis
-
-**ROPE implements this framework!**
-
-When you set ROPE boundaries at [-0.05, +0.05], you're defining a **loss function**:
-
-```
-Loss(β, decision):
-  If decide "meaningful effect":
-    - Low loss if |β| > 0.05  (correct decision)
-    - HIGH LOSS if |β| < 0.05  (false positive)
-  
-  If decide "negligible effect":
-    - Low loss if |β| < 0.05  (correct decision)
-    - HIGH LOSS if |β| > 0.05  (false negative)
-```
-
-The **ROPE decision rule** minimizes expected loss:
-
-- If 95% HDI excludes ROPE → High expected utility for "meaningful effect"
-- If 95% HDI inside ROPE → High expected utility for "negligible effect"
-- If overlapping → Insufficient evidence, collecting more data may have higher utility
-
-::: {.callout-important}
-## Why This Matters
-
-ROPE is not arbitrary! It's the Bayesian optimal decision given:
-
-1. Your posterior beliefs (from the model)
-2. Your utility function (encoded in ROPE boundaries)
-3. Your decision threshold (e.g., 95% credibility)
-
-**Changing ROPE boundaries = changing your utility function** = changing what you consider "meaningful enough to matter".
 :::
 
 # Effect Estimation with emmeans
@@ -2282,13 +2277,13 @@ library(knitr)
 summary(emm) %>%
   as.data.frame() %>%
   mutate(
-    `95% HPD` = sprintf("[%.3f, %.3f]", lower.HPD, upper.HPD),
+    `95% HDI` = sprintf("[%.3f, %.3f]", lower.HPD, upper.HPD),
     emmean = sprintf("%.3f", emmean)
   ) %>%
-  select(condition, emmean, `95% HPD`) %>%
+  select(condition, emmean, `95% HDI`) %>%
   kable(align = c("l", "r", "r"),
         caption = "**Estimated Marginal Means (Log RT)**",
-        col.names = c("Condition", "Mean", "95% HPD"))
+        col.names = c("Condition", "Mean", "95% HDI"))
 ```
 
 ::: {.cell-output-display}
@@ -2296,7 +2291,7 @@ summary(emm) %>%
 
 Table: **Estimated Marginal Means (Log RT)**
 
-|Condition |  Mean|        95% HPD|
+|Condition |  Mean|        95% HDI|
 |:---------|-----:|--------------:|
 |A         | 6.001| [5.924, 6.073]|
 |B         | 6.081| [5.993, 6.167]|
@@ -2397,7 +2392,7 @@ Now combine emmeans with ROPE to test practical significance of each comparison:
 # Extract posterior samples as mcmc object (proper way for Bayesian models)
 pairs_mcmc <- as.mcmc(pairs_emm)
 
-# Get summary with HPD intervals
+# Get summary with HDI intervals (emmeans calls them HPD)
 pairs_summary <- summary(pairs_emm)
 
 # Define ROPE
@@ -2416,7 +2411,7 @@ comparison_results <- tibble(
 
 for (i in 1:nrow(pairs_summary)) {
   contrast_name <- rownames(pairs_summary)[i]
-  estimate <- pairs_summary$prediction[i]
+  estimate <- pairs_summary$estimate[i]
   lower <- pairs_summary$lower.HPD[i]
   upper <- pairs_summary$upper.HPD[i]
   
@@ -2468,11 +2463,68 @@ Table: **ROPE Analysis Results for Pairwise Comparisons**
 
 |Comparison | Estimate|          95% HDI|Result                |
 |:----------|--------:|----------------:|:---------------------|
-|1          |       NA| [-0.113, -0.050]|↓ MEANINGFUL DECREASE |
-|2          |       NA| [-0.216, -0.103]|↓ MEANINGFUL DECREASE |
-|3          |       NA| [-0.139, -0.016]|? UNDECIDED           |
+|1          |   -0.080| [-0.113, -0.050]|↓ MEANINGFUL DECREASE |
+|2          |   -0.158| [-0.216, -0.103]|↓ MEANINGFUL DECREASE |
+|3          |   -0.077| [-0.139, -0.016]|? UNDECIDED           |
 
 
+:::
+
+```{.r .cell-code}
+# Visualize the comparisons
+library(patchwork)
+
+# Extract posterior samples for all comparisons
+# Convert mcmc.list to matrix, then to data frame
+pairs_draws <- as.data.frame(as.matrix(pairs_mcmc))
+
+# Determine common x-axis limits
+all_draws_emmeans <- unlist(pairs_draws)
+x_limits_emmeans <- range(all_draws_emmeans)
+
+# Create plots for each comparison
+p1_emmeans <- tibble(draw = pairs_draws[,1]) |>
+  ggplot(aes(x = draw)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits_emmeans) +
+  labs(title = rownames(pairs_summary)[1], x = NULL, y = "Density") +
+  theme_minimal()
+
+p2_emmeans <- tibble(draw = pairs_draws[,2]) |>
+  ggplot(aes(x = draw)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits_emmeans) +
+  labs(title = rownames(pairs_summary)[2], x = NULL, y = "Density") +
+  theme_minimal()
+
+p3_emmeans <- tibble(draw = pairs_draws[,3]) |>
+  ggplot(aes(x = draw)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits_emmeans) +
+  labs(title = rownames(pairs_summary)[3], x = "Difference in Log RT", y = "Density") +
+  theme_minimal()
+
+p1_emmeans / p2_emmeans / p3_emmeans +
+  plot_annotation(
+    title = "Pairwise Comparisons from emmeans",
+    subtitle = "Posterior distributions with ROPE boundaries (±0.05)"
+  )
+```
+
+::: {.cell-output-display}
+![](06_rope_files/figure-html/emmeans-rope-1.png){width=672}
 :::
 :::
 
@@ -2499,14 +2551,14 @@ library(knitr)
 summary(contrast_results) %>%
   as.data.frame() %>%
   mutate(
-    `95% HPD` = sprintf("[%.3f, %.3f]", lower.HPD, upper.HPD),
+    `95% HDI` = sprintf("[%.3f, %.3f]", lower.HPD, upper.HPD),
     contrast = as.character(contrast),
     estimate = sprintf("%.3f", estimate)
   ) %>%
-  select(contrast, estimate, `95% HPD`) %>%
+  select(contrast, estimate, `95% HDI`) %>%
   kable(align = c("l", "r", "r"),
         caption = "**Custom Contrasts**",
-        col.names = c("Contrast", "Estimate", "95% HPD"))
+        col.names = c("Contrast", "Estimate", "95% HDI"))
 ```
 
 ::: {.cell-output-display}
@@ -2514,7 +2566,7 @@ summary(contrast_results) %>%
 
 Table: **Custom Contrasts**
 
-|Contrast | Estimate|        95% HPD|
+|Contrast | Estimate|        95% HDI|
 |:--------|--------:|--------------:|
 |BC_vs_A  |    0.119| [0.086, 0.153]|
 |C_vs_B   |    0.077| [0.016, 0.139]|
@@ -2640,93 +2692,268 @@ It works with brms, rstanarm, glm, lme4, and many other models!
 
 ## Visualize 95% Credible Intervals
 
+::: {.callout-note}
+## Two Approaches to Making Predictions
+
+marginaleffects offers two main functions for predictions that differ in how they handle the dataset:
+
+### 1. predictions() with datagrid()
+
+```r
+predictions(rt_model_3, newdata = datagrid(condition = c("A", "B", "C")))
+```
+
+- Creates a **single reference grid** with specified conditions
+- All other predictors held at their means/modes
+- Random effects set to 0 (population-level only)
+- Returns: "What would we predict for a hypothetical average unit?"
+
+### 2. avg_predictions()
+
+```r
+avg_predictions(rt_model_3, variables = "condition")
+```
+
+- Makes predictions for **every observation** in the original dataset
+- Each prediction uses that observation's actual covariate values
+- Includes subject-specific random effects
+- Then **averages** these predictions across all observations
+- Returns: "What is the average prediction across all units in our sample?"
+
+**Which matches the data generation better?**
+
+Our data was generated with:
+
+- Baseline: 6.0
+- Condition B: 6.0 + random subject slopes (mean 0.10)
+- Condition C: 6.0 + random subject slopes (mean 0.18)
+
+`avg_predictions()` better captures this because:
+
+- It accounts for the empirical distribution of random subject intercepts and slopes
+- It averages over actual subjects in the data
+- True population means: A ≈ 6.0, B ≈ 6.1, C ≈ 6.18
+
+**How do these differ from emmeans?**
+
+| Aspect | avg_predictions() | emmeans() | predictions() + datagrid() |
+|--------|-------------------|-----------|---------------------------|
+| **Observations used** | All rows in original data | All rows in original data | Single reference grid |
+| **Random effects** | Actual fitted values per subject | Integrated over distribution | Set to 0 |
+| **Interpretation** | "Average of predictions" | "Estimated marginal mean" | "Conditional prediction at reference" |
+| **Best for** | Descriptive summaries | Population-level inference | Scenario analysis |
+
+`avg_predictions()` and `emmeans()` should give **similar results** because both average over the actual data, but may differ slightly in:
+
+- Computational method (averaging vs. marginalization)
+- Treatment of random effects in the averaging process
+- Default settings for transforms and scales
+
+:::
+
 
 ::: {.cell}
 
 ```{.r .cell-code}
 library(marginaleffects)
 
-# Predict log RT for each condition
-pred <- predictions(rt_model_3, newdata = datagrid(condition = c("A", "B", "C")))
+# Use avg_predictions to average over the empirical distribution
+# This better matches the data generation process with random effects
+pred <- avg_predictions(rt_model_3, variables = "condition")
 
-# Display as formatted table
+# Compare to actual observed means in the data
+observed_means <- rt_data_3 %>%
+  group_by(condition) %>%
+  summarise(Observed = mean(log_rt), .groups = "drop")
+
+# Display as formatted table with comparison to observed data
 library(knitr)
 pred %>%
   as.data.frame() %>%
   mutate(
     `95% CI` = sprintf("[%.3f, %.3f]", conf.low, conf.high),
-    estimate = sprintf("%.3f", estimate)
+    Predicted = sprintf("%.3f", estimate)
   ) %>%
-  select(condition, estimate, `95% CI`) %>%
-  kable(align = c("l", "r", "r"),
-        caption = "**Predicted Log RT by Condition**",
-        col.names = c("Condition", "Estimate", "95% CI"))
+  select(condition, Predicted, `95% CI`) %>%
+  left_join(observed_means, by = "condition") %>%
+  mutate(
+    Observed = sprintf("%.3f", Observed),
+    Difference = sprintf("%.3f", as.numeric(Predicted) - as.numeric(Observed))
+  ) %>%
+  select(condition, Observed, Predicted, Difference, `95% CI`) %>%
+  kable(align = c("l", "r", "r", "r", "r"),
+        caption = "**Average Predicted vs. Observed Log RT by Condition**",
+        col.names = c("Condition", "Observed Mean", "Model Prediction", "Difference", "95% CI"))
 ```
 
 ::: {.cell-output-display}
 
 
-Table: **Predicted Log RT by Condition**
+Table: **Average Predicted vs. Observed Log RT by Condition**
 
-|Condition | Estimate|         95% CI|
-|:---------|--------:|--------------:|
-|A         |    6.053| [6.013, 6.089]|
-|B         |    6.031| [5.994, 6.067]|
-|C         |    6.086| [6.048, 6.123]|
+|Condition | Observed Mean| Model Prediction| Difference|         95% CI|
+|:---------|-------------:|----------------:|----------:|--------------:|
+|A         |         5.999|            5.999|      0.000| [5.993, 6.006]|
+|B         |         6.080|            6.080|      0.000| [6.074, 6.086]|
+|C         |         6.157|            6.157|      0.000| [6.151, 6.163]|
 
 
-:::
-
-```{.r .cell-code}
-# Visualize predictions
-plot_predictions(rt_model_3, condition = "condition") +
-  labs(title = "Predicted Log RT by Condition",
-       subtitle = "Population-level predictions with 95% credible intervals",
-       x = "Condition",
-       y = "Predicted Log RT") +
-  theme_minimal()
-```
-
-::: {.cell-output-display}
-![](06_rope_files/figure-html/margeff-predictions-1.png){width=672}
 :::
 :::
 
 
-## Comparisons: How Much Do Conditions Differ?
+::: {.callout-tip}
+## Model Fit Check
+
+The table above shows how well the model predictions match the actual observed means in the data. 
+
+**True data generation parameters:**
+
+- A: 6.00 (baseline)
+- B: 6.10 (baseline + 0.10)
+- C: 6.18 (baseline + 0.18)
+
+The small differences between observed means and model predictions are due to:
+
+1. **Random sampling variation** in data generation (random effects and residuals)
+2. **Shrinkage from Bayesian priors** pulling estimates toward more conservative values
+3. **Regularization** from the hierarchical structure preventing overfitting to sample means
+
+This is working as intended! The model balances fitting the data with reasonable prior constraints.
+:::
 
 
 ::: {.cell}
 
 ```{.r .cell-code}
-# All pairwise comparisons
-comp <- comparisons(
+library(patchwork)
+
+# Panel 1: predictions() at reference grid (single point per condition)
+pred_ref <- predictions(rt_model_3, newdata = datagrid(condition = c("A", "B", "C")))
+
+p1_pred <- pred_ref %>%
+  as.data.frame() %>%
+  ggplot(aes(x = condition, y = estimate)) +
+  geom_point(size = 3, color = "steelblue") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "steelblue") +
+  labs(title = "predictions() + datagrid()",
+       subtitle = "Single reference point (random effects = 0)",
+       x = "Condition",
+       y = "Predicted Log RT") +
+  ylim(5.95, 6.20) +
+  theme_minimal()
+
+# Panel 2: avg_predictions() averaged over empirical distribution
+p2_pred <- pred %>%
+  as.data.frame() %>%
+  ggplot(aes(x = condition, y = estimate)) +
+  geom_point(size = 3, color = "darkgreen") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "darkgreen") +
+  labs(title = "avg_predictions()",
+       subtitle = "Averaged over all observations",
+       x = "Condition",
+       y = "Predicted Log RT") +
+  ylim(5.95, 6.20) +
+  theme_minimal()
+
+p1_pred + p2_pred +
+  plot_annotation(
+    title = "Comparison of Two Prediction Approaches",
+    caption = "Left: Conditional prediction at reference. Right: Average prediction across sample."
+  )
+```
+
+::: {.cell-output-display}
+![](06_rope_files/figure-html/margeff-predictions-viz-1.png){width=1152}
+:::
+:::
+
+
+## Raw Posterior Draws
+
+::: {.callout-note}
+## Approach: Posterior Distribution Visualization
+
+This section extracts the **full posterior distributions** from pairwise comparisons using `posterior_draws()`. This allows us to:
+
+1. Visualize the complete uncertainty in each comparison
+2. Add ROPE boundaries to assess practical significance
+3. Calculate custom summary statistics (mean, HDI) from the raw posterior samples
+
+**Why this approach?** When you need to visualize distributions, check overlap with ROPE, or compute custom summaries beyond what marginaleffects provides by default.
+:::
+
+
+::: {.cell}
+
+```{.r .cell-code}
+# Compute pairwise comparisons between consecutive levels
+# Then manually compute C vs B
+comp_B_vs_A <- comparisons(
   rt_model_3,
-  variables = "condition"
+  variables = list(condition = c("A", "B"))
 )
 
-# Visualize the posterior distributions with cleaner labels
-comp |>
-  posterior_draws() |>
-  group_by(term) |>
-  mutate(comparison_id = cur_group_id()) |>
-  ungroup() |>
-  mutate(
-    comparison_label = case_when(
-      comparison_id == 1 ~ "B vs A",
-      comparison_id == 2 ~ "C vs A",
-      comparison_id == 3 ~ "C vs B",
-      TRUE ~ as.character(term)
-    )
-  ) |>
-  ggplot(aes(x = draw, y = comparison_label)) +
+comp_C_vs_A <- comparisons(
+  rt_model_3,
+  variables = list(condition = c("A", "C"))
+)
+
+comp_C_vs_B <- comparisons(
+  rt_model_3,
+  variables = list(condition = c("B", "C"))
+)
+
+# Extract posterior draws once
+draws_B_vs_A <- posterior_draws(comp_B_vs_A)
+draws_C_vs_A <- posterior_draws(comp_C_vs_A)
+draws_C_vs_B <- posterior_draws(comp_C_vs_B)
+
+# Create three separate plots and combine
+library(patchwork)
+
+# Determine common x-axis limits
+all_draws <- c(draws_B_vs_A$draw, draws_C_vs_A$draw, draws_C_vs_B$draw)
+x_limits <- range(all_draws)
+
+p1 <- draws_B_vs_A |>
+  ggplot(aes(x = draw)) +
   stat_halfeye() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-  labs(title = "Pairwise Comparisons",
-       subtitle = "Posterior distributions of differences in log RT",
-       x = "Difference in Log RT",
-       y = "Comparison") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits) +
+  labs(title = "B vs A", x = NULL, y = "Density") +
   theme_minimal()
+
+p2 <- draws_C_vs_A |>
+  ggplot(aes(x = draw)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits) +
+  labs(title = "C vs A", x = NULL, y = "Density") +
+  theme_minimal()
+
+p3 <- draws_C_vs_B |>
+  ggplot(aes(x = draw)) +
+  stat_halfeye() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  coord_cartesian(xlim = x_limits) +
+  labs(title = "C vs B", x = "Difference in Log RT", y = "Density") +
+  theme_minimal()
+
+p1 / p2 / p3 +
+  plot_annotation(
+    title = "Pairwise Comparisons with ROPE",
+    subtitle = "Posterior distributions with ROPE boundaries (±0.05)"
+  )
 ```
 
 ::: {.cell-output-display}
@@ -2735,48 +2962,315 @@ comp |>
 :::
 
 
-## Reference Grid: Custom Comparisons
+
+::: {.cell}
+
+```{.r .cell-code}
+# Summary table with estimates and HDIs
+library(knitr)
+bind_rows(
+  draws_B_vs_A |>
+    summarise(
+      Comparison = "B vs A",
+      Estimate = mean(draw),
+      HDI_Lower = quantile(draw, 0.025),
+      HDI_Upper = quantile(draw, 0.975)
+    ),
+  draws_C_vs_A |>
+    summarise(
+      Comparison = "C vs A",
+      Estimate = mean(draw),
+      HDI_Lower = quantile(draw, 0.025),
+      HDI_Upper = quantile(draw, 0.975)
+    ),
+  draws_C_vs_B |>
+    summarise(
+      Comparison = "C vs B",
+      Estimate = mean(draw),
+      HDI_Lower = quantile(draw, 0.025),
+      HDI_Upper = quantile(draw, 0.975)
+    )
+) |>
+  mutate(
+    `95% HDI` = sprintf("[%.3f, %.3f]", HDI_Lower, HDI_Upper),
+    Estimate = sprintf("%.3f", Estimate)
+  ) |>
+  select(Comparison, Estimate, `95% HDI`) |>
+  kable(align = c("l", "r", "r"),
+        caption = "**Pairwise Comparison Estimates**")
+```
+
+::: {.cell-output-display}
+
+
+Table: **Pairwise Comparison Estimates**
+
+|Comparison | Estimate|         95% HDI|
+|:----------|--------:|---------------:|
+|B vs A     |    0.081| [-0.045, 0.252]|
+|C vs A     |    0.158| [-0.064, 0.442]|
+|C vs B     |    0.077| [-0.246, 0.389]|
+
+
+:::
+:::
+
+
+## Using marginaleffects Summary Statistics (better)
+
+::: {.callout-note}
+## Approach: Summary Statistics from marginaleffects
+
+This section uses marginaleffects' **built-in summary statistics** directly from the comparison objects. This approach:
+
+1. Uses pre-computed estimates and credible intervals from marginaleffects
+2. Shows the "average" comparison across the dataset
+3. Is more efficient when you only need point estimates and CIs
+
+**Why do estimates differ from Section 5.3?**
+
+The differences arise from **how posterior draws are summarized**:
+
+### Section 5.3: Manual Posterior Summarization
+
+When we use `posterior_draws()` and then manually compute `mean(draw)`:
+
+```r
+posterior_draws(comp_B_vs_A) |> 
+  summarise(Estimate = mean(draw))
+```
+
+This computes: **mean of all posterior draws from the comparison distribution**
+
+- Each posterior draw represents: β_B - β_A from a single MCMC iteration
+- We're averaging across all 4000 posterior samples
+- This gives us the expected value of the comparison
+
+### Section 5.4: marginaleffects Default Summary
+
+When we use `comp_B_vs_A` directly:
+
+```r
+comp_B_vs_A %>% as.data.frame() %>% select(estimate)
+```
+
+marginaleffects computes the comparison **at each unit in newdata** first, then summarizes:
+
+1. For each posterior draw: Make predictions at all covariate values
+2. For each posterior draw: Compute comparison (B - A) at each covariate value  
+3. Average across units (if multiple rows in newdata)
+4. Then summarize across posterior draws
+
+**Key difference:** marginaleffects averages **within** each posterior draw before summarizing across draws. This is especially important with:
+
+- **Non-linear models** (like logistic regression): Predictions depend on covariate values
+- **Interactions**: Effect of condition may differ by subject characteristics
+- **Random effects**: Unit-level predictions include random effect realizations
+
+### Comparison Direction
+
+Both sections compute **B - A**, **C - A**, and **C - B** (second condition minus first):
+
+```r
+comparisons(rt_model_3, variables = list(condition = c("A", "B")))
+# Compares: B vs A (i.e., B - A)
+```
+
+The order in `list(condition = c("A", "B"))` matters: the second element is compared to the first.
+
+### When Do They Match?
+
+The two approaches give **identical** results when:
+
+- Linear model with no interactions
+- All observations have identical covariate values
+- No random effects (population-level only)
+
+In mixed-effects models with random effects and subject-level covariates, the differences can be substantial because:
+
+- Section 5.3: Averages raw posterior samples from the comparison distribution
+- Section 5.4: Averages predictions across the **empirical distribution** of covariates in your data, then summarizes
+
+### Which Should You Use?
+
+- **Section 5.3 (posterior_draws)**: When you want to visualize full distributions, check ROPE overlap, or compute custom summaries
+- **Section 5.4 (direct comparison)**: When you want marginaleffects' default averaging method, which accounts for the distribution of covariates in your sample
+
+For most mixed-effects models, **Section 5.4's approach** is preferred because it properly accounts for the empirical distribution of random effects and covariates.
+:::
 
 
 ::: {.cell}
 
 ```{.r .cell-code}
-# Compare B vs A
+# Compute all three pairwise comparisons
 comp_B_vs_A <- comparisons(
   rt_model_3,
   variables = list(condition = c("A", "B"))
 )
 
-# Display as formatted table
+comp_C_vs_A <- comparisons(
+  rt_model_3,
+  variables = list(condition = c("A", "C"))
+)
+
+comp_C_vs_B <- comparisons(
+  rt_model_3,
+  variables = list(condition = c("B", "C"))
+)
+
+# Combine all comparisons into one table
 library(knitr)
-comp_B_vs_A %>%
-  as.data.frame() %>%
-  group_by(term, estimate, conf.low, conf.high) %>%
-  slice(1) %>%
-  ungroup() %>%
+bind_rows(
+  comp_B_vs_A %>%
+    as.data.frame() %>%
+    slice(1) %>%
+    mutate(Comparison = "B vs A"),
+  comp_C_vs_A %>%
+    as.data.frame() %>%
+    slice(1) %>%
+    mutate(Comparison = "C vs A"),
+  comp_C_vs_B %>%
+    as.data.frame() %>%
+    slice(1) %>%
+    mutate(Comparison = "C vs B")
+) %>%
   mutate(
     `95% CI` = sprintf("[%.3f, %.3f]", conf.low, conf.high),
-    estimate = sprintf("%.3f", estimate),
-    Comparison = "B vs A"
+    estimate = sprintf("%.3f", estimate)
   ) %>%
   select(Comparison, estimate, `95% CI`) %>%
-  slice(1) %>%
   kable(align = c("l", "r", "r"),
-        caption = "**Comparison: B vs A**",
+        caption = "**All Pairwise Comparisons**",
         col.names = c("Comparison", "Difference", "95% CI"))
 ```
 
 ::: {.cell-output-display}
 
 
-Table: **Comparison: B vs A**
+Table: **All Pairwise Comparisons**
 
 |Comparison | Difference|          95% CI|
 |:----------|----------:|---------------:|
-|B vs A     |     -0.029| [-0.074, 0.018]|
+|B vs A     |     -0.021| [-0.068, 0.026]|
+|C vs A     |      0.033| [-0.014, 0.080]|
+|C vs B     |      0.054|  [0.007, 0.102]|
 
 
 :::
+:::
+
+
+::: {.callout-warning}
+## Why No Visualization Here?
+
+Unlike Section 5.3, we **don't show a three-panel graph** here because:
+
+1. **The table shows marginaleffects summary statistics** (estimates averaged across the empirical distribution)
+2. **Using `posterior_draws()` would show the same distributions as Section 5.3** (defeating the purpose of comparing approaches)
+3. **The key difference is in the summary method, not the posterior distributions themselves**
+
+If we visualized `posterior_draws(comp_B_vs_A)` here, it would be **identical to Section 5.3** because both extract the same raw MCMC samples. The difference between sections 5.3 and 5.4 is:
+
+- **Section 5.3**: Manually extracts posterior draws and computes `mean(draw)` → gives one type of summary
+- **Section 5.4**: Uses marginaleffects' internal averaging over observations → gives a different summary
+
+The **posterior distributions are the same**; only the **summarization differs**. The table above shows marginaleffects' summary, which accounts for averaging predictions across all covariate values in the dataset before summarizing across posterior draws.
+
+To visualize the marginaleffects approach properly, you would need to show prediction distributions at individual covariate values, then average them—which is complex and not typically done. The table is the appropriate summary for this approach.
+:::
+
+**However**, we can visualize how the **summary statistics differ** between the two approaches:
+
+
+::: {.cell}
+
+```{.r .cell-code}
+# Section 5.3 approach: manual posterior summarization
+approach1_data <- bind_rows(
+  draws_B_vs_A |> 
+    summarise(
+      Comparison = "B vs A",
+      Estimate = mean(draw),
+      Lower = HDInterval::hdi(draw, credMass = 0.95)[1],
+      Upper = HDInterval::hdi(draw, credMass = 0.95)[2],
+      Method = "Posterior Draws\n(Section 5.3)"
+    ),
+  draws_C_vs_A |> 
+    summarise(
+      Comparison = "C vs A",
+      Estimate = mean(draw),
+      Lower = HDInterval::hdi(draw, credMass = 0.95)[1],
+      Upper = HDInterval::hdi(draw, credMass = 0.95)[2],
+      Method = "Posterior Draws\n(Section 5.3)"
+    ),
+  draws_C_vs_B |> 
+    summarise(
+      Comparison = "C vs B",
+      Estimate = mean(draw),
+      Lower = HDInterval::hdi(draw, credMass = 0.95)[1],
+      Upper = HDInterval::hdi(draw, credMass = 0.95)[2],
+      Method = "Posterior Draws\n(Section 5.3)"
+    )
+)
+
+# Section 5.4 approach: marginaleffects summary statistics
+approach2_data <- bind_rows(
+  comp_B_vs_A %>% as.data.frame() %>% slice(1) %>% 
+    mutate(Comparison = "B vs A", Method = "marginaleffects\n(Section 5.4)"),
+  comp_C_vs_A %>% as.data.frame() %>% slice(1) %>% 
+    mutate(Comparison = "C vs A", Method = "marginaleffects\n(Section 5.4)"),
+  comp_C_vs_B %>% as.data.frame() %>% slice(1) %>% 
+    mutate(Comparison = "C vs B", Method = "marginaleffects\n(Section 5.4)")
+) %>%
+  select(Comparison, Estimate = estimate, Lower = conf.low, Upper = conf.high, Method)
+
+# Combine both approaches
+comparison_data <- bind_rows(approach1_data, approach2_data)
+
+# Create comparison plot
+ggplot(comparison_data, aes(x = Comparison, y = Estimate, color = Method)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
+  geom_hline(yintercept = c(-0.05, 0.05), linetype = "dotted", color = "blue", alpha = 0.5) +
+  geom_pointrange(aes(ymin = Lower, ymax = Upper),
+                  position = position_dodge(width = 0.4),
+                  size = 0.8, linewidth = 1) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -0.05, ymax = 0.05,
+           fill = "skyblue", alpha = 0.1) +
+  labs(
+    title = "Comparing Two Approaches to Summarizing Comparisons",
+    subtitle = "Same posterior samples, different summarization methods",
+    x = "Pairwise Comparison",
+    y = "Estimated Difference in Log RT",
+    color = "Method"
+  ) +
+  scale_color_manual(values = c("Posterior Draws\n(Section 5.3)" = "#E69F00",
+                                 "marginaleffects\n(Section 5.4)" = "#56B4E9")) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+::: {.cell-output-display}
+![](06_rope_files/figure-html/compare-approaches-viz-1.png){width=960}
+:::
+:::
+
+
+This visualization shows why the two approaches give different estimates:
+
+- **Orange (Section 5.3)**: Posterior draws approach—computes `mean(posterior_draws)`
+- **Blue (Section 5.4)**: marginaleffects summary—averages predictions at unit level before summarizing
+
+The key insight: both methods use the **same posterior samples**, but summarize them differently. Section 5.3's approach tends to give larger estimates because it doesn't average over the empirical distribution of covariates and random effects in the same way.
+
+
+## Custom Comparisons Example
+
+::: {.cell}
 
 ```{.r .cell-code}
 # Compare C vs average of A and B
@@ -2831,6 +3325,27 @@ Table: **Custom Comparison: C vs Average(A, B)**
 
 
 :::
+
+```{.r .cell-code}
+# Visualize the custom comparison
+tibble(custom_comp = custom_comp) %>%
+  ggplot(aes(x = custom_comp)) +
+  stat_halfeye(adjust = 0.2) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = c(-0.05, 0.05), linetype = "dashed", color = "blue", alpha = 0.5) +
+  annotate("rect", xmin = -0.05, xmax = 0.05, ymin = -Inf, ymax = Inf,
+           fill = "skyblue", alpha = 0.2) +
+  annotate("text", x = 0, y = 0.95, label = "ROPE", color = "blue", size = 3) +
+  labs(title = "Custom Comparison: C vs Average(A, B)",
+       subtitle = "Posterior distribution with ROPE boundaries (±0.05)",
+       x = "Difference in Log RT",
+       y = "Density") +
+  theme_minimal()
+```
+
+::: {.cell-output-display}
+![](06_rope_files/figure-html/margeff-custom-comparison-1.png){width=672}
+:::
 :::
 
 
@@ -2850,384 +3365,9 @@ Table: **Custom Comparison: C vs Average(A, B)**
 :::
 
 
-## Hypotheses: Flexible Hypothesis Testing
-
-marginaleffects doesn't support `hypotheses()` for Bayesian models, but we can test hypotheses using comparisons:
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# Compare all pairs of conditions
-comp_all <- comparisons(
-  rt_model_3,
-  variables = "condition",
-  newdata = datagrid(condition = unique)
-)
-```
-:::
-
-
-### Interpretation Guide
-
-- **Estimate**: Mean difference in log-RT between conditions
-- **95% CI**: Credible interval for the difference
-- **P(diff > 0)**: Probability first condition has higher RT than second
-- **P(|diff| > 0.05)**: Probability difference exceeds ±0.05 ROPE threshold
-
-
-
-## ROPE Analysis with marginaleffects
-
-Combine marginaleffects with ROPE:
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# Get all pairwise comparisons
-comp_all <- comparisons(
-  rt_model_3,
-  variables = "condition"
-)
-
-# Extract posterior draws
-comp_draws <- posterior_draws(comp_all)
-
-# Define ROPE
-rope_lower <- -0.05
-rope_upper <- 0.05
-
-# Analyze each comparison and build results table
-unique_comparisons <- unique(comp_draws$term)
-
-margeff_results <- tibble(
-  Comparison = character(),
-  Estimate = numeric(),
-  HDI_Lower = numeric(),
-  HDI_Upper = numeric(),
-  Below_ROPE = numeric(),
-  In_ROPE = numeric(),
-  Above_ROPE = numeric(),
-  Symbol = character(),
-  Decision = character()
-)
-
-for (comp_name in unique_comparisons) {
-  comp_subset <- comp_draws[comp_draws$term == comp_name, ]
-  draws <- comp_subset$draw
-  
-  # Calculate proportions
-  prop_below <- mean(draws < rope_lower)
-  prop_in <- mean(draws >= rope_lower & draws <= rope_upper)
-  prop_above <- mean(draws > rope_upper)
-  
-  # HDI
-  hdi_lower <- quantile(draws, 0.025)
-  hdi_upper <- quantile(draws, 0.975)
-  
-  # Decision
-  if (hdi_lower > rope_upper) {
-    decision <- "MEANINGFUL INCREASE"
-    symbol <- "✓ ↑"
-  } else if (hdi_upper < rope_lower) {
-    decision <- "MEANINGFUL DECREASE"
-    symbol <- "✓ ↓"
-  } else if (hdi_lower > rope_lower && hdi_upper < rope_upper) {
-    decision <- "NEGLIGIBLE EFFECT"
-    symbol <- "✓ ≈"
-  } else {
-    decision <- "UNDECIDED"
-    symbol <- "⚠ ?"
-  }
-  
-  margeff_results <- bind_rows(
-    margeff_results,
-    tibble(
-      Comparison = comp_name,
-      Estimate = mean(draws),
-      HDI_Lower = hdi_lower,
-      HDI_Upper = hdi_upper,
-      Below_ROPE = prop_below * 100,
-      In_ROPE = prop_in * 100,
-      Above_ROPE = prop_above * 100,
-      Symbol = symbol,
-      Decision = decision
-    )
-  )
-}
-
-# Display as formatted table
-library(knitr)
-margeff_results %>%
-  mutate(
-    `95% HDI` = sprintf("[%.3f, %.3f]", HDI_Lower, HDI_Upper),
-    Estimate = sprintf("%.3f", Estimate),
-    `% in ROPE` = sprintf("%.1f%%", In_ROPE),
-    Result = paste(Symbol, Decision)
-  ) %>%
-  select(Comparison, Estimate, `95% HDI`, `% in ROPE`, Result) %>%
-  kable(align = c("l", "r", "r", "r", "l"),
-        caption = "**ROPE Analysis Results Using marginaleffects**")
-```
-
-::: {.cell-output-display}
-
-
-Table: **ROPE Analysis Results Using marginaleffects**
-
-|Comparison | Estimate|         95% HDI| % in ROPE|Result        |
-|:----------|--------:|---------------:|---------:|:-------------|
-|condition  |    0.119| [-0.050, 0.380]|     29.9%|⚠ ? UNDECIDED |
-
-
-:::
-
-```{.r .cell-code}
-# Visualization
-library(ggplot2)
-library(ggdist)
-
-ggplot(comp_draws, aes(x = draw, y = term)) +
-  annotate("rect", xmin = rope_lower, xmax = rope_upper,
-           ymin = -Inf, ymax = Inf, fill = "skyblue", alpha = 0.3) +
-  stat_halfeye(.width = c(0.95, 0.89)) +
-  geom_vline(xintercept = 0, linetype = "dotted", color = "gray50") +
-  geom_vline(xintercept = c(rope_lower, rope_upper),
-             linetype = "dashed", color = "blue") +
-  labs(title = "Pairwise Comparisons with ROPE",
-       subtitle = "Blue region = negligible effect zone (±0.05)",
-       x = "Difference in Log RT",
-       y = "Comparison") +
-  theme_minimal()
-```
-
-::: {.cell-output-display}
-![](06_rope_files/figure-html/margeff-rope-integration-1.png){width=960}
-:::
-:::
-
-
-::: {.callout-note}
-## Summary: marginaleffects
-
-You should now understand:
-
-- `predictions()` computes model predictions at specific values
-- `comparisons()` computes differences between conditions
-- `posterior_draws()` extracts MCMC samples for ROPE analysis
-- Works with brms, rstanarm, glm, lme4, and many other packages
-:::
-
-::: {.callout-tip}
-## When to Use marginaleffects
-
-**Perfect for:**
-
-- Any type of model (GLM, multilevel, GAM, etc.)
-- Predictions at specific covariate values
-- Non-linear transformations (odds ratios, percentages, etc.)
-- Custom hypotheses with complex logic
-- Modern, consistent syntax across models
-
-**Advantages over emmeans:**
-
-- More flexible predictions
-- Better for continuous predictors
-- Unified interface across packages
-- Direct ROPE integration via posterior_draws()
-
-**Use emmeans if:**
-
-- You want traditional EMM workflow
-- All pairwise comparisons with adjustment
-- Familiar with lsmeans/emmeans syntax
-:::
-
 </details>
 
-# ROPE Analysis Workflow
-
-::: {.callout-note}
-## Bringing It All Together
-
-You've now learned:
-
-- ✓ ROPE: Theory and implementation
-- ✓ emmeans: Factorial design comparisons
-- ✓ marginaleffects: Flexible predictions
-- ✓ tidybayes: Visualization
-
-**Now let's integrate everything into a complete analysis workflow.**
-:::
-
-Now that we've covered all the tools (ROPE, emmeans, marginaleffects, tidybayes), let's see how to put them together in a complete practical significance analysis.
-
-## Step-by-Step ROPE Analysis
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# STEP 1: Effect estimate
-posterior_samples <- as_draws_df(rt_model)
-condition_effect <- posterior_samples$b_conditionB
-hdi_95 <- HDInterval::hdi(condition_effect, credMass = 0.95)
-
-tibble(
-  Measure = c("Posterior mean", "95% HDI"),
-  Value = c(
-    round(mean(condition_effect), 3),
-    sprintf("[%.3f, %.3f]", hdi_95[1], hdi_95[2])
-  )
-)
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-# A tibble: 2 × 2
-  Measure        Value         
-  <chr>          <chr>         
-1 Posterior mean 0.111         
-2 95% HDI        [0.084, 0.142]
-```
-
-
-:::
-:::
-
-
-### Step 2: Test Practical Significance (ROPE)
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# STEP 2: ROPE analysis
-rope_result <- rope(rt_model, ci = 0.95, range = c(-0.05, 0.05))
-
-if (hdi_95[1] > 0.05) {
-  rope_decision <- "Effect is practically meaningful (HDI > ROPE)"
-} else if (hdi_95[2] < -0.05) {
-  rope_decision <- "Effect is practically meaningful (HDI < ROPE)"
-} else if (hdi_95[1] > -0.05 && hdi_95[2] < 0.05) {
-  rope_decision <- "Effect is practically negligible (HDI ⊂ ROPE)"
-} else {
-  rope_decision <- "Uncertain (HDI overlaps ROPE)"
-}
-
-tibble(
-  Measure = c("ROPE", "% in ROPE", "Decision"),
-  Value = c(
-    "[-0.05, +0.05] (5% RT difference)",
-    sprintf("%.1f%%", rope_result$ROPE_Percentage[2]),
-    rope_decision
-  )
-)
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-# A tibble: 3 × 2
-  Measure   Value                                        
-  <chr>     <chr>                                        
-1 ROPE      [-0.05, +0.05] (5% RT difference)            
-2 % in ROPE 0.0%                                         
-3 Decision  Effect is practically meaningful (HDI > ROPE)
-```
-
-
-:::
-:::
-
-
-### Step 3: Integrated Conclusion
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# STEP 3: Final conclusion
-effect_large <- hdi_95[1] > 0.05
-effect_negligible <- hdi_95[2] < 0.05 && hdi_95[1] > -0.05
-
-if (effect_large || hdi_95[2] < -0.05) {
-  conclusion <- c(
-    "✓ STRONG CONCLUSION: Effect is meaningful",
-    "→ Condition B differs from A",
-    "→ The difference is large enough to matter"
-  )
-} else if (effect_negligible) {
-  conclusion <- c(
-    "✓ ACCEPT EQUIVALENCE: Effect is negligible",
-    "→ Condition B is practically equivalent to A",
-    "→ The difference is too small to care about"
-  )
-} else {
-  conclusion <- c(
-    "⚠ UNDECIDED: Need more data",
-    "→ HDI overlaps ROPE boundary",
-    "→ Cannot determine practical significance"
-  )
-}
-
-cat(paste(conclusion, collapse = "\n"))
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-✓ STRONG CONCLUSION: Effect is meaningful
-→ Condition B differs from A
-→ The difference is large enough to matter
-```
-
-
-:::
-:::
-
-
-## Visualizing the Complete Picture
-
-
-::: {.cell}
-
-```{.r .cell-code}
-library(patchwork)
-library(tidybayes)
-
-# Extract posterior samples
-posterior_samples <- as_draws_df(rt_model)
-
-# Panel: Posterior with ROPE
-p1 <- posterior_samples %>%
-  ggplot(aes(x = b_conditionB)) +
-  annotate("rect", xmin = -0.05, xmax = 0.05,
-           ymin = 0, ymax = Inf, fill = "skyblue", alpha = 0.3) +
-  stat_halfeye(.width = c(0.95, 0.89), fill = "steelblue") +
-  geom_vline(xintercept = c(-0.05, 0.05), 
-             linetype = "dashed", color = "blue", linewidth = 1) +
-  geom_vline(xintercept = 0, linetype = "dotted", color = "gray50") +
-  annotate("text", x = 0, y = Inf, label = "ROPE", 
-           vjust = -0.5, color = "blue", fontface = "bold") +
-  labs(title = "Practical Significance (ROPE)",
-       subtitle = "Blue shaded area = negligible effect zone",
-       x = "Effect Size (log RT)",
-       y = "Density") +
-  theme_minimal()
-
-p1
-```
-
-::: {.cell-output-display}
-![](06_rope_files/figure-html/complete-visualization-1.png){width=960}
-:::
-:::
-
-
-## Complete Reporting: APA-Style Templates
+# ROPE Reporting
 
 ::: {.callout-important}
 ## What to Always Report
@@ -3246,8 +3386,6 @@ From Kruschke (2015, p. 338):
 :::
 
 ### Methods Section Template
-
-Use this template for your Methods section when reporting ROPE analysis:
 
 
 ::: {.cell}
@@ -3288,8 +3426,6 @@ than 5% were not reliably perceived by participants in post-experiment debriefin
 - Software versions
 
 ### Results Section Template
-
-Use this template for your Results section:
 
 
 ::: {.cell}
@@ -3369,18 +3505,18 @@ Your Research Question
 
 Before running analyses:
 
-- [ ] Priors are **weakly informative** (not flat)?  
-- [ ] ROPE boundaries defined **before** seeing results?
-- [ ] ROPE boundaries **justified** with domain knowledge?
-- [ ] Hypotheses based on **theory**, not data exploration?
+- Priors are **weakly informative** (not flat)?  
+- ROPE boundaries defined **before** seeing results?
+- ROPE boundaries **justified** with domain knowledge?
+- Hypotheses based on **theory**, not data exploration?
 
 When interpreting results:
 
-- [ ] Report **ROPE decision** and effect sizes?
-- [ ] Report **uncertainty** (don't hide ROPE overlaps)?
-- [ ] Check **prior sensitivity** (Module 04)?
-- [ ] Show **posterior distributions visually**?
-- [ ] Interpret on the **original scale** when possible?
+- Report **ROPE decision** and effect sizes?
+- Report **uncertainty** (don't hide ROPE overlaps)?
+- Check **prior sensitivity** (Module 04)?
+- Show **posterior distributions visually**?
+- Interpret on the **original scale** when possible?
 
 # Quick Reference
 
@@ -3388,6 +3524,8 @@ When interpreting results:
 
 - **Kruschke, J. K. (2018).** Rejecting or accepting parameter values in Bayesian estimation. *Advances in Methods and Practices in Psychological Science*, 1(2), 270-280. [The definitive ROPE paper]
 - **Kruschke, J. K. (2015).** *Doing Bayesian data analysis* (2nd ed.). Academic Press. [Chapters 11-12]
+- **Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2013).** *Bayesian data analysis* (3rd ed.). CRC Press. [Chapter 9: Decision Analysis]
+- **Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021).** Rank-normalization, folding, and localization: An improved R̂ for assessing convergence of MCMC (with discussion). *Bayesian Analysis*, 16(2), 667-718. [ESS diagnostics]
 - **Makowski, D., Ben-Shachar, M. S., & Lüdecke, D. (2019).** bayestestR: Describing effects and their uncertainty. *Journal of Open Source Software*, 4(40), 1541.
 - **Lakens, D., Scheel, A. M., & Isager, P. M. (2018).** Equivalence testing for psychological research. *Advances in Methods and Practices in Psychological Science*, 1(2), 259-269.
 
@@ -3426,38 +3564,41 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] knitr_1.50           patchwork_1.3.2      bayestestR_0.17.0   
- [4] tidybayes_3.0.7      posterior_1.6.1.9000 bayesplot_1.15.0    
- [7] lubridate_1.9.4      forcats_1.0.1        stringr_1.5.2       
-[10] dplyr_1.1.4          purrr_1.1.0          readr_2.1.5         
-[13] tidyr_1.3.2          tibble_3.3.0         ggplot2_4.0.1       
-[16] tidyverse_2.0.0      brms_2.23.0          Rcpp_1.1.0          
+ [1] knitr_1.51             patchwork_1.3.2        marginaleffects_0.31.0
+ [4] emmeans_2.0.1          bayestestR_0.17.0      tidybayes_3.0.7       
+ [7] posterior_1.6.1.9000   bayesplot_1.15.0       lubridate_1.9.4       
+[10] forcats_1.0.1          stringr_1.5.2          dplyr_1.1.4           
+[13] purrr_1.1.0            readr_2.1.5            tidyr_1.3.2           
+[16] tibble_3.3.0           ggplot2_4.0.1          tidyverse_2.0.0       
+[19] brms_2.23.0            Rcpp_1.1.0            
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.6          tensorA_0.36.2.1      QuickJSR_1.8.1       
- [4] xfun_0.55             htmlwidgets_1.6.4     processx_3.8.6       
- [7] insight_1.4.4         inline_0.3.21         lattice_0.22-7       
-[10] tzdb_0.5.0            ps_1.9.1              vctrs_0.6.5          
-[13] tools_4.5.2           generics_0.1.4        datawizard_1.3.0     
-[16] stats4_4.5.2          parallel_4.5.2        cmdstanr_0.9.0       
-[19] pkgconfig_2.0.3       Matrix_1.7-4          checkmate_2.3.3      
-[22] RColorBrewer_1.1-3    S7_0.2.0              HDInterval_0.2.4     
-[25] distributional_0.5.0  RcppParallel_5.1.11-1 lifecycle_1.0.4      
-[28] compiler_4.5.2        farver_2.1.2          Brobdingnag_1.2-9    
-[31] codetools_0.2-20      htmltools_0.5.8.1     yaml_2.3.10          
-[34] pillar_1.11.1         arrayhelpers_1.1-0    StanHeaders_2.32.10  
-[37] bridgesampling_1.2-1  abind_1.4-8           nlme_3.1-168         
-[40] rstan_2.32.7          tidyselect_1.2.1      digest_0.6.37        
-[43] svUnit_1.0.8          mvtnorm_1.3-3         stringi_1.8.7        
-[46] labeling_0.4.3        fastmap_1.2.0         grid_4.5.2           
-[49] cli_3.6.5             magrittr_2.0.4        loo_2.8.0            
-[52] pkgbuild_1.4.8        withr_3.0.2           scales_1.4.0         
-[55] backports_1.5.0       estimability_1.5.1    timechange_0.3.0     
-[58] rmarkdown_2.30        emmeans_2.0.1         matrixStats_1.5.0    
-[61] gridExtra_2.3         hms_1.1.4             coda_0.19-4.1        
-[64] evaluate_1.0.5        ggdist_3.3.3          rstantools_2.5.0     
-[67] rlang_1.1.6           xtable_1.8-4          glue_1.8.0           
-[70] jsonlite_2.0.0        R6_2.6.1             
+ [1] svUnit_1.0.8          tidyselect_1.2.1      farver_2.1.2         
+ [4] loo_2.9.0             S7_0.2.0              fastmap_1.2.0        
+ [7] tensorA_0.36.2.1      digest_0.6.37         timechange_0.3.0     
+[10] estimability_1.5.1    lifecycle_1.0.4       StanHeaders_2.32.10  
+[13] processx_3.8.6        magrittr_2.0.4        compiler_4.5.2       
+[16] rlang_1.1.6           tools_4.5.2           utf8_1.2.6           
+[19] yaml_2.3.10           collapse_2.1.5        data.table_1.17.8    
+[22] labeling_0.4.3        bridgesampling_1.2-1  htmlwidgets_1.6.4    
+[25] pkgbuild_1.4.8        plyr_1.8.9            RColorBrewer_1.1-3   
+[28] cmdstanr_0.9.0        abind_1.4-8           withr_3.0.2          
+[31] datawizard_1.3.0      grid_4.5.2            stats4_4.5.2         
+[34] xtable_1.8-4          inline_0.3.21         ggridges_0.5.7       
+[37] scales_1.4.0          insight_1.4.4         cli_3.6.5            
+[40] mvtnorm_1.3-3         rmarkdown_2.30        generics_0.1.4       
+[43] otel_0.2.0            RcppParallel_5.1.11-1 reshape2_1.4.5       
+[46] tzdb_0.5.0            rstan_2.32.7          HDInterval_0.2.4     
+[49] parallel_4.5.2        matrixStats_1.5.0     vctrs_0.6.5          
+[52] Matrix_1.7-4          jsonlite_2.0.0        hms_1.1.4            
+[55] arrayhelpers_1.1-0    ggdist_3.3.3          see_0.12.0           
+[58] glue_1.8.0            codetools_0.2-20      ps_1.9.1             
+[61] distributional_0.5.0  stringi_1.8.7         gtable_0.3.6         
+[64] QuickJSR_1.8.1        pillar_1.11.1         htmltools_0.5.8.1    
+[67] Brobdingnag_1.2-9     R6_2.6.1              evaluate_1.0.5       
+[70] lattice_0.22-7        backports_1.5.0       rstantools_2.5.0     
+[73] coda_0.19-4.1         gridExtra_2.3         nlme_3.1-168         
+[76] checkmate_2.3.3       xfun_0.55             pkgconfig_2.0.3      
 ```
 
 
