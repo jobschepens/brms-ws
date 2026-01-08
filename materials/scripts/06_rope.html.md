@@ -590,32 +590,53 @@ Pilot study design:
 
 Use conventional effect size benchmarks from your field.
 
+**Approach:** Cohen's guidelines suggest d = 0.2 is a "small" effect. We'll set ROPE at half of that: d = 0.10, representing a "very small" effect.
+
+To convert Cohen's d to the log-RT scale, we use:
+
+$$d = \frac{\mu_1 - \mu_2}{\text{SD}_{\text{pooled}}}$$
+
+**Formula for pooled standard deviation:**
+
+$$\text{SD}_{\text{pooled}} = \sqrt{\frac{\sum_{i=1}^{k} (n_i - 1) \times \text{SD}_i^2}{\sum_{i=1}^{k} (n_i - 1)}}$$
+
+where $k$ is the number of groups (conditions), $n_i$ is the sample size for group $i$, and $\text{SD}_i$ is the standard deviation for group $i$.
+
 
 ::: {.cell}
 
 ```{.r .cell-code  code-fold="false"}
-# Cohen's guidelines: d = 0.2 is "small"
-# Set ROPE at half of small: d = 0.10
+# Compute pooled SD from the data
+pooled_sd_estimate <- rt_data %>%
+  group_by(condition) %>%
+  summarise(sd = sd(log_rt), n = n(), .groups = "drop") %>%
+  summarise(pooled_sd = sqrt(sum((n - 1) * sd^2) / sum(n - 1))) %>%
+  pull(pooled_sd)
 
-# Convert Cohen's d to log-RT scale:
-# d = (mean1 - mean2) / pooled_SD
-# For our RT data, pooled_SD ≈ 0.20 (from residual variation)
-# d = 0.10 → Δmean = 0.10 × 0.20 = 0.02 log-units
-
+# Set ROPE based on Cohen's d = 0.10
 cohens_d_small <- 0.10
-pooled_sd_estimate <- 0.20
 rope_from_cohens_d <- cohens_d_small * pooled_sd_estimate
+
+# Display results in a table
+tibble(
+  `Cohen's d Threshold` = cohens_d_small,
+  `Pooled SD (log-units)` = round(pooled_sd_estimate, 3),
+  `ROPE Lower` = round(-rope_from_cohens_d, 3),
+  `ROPE Upper` = round(rope_from_cohens_d, 3),
+  Interpretation = "Effects with d < 0.10 are 'very small'"
+) %>%
+  knitr::kable(align = "c")
 ```
+
+::: {.cell-output-display}
+
+
+| Cohen's d Threshold | Pooled SD (log-units) | ROPE Lower | ROPE Upper |             Interpretation             |
+|:-------------------:|:---------------------:|:----------:|:----------:|:--------------------------------------:|
+|         0.1         |         0.278         |   -0.028   |   0.028    | Effects with d < 0.10 are 'very small' |
+
+
 :::
-
-
-| Method | Cohen's d Threshold | Estimated Pooled SD | ROPE Boundaries | Interpretation |
-|--------|--------------------|--------------------|-----------------|----------------|
-| Based on Standardized Effect Size | 0.1 (half of 'small' effect) | 0.2 log-units | [-0.02, 0.02] | Effects with d < 0.10 are 'very small' |
-
-
-::: {.cell}
-
 :::
 
 

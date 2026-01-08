@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Job Schepens">
-<meta name="dcterms.date" content="2026-01-07">
+<meta name="dcterms.date" content="2026-01-08">
 
 <title>6: Bayesian decision analysis and practical significance with ROPE, emmeans, and marginaleffects</title>
 <style>
@@ -445,7 +445,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 7, 2026</p>
+      <p class="date">January 8, 2026</p>
     </div>
   </div>
   
@@ -995,46 +995,63 @@ corresponding to ±0.03 log-RT units.</code></pre>
 <section id="method-4-standardized-effect-sizes-cohens-d" class="level4" data-number="3.1.3.4">
 <h4 data-number="3.1.3.4" class="anchored" data-anchor-id="method-4-standardized-effect-sizes-cohens-d"><span class="header-section-number">3.1.3.4</span> Method 4: Standardized Effect Sizes (Cohen’s d)</h4>
 <p>Use conventional effect size benchmarks from your field.</p>
+<p><strong>Approach:</strong> Cohen’s guidelines suggest d = 0.2 is a “small” effect. We’ll set ROPE at half of that: d = 0.10, representing a “very small” effect.</p>
+<p>To convert Cohen’s d to the log-RT scale, we use:</p>
+<p><span class="math display">\[d = \frac{\mu_1 - \mu_2}{\text{SD}_{\text{pooled}}}\]</span></p>
+<p><strong>Formula for pooled standard deviation:</strong></p>
+<p><span class="math display">\[\text{SD}_{\text{pooled}} = \sqrt{\frac{\sum_{i=1}^{k} (n_i - 1) \times \text{SD}_i^2}{\sum_{i=1}^{k} (n_i - 1)}}\]</span></p>
+<p>where <span class="math inline">\(k\)</span> is the number of groups (conditions), <span class="math inline">\(n_i\)</span> is the sample size for group <span class="math inline">\(i\)</span>, and <span class="math inline">\(\text{SD}_i\)</span> is the standard deviation for group <span class="math inline">\(i\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cohen's guidelines: d = 0.2 is "small"</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Set ROPE at half of small: d = 0.10</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert Cohen's d to log-RT scale:</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># d = (mean1 - mean2) / pooled_SD</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># For our RT data, pooled_SD ≈ 0.20 (from residual variation)</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># d = 0.10 → Δmean = 0.10 × 0.20 = 0.02 log-units</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute pooled SD from the data</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>pooled_sd_estimate <span class="ot">&lt;-</span> rt_data <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(condition) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">sd =</span> <span class="fu">sd</span>(log_rt), <span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">pooled_sd =</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>((n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> sd<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="fu">sum</span>(n <span class="sc">-</span> <span class="dv">1</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pooled_sd)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Set ROPE based on Cohen's d = 0.10</span></span>
 <span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>cohens_d_small <span class="ot">&lt;-</span> <span class="fl">0.10</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>pooled_sd_estimate <span class="ot">&lt;-</span> <span class="fl">0.20</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>rope_from_cohens_d <span class="ot">&lt;-</span> cohens_d_small <span class="sc">*</span> pooled_sd_estimate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<table class="caption-top table">
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>rope_from_cohens_d <span class="ot">&lt;-</span> cohens_d_small <span class="sc">*</span> pooled_sd_estimate</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results in a table</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Cohen's d Threshold</span><span class="st">`</span> <span class="ot">=</span> cohens_d_small,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Pooled SD (log-units)</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(pooled_sd_estimate, <span class="dv">3</span>),</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">ROPE Lower</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(<span class="sc">-</span>rope_from_cohens_d, <span class="dv">3</span>),</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">ROPE Upper</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">round</span>(rope_from_cohens_d, <span class="dv">3</span>),</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">Interpretation =</span> <span class="st">"Effects with d &lt; 0.10 are 'very small'"</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"c"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 24%">
-<col style="width: 24%">
-<col style="width: 20%">
 <col style="width: 19%">
+<col style="width: 21%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 37%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Method</th>
-<th>Cohen’s d Threshold</th>
-<th>Estimated Pooled SD</th>
-<th>ROPE Boundaries</th>
-<th>Interpretation</th>
+<th style="text-align: center;">Cohen’s d Threshold</th>
+<th style="text-align: center;">Pooled SD (log-units)</th>
+<th style="text-align: center;">ROPE Lower</th>
+<th style="text-align: center;">ROPE Upper</th>
+<th style="text-align: center;">Interpretation</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Based on Standardized Effect Size</td>
-<td>0.1 (half of ‘small’ effect)</td>
-<td>0.2 log-units</td>
-<td>[-0.02, 0.02]</td>
-<td>Effects with d &lt; 0.10 are ‘very small’</td>
+<td style="text-align: center;">0.1</td>
+<td style="text-align: center;">0.278</td>
+<td style="text-align: center;">-0.028</td>
+<td style="text-align: center;">0.028</td>
+<td style="text-align: center;">Effects with d &lt; 0.10 are ‘very small’</td>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
 <p><strong>When to use:</strong></p>
 <ul>
 <li>No domain-specific benchmarks available</li>
