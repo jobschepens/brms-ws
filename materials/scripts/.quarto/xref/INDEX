@@ -42,5 +42,8 @@
   "08_convergence.qmd": {
     "08_convergence.html": "711f48af",
     "08_convergence.tex": "4fe2ae20"
+  },
+  "06_sequential_testing.qmd": {
+    "06_sequential_testing.html": "0241823a"
   }
 }
