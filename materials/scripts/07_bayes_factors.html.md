@@ -43,6 +43,7 @@ You've estimated your model parameters and found that an effect exists (Module 0
 **"How much evidence do the data provide for one hypothesis over another?"**
 
 Examples:
+
 - H₀: No effect (β = 0) vs. H₁: Some effect (β ≠ 0)
 - H₁: Positive effect (β > 0) vs. H₂: Negative effect (β < 0)
 - Model A: Simple main effects vs. Model B: Include interaction
@@ -96,33 +97,130 @@ Module 06: Practical significance (ROPE, emmeans, marginaleffects)
 Module 07 (TODAY): Hypothesis comparison (Bayes Factors, hypothesis())
 ```
 
-## LOO vs. Bayes Factors: What's the Difference?
+## LOO vs. Bayes Factors vs. ROPE: What's the Difference?
 
-Both compare models, but with different goals:
+These three approaches address different aspects of model evaluation:
 
 **LOO (Module 05):**
+
 - Goal: Predictive accuracy
 - Question: "Which model predicts new data better?"
-- Method: Cross-validation
+- Method: Cross-validation (leave-one-out)
+- Output: ELPD difference, standard errors
 - Use when: You care about out-of-sample performance
 - Example: Choose between polynomial degrees for smooth fit
 
 **Bayes Factors (Module 07):**
+
 - Goal: Relative evidence
-- Question: "Which model is better supported by data?"
+- Question: "Which hypothesis is better supported by data?"
 - Method: Ratio of marginal likelihoods
-- Use when: You want to quantify evidence for theory
+- Output: Evidence ratio (e.g., BF₁₀ = 10:1)
+- Use when: You want to quantify evidence for competing theories
 - Example: Does priming effect exist? (H₀ vs. H₁)
 
-**Rule of thumb:**
-- Use LOO for model selection when **prediction** matters
-- Use BF for model comparison when **explanation/theory** matters
+**ROPE (Module 06):**
 
-# The Savage-Dickey Density Ratio Method
+- Goal: Practical significance
+- Question: "Is the effect too small to matter?"
+- Method: Region of Practical Equivalence + HDI
+- Output: Accept/Reject/Undecided
+- Use when: You need to decide if an effect is meaningful
+- Example: Is the treatment effect large enough to be clinically relevant?
+
+**Rule of thumb:**
+
+- Use **LOO** for model selection when **prediction** matters
+- Use **BF** for hypothesis comparison when **explanation/theory** matters  
+- Use **ROPE** for decision-making when **practical significance** matters
+- Use **all three together** for a complete analysis!
+
+## The Mathematical Relationship: Can These Approaches Be "Reverse Engineered"?
+
+Recent research has explored the mathematical relationships between **Bayes Factors, HDI-ROPE, and frequentist equivalence tests (TOST)**.
+
+**Important note**: LOO is NOT part of this discussion because it addresses a fundamentally different question:
+- **LOO**: Predictive accuracy (out-of-sample performance)
+- **BF/ROPE/TOST**: Evidence for hypotheses (in-sample inference about parameters)
+
+These are complementary, not competing. The "reverse engineering" debate concerns only methods testing the same hypothesis (equivalence/existence) using different frameworks.
+
+### Key Finding from Campbell & Gustafson (2022)
+
+**"The Bayes Factor, HDI-ROPE, and Frequentist Equivalence Tests Can All Be Reverse Engineered"**
+
+Campbell and Gustafson (2022) redid the simulation study of Linde et al. (2021) with a critical modification: **they calibrated all three procedures to have the same predetermined maximum Type I error rate**.
+
+**Main conclusions:**
+
+1. **Similar operating characteristics**: When calibrated to the same Type I error rate, Bayes Factors, HDI-ROPE, and frequentist equivalence tests (TOST) all have **almost identical Type II error rates**.
+
+2. **Methods are interchangeable (mathematically)**: The three approaches can be "reverse-engineered" from one another – they're essentially different mathematical frameworks achieving the same goal.
+
+3. **Philosophy matters more than performance**: "If one decides on which underlying principle to subscribe to in tackling a given problem, then the method follows naturally."
+
+4. **Empirical comparison is futile**: "Trying to use empirical performance to argue for one approach over another seems like tilting at windmills."
+
+### Key Finding from Linde et al. (2023)
+
+**"Decisions about Equivalence: A Comparison of TOST, HDI-ROPE, and the Bayes Factor"**
+
+Linde et al. (2023) conducted an extensive simulation comparing operating characteristics across various scenarios.
+
+**Main conclusions:**
+
+1. **Bayes Factor shows advantages**: The Bayes Factor interval null approach performed best in their simulations for:
+   - Distinguishing between equivalence and non-equivalence
+   - Maintaining control over error rates
+   - Flexibility across different scenarios
+
+2. **HDI-ROPE is more conservative**: HDI-ROPE tends to be more conservative (lower Type I errors, but higher Type II errors) compared to Bayes Factors.
+
+3. **TOST depends heavily on sample size**: Frequentist TOST can struggle with small samples and requires careful power analysis.
+
+4. **Recommendation**: "Researchers rely more on the Bayes factor interval null approach for quantifying evidence for equivalence."
+
+### Practical Implications for Your Analysis
+
+**What this means for you:**
+
+1. **Don't agonize over method choice (for equivalence testing)**: If calibrated properly, BF and ROPE give similar conclusions. Choose based on your philosophical stance and audience.
+
+2. **Report both when possible**: Since they're complementary perspectives on the same question, reporting both BF and ROPE provides fuller picture:
+   - **BF**: "How much evidence?" (continuous quantification)
+   - **ROPE**: "Is it negligible?" (decision rule)
+
+3. **Focus on calibration**: The key is proper calibration of thresholds:
+   - **ROPE width**: Should reflect your domain's practical significance
+   - **BF threshold**: Should match your evidence requirements
+   - **Prior specification**: Critical for both approaches
+
+4. **Philosophy guides choice**:
+   - **Bayesian mindset** → Use BF for evidence quantification
+   - **Decision-focused** → Use ROPE for accept/reject framework
+   - **Mixed audience** → Report both
+
+5. **Don't forget LOO!** While BF/ROPE address "evidence for effect," LOO addresses "predictive accuracy":
+   - Use **LOO** when comparing different model structures (e.g., random slopes vs. intercepts)
+   - Use **BF/ROPE** when testing specific hypotheses (e.g., is effect = 0?)
+   - **Both together**: Complete picture of model quality
+
+**Example of integrated reporting:**
+
+> "We compared models using both LOO (predictive accuracy) and Bayes Factors (evidence). The random slopes model showed better predictive performance (ΔELPD = 12.3, SE = 4.2) and strong evidence for the complexity effect (BF₁₀ = 24.5). The 95% HDI [0.08, 0.15] fell entirely outside our ROPE of ±0.03, indicating the effect is predictively useful, evidentially supported, and practically meaningful."
+
+This gives:
+- **Predictive quality** (LOO: ΔELPD = 12.3)
+- **Evidence strength** (BF = 24.5)
+- **Practical significance** (HDI outside ROPE)
+- **Effect size** (HDI: [0.08, 0.15])
+
+# The Savage-Dickey Density Ratio Method (brms's hypothesis())
 
 ## What is the Savage-Dickey Method?
 
 The **Savage-Dickey method** provides an elegant way to compute Bayes Factors when:
+
 - Models are **nested** (one is a special case of the other)
 - You're testing a point hypothesis (e.g., β = 0)
 
@@ -132,6 +230,7 @@ BF_{01} = \frac{p(\theta = \theta_0 | \text{Data}, H_1)}{p(\theta = \theta_0 | H
 $$
 
 **Intuition:**
+
 - If data make null value **more plausible** → BF₀₁ > 1 → evidence for H₀
 - If data make null value **less plausible** → BF₀₁ < 1 → evidence for H₁
 
@@ -197,6 +296,7 @@ ggplot(df_combined, aes(x = x, y = y, color = Distribution)) +
 
 
 **Interpretation of this example:**
+
 - Prior density at θ = 0: 0.402
 - Posterior density at θ = 0: 0.356
 - The posterior density **decreased** at the null
@@ -220,6 +320,7 @@ $$
 **This is exact, not an approximation!** (under specific conditions)
 
 **Conditions required:**
+
 1. H₀ is a special case of H₁ (nested models)
 2. Prior on nuisance parameters is same in both models
 3. You can accurately estimate densities at the null value
@@ -321,21 +422,79 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 
 **Understanding the output:**
 
+
+::: {.cell}
+::: {.cell-output .cell-output-stdout}
+
 ```
-Hypothesis: complexitySimple = 0
-Estimate: -0.08
-CI.Lower: -0.11
-CI.Upper: -0.05
-Evid.Ratio: 0.02
-Post.Prob: 0.02
-Star: *
+Hypothesis: (complexitySimple) = 0 
 ```
 
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Estimate: -0.12 
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+CI.Lower: -0.13 
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+CI.Upper: -0.10 
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Evid.Ratio: 0.00 
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Post.Prob: 0.00 
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Star: * 
+```
+
+
+:::
+:::
+
+
 **Interpretation:**
-- **Estimate**: Complex sentences are 0.08 log-units slower
-- **95% CI**: [-0.11, -0.05] (doesn't include 0)
-- **Evid.Ratio**: 0.02 means BF₀₁ = 0.02, so BF₁₀ = 1/0.02 = 50
-- **Conclusion**: Data are **50 times more likely** under H₁ (effect exists) than H₀ (no effect)
+
+- **Estimate**: Complex sentences are 0.12 log-units slower
+- **95% CI**: [-0.13, -0.10] (doesn't include 0)
+- **Evid.Ratio**: 0.00 means BF₀₁ = 0.00, so BF₁₀ = 1/0.00 = 33159141258179512336201547776
+- **Conclusion**: Data are **33159141258179512336201547776 times more likely** under H₁ (effect exists) than H₀ (no effect)
 - This is **very strong evidence** for a complexity effect
 
 ### Directional Test
@@ -370,6 +529,7 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 
 
 **Why directional tests?**
+
 - Theory predicts direction → stronger evidence possible
 - One-sided test has more power than two-sided
 - Evidence Ratio will be higher if data support predicted direction
@@ -472,6 +632,7 @@ groupNative |     40.97 %
 
 
 **Integrated interpretation:**
+
 - **Bayes Factor**: Quantifies evidence for difference
 - **ROPE**: Checks if difference is meaningful
 - **Both together**: Complete picture
@@ -618,6 +779,7 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 
 
 **Advanced hypothesis testing:**
+
 - Test interaction terms directly
 - Test specific numerical relationships (e.g., "effect is twice as large")
 - Test multiple hypotheses simultaneously
@@ -627,6 +789,7 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 **You MUST include `sample_prior = "yes"` in `brm()` to use `hypothesis()`!**
 
 Why?
+
 - Savage-Dickey needs both prior and posterior samples
 - By default, brms only samples the posterior
 - `sample_prior = "yes"` also samples from the prior distribution
@@ -744,20 +907,24 @@ ggplot(bf_scale, aes(x = log10(BF), y = 1, fill = Evidence)) +
 **Common misconceptions:**
 
 1. **BF ≠ probability of hypothesis being true**
+
    - BF₁₀ = 10 does NOT mean "90% probability H₁ is true"
    - BF quantifies relative evidence, not absolute probability
    
 2. **BF depends on prior specification**
+
    - Vague priors → built-in Ockham's razor → penalize complex models
    - This is a feature, not a bug!
    - Always report your priors
 
 3. **BF is continuous, not a decision rule**
+
    - Don't treat BF > 3 as "threshold for significance"
    - Report the actual BF value
    - Let readers judge based on context
 
 4. **BF doesn't tell you effect size**
+
    - BF₁₀ = 100 could mean tiny effect with large N
    - Always report effect estimates + uncertainty
    - Combine with ROPE analysis (Module 06)
@@ -833,12 +1000,14 @@ Informative prior BF₁₀: 1.881926e+28
 
 
 **Why they differ:**
+
 - Vague prior spreads probability mass widely
 - Data must "overcome" this large prior space
 - Informative prior concentrates mass where effect likely is
 - Same posterior, different BF!
 
 **Best practice:**
+
 - Use realistic informative priors based on domain knowledge
 - Report prior specification in paper
 - Consider prior sensitivity analysis
@@ -848,10 +1017,12 @@ Informative prior BF₁₀: 1.881926e+28
 ## When `hypothesis()` is Not Enough
 
 The `hypothesis()` function (Savage-Dickey) works for:
+
 - Nested models
 - Point hypotheses on parameters
 
 But what if you want to compare:
+
 - **Non-nested models** (e.g., Model A: `y ~ x1` vs. Model B: `y ~ x2`)
 - **Complex model structures** (different random effects)
 - **Different families** (Gaussian vs. Student-t)
@@ -871,10 +1042,12 @@ BF_{12} = \frac{p(\text{Data} | H_1)}{p(\text{Data} | H_2)}
 $$
 
 **Advantages:**
+
 - Works for any model comparison
 - Doesn't require nesting
 
 **Disadvantages:**
+
 - Computationally intensive
 - Requires additional package: `bridgesampling`
 
@@ -990,6 +1163,7 @@ Estimated Bayes factor in favor of x1 over x2: 0.50648
 
 
 **Interpretation:**
+
 ```
 Estimated Bayes factor in favor of ml_rs over ml_ri: 3.45
 ```
@@ -1011,6 +1185,7 @@ model <- brm(..., save_pars = save_pars(all = TRUE))
 ```
 
 **Trade-off:**
+
 - Saves all parameters → larger model objects
 - But: Necessary for bridge sampling to work
 - Only include this when you plan to use `bayes_factor()`
@@ -1111,21 +1286,25 @@ print(bf_table)
 ## Bridge Sampling Tips
 
 **1. Use enough iterations:**
+
 - Minimum: 4000 iterations (2000 warmup)
 - Better: 10000+ iterations for stable estimates
 
 **2. Check convergence:**
+
 ```r
 # Bridge sampling has its own convergence diagnostic
 print(ml_ri)  # Look for "relative mean-squared error" (should be small)
 ```
 
 **3. Combine with LOO:**
+
 - BF → Which model explains data better?
 - LOO → Which model predicts better?
 - Use both for complete picture
 
 **4. Computational cost:**
+
 - Bridge sampling is slow for complex models
 - Consider using `hypothesis()` when possible (much faster)
 
@@ -1173,6 +1352,7 @@ plot(hypothesis(model, "x = 0"))
 | BF ≈ 1 | Overlaps ROPE | **Undecided - collect more data** 📊 |
 
 **How to use this table:**
+
 1. Compute Bayes Factor (Module 07) → strength of evidence
 2. Check ROPE (Module 06) → practical significance
 3. Use emmeans/marginaleffects (Module 06) → effect estimation
@@ -1428,16 +1608,19 @@ with average differences ranging from 0.08 to 0.15 log-units.
 ## Common Pitfalls to Avoid
 
 **❌ Don't say:**
+
 - "BF = 10, therefore the effect is real with 90% probability"
 - "BF > 3, so we reject the null hypothesis"
 - "BF = 2.5, which is not significant"
 
 **✅ Do say:**
+
 - "BF₁₀ = 10, indicating strong evidence for H₁ relative to H₀"
 - "The data are 10 times more likely under the alternative hypothesis"
 - "BF = 2.5 provides weak to moderate evidence"
 
 **Always include:**
+
 1. Prior specification (what priors you used)
 2. Interpretation scale (which guidelines you follow)
 3. Effect size + uncertainty (BF alone is not enough)
@@ -1508,11 +1691,13 @@ Default prior BF₁₀: 3.315914e+28
 
 
 **When to use informed priors:**
+
 - You have strong theoretical predictions
 - Previous literature provides effect size estimates
 - You want to show robustness to prior specification
 
 **Transparency:**
+
 - Always report both analyses (informed and default)
 - Justify your informed prior with citations
 - Show prior sensitivity analysis
@@ -1550,6 +1735,7 @@ abline(h = c(1/3, 1, 3, 10), lty = 2, col = "gray")
 
 
 **Advantages:**
+
 - Stop data collection when evidence is conclusive
 - More efficient than fixed-N designs
 - Ethically appropriate (don't over-collect data)
@@ -1581,25 +1767,30 @@ h_theory3 <- hypothesis(model, "x = 0.15")
 ## What We Learned
 
 1. **Bayes Factors quantify evidence** for hypotheses
+
    - Not probability of hypothesis being true
    - Ratio of evidence between two hypotheses
    
 2. **Savage-Dickey method** (via `hypothesis()`)
+
    - Fast and easy for nested models
    - Tests point hypotheses on parameters
    - Requires `sample_prior = "yes"`
    
 3. **Bridge sampling** (via `bayes_factor()`)
+
    - Works for any model comparison
    - Computationally expensive
    - Requires `save_pars = save_pars(all = TRUE)`
 
 4. **Interpretation guidelines**
+
    - BF₁₀ > 10 = strong evidence
    - BF₁₀ 3-10 = moderate evidence
    - BF₁₀ < 3 = weak/anecdotal evidence
 
 5. **Combine with Module 06 tools**
+
    - BF (Module 07) → strength of evidence for hypotheses
    - ROPE (Module 06) → practical significance
    - emmeans/marginaleffects (Module 06) → effect estimation
@@ -1608,32 +1799,38 @@ h_theory3 <- hypothesis(model, "x = 0.15")
 ## When to Use What
 
 **Use `hypothesis()` when:**
+
 - Testing specific parameter values (β = 0, β > 0)
 - Models are nested
 - You want fast computation
 - Testing directional predictions
 
 **Use `bayes_factor()` when:**
+
 - Comparing non-nested models
 - Different model structures
 - Need comprehensive model comparison
 
 **Use ROPE (Module 06) when:**
+
 - Focus on practical significance
 - Want accept/reject/undecided decision rule
 - Testing if effect is negligible
 
 **Use emmeans (Module 06) when:**
+
 - Factorial designs
 - Need all pairwise comparisons
 - Familiar with traditional EMM workflow
 
 **Use marginaleffects (Module 06) when:**
+
 - Flexible predictions at specific values
 - Custom contrasts and comparisons
 - Working with continuous predictors
 
 **Use LOO (Module 05) when:**
+
 - Focus on prediction accuracy
 - Model selection for forecasting
 - Cross-validation needed
@@ -1643,11 +1840,13 @@ h_theory3 <- hypothesis(model, "x = 0.15")
 **Q: Should I always report Bayes Factors?**
 
 A: No. Report BF when:
+
 - Your research question is about comparing specific hypotheses
 - You want to quantify strength of evidence
 - You're testing theoretically-motivated predictions
 
 Don't report BF if:
+
 - Your focus is purely exploratory
 - You're mainly interested in effect size estimation
 - BF would be redundant with ROPE analysis
@@ -1655,6 +1854,7 @@ Don't report BF if:
 **Q: What prior should I use for BF?**
 
 A: Use **weakly informative priors** based on domain knowledge:
+
 - Review previous literature for effect size estimates
 - Consider measurement scale (log-RT vs. RT)
 - Use prior predictive checks (Module 02)
@@ -1663,6 +1863,7 @@ A: Use **weakly informative priors** based on domain knowledge:
 **Q: Can I use BF for model selection?**
 
 A: Yes, but:
+
 - Combine with LOO for prediction assessment
 - BF favors explanation, LOO favors prediction
 - Use both when possible
@@ -1671,12 +1872,14 @@ A: Yes, but:
 ## Next Steps
 
 **Practice exercises:**
+
 1. Compute BF for directional hypothesis in your data
 2. Compare two models with different random effects structures
 3. Conduct prior sensitivity analysis for BF
 4. Create integrated report with ROPE + BF + effect sizes
 
 **Further reading:**
+
 - Wagenmakers et al. (2010) - Savage-Dickey method
 - Kass & Raftery (1995) - Bayes Factors overview
 - van Ravenzwaaij & Wagenmakers (2022) - Advantages of Bayes
@@ -1689,18 +1892,21 @@ A: Yes, but:
 ### Bayes Factors - Theory and Methods
 
 - **Wagenmakers, E.-J., Lodewyckx, T., Kuriyal, H., & Grasman, R. (2010).** Bayesian hypothesis testing for psychologists: A tutorial on the Savage–Dickey method. *Cognitive Psychology*, 60(3), 158-189.
+
   - 📖 **Essential reading** for understanding Savage-Dickey method
   - Complete worked examples with code
   - Connection to brms::hypothesis()
   - 📦 **Packages:** Foundational theory for **brms::hypothesis()**
 
 - **Kass, R. E., & Raftery, A. E. (1995).** Bayes factors. *Journal of the American Statistical Association*, 90(430), 773-795.
+
   - Classic reference on Bayes Factors
   - Mathematical foundations
   - Interpretation guidelines
   - 📦 **Packages:** Conceptual (applicable to all Bayesian software)
 
 - **Gronau, Q. F., Sarafoglou, A., Matzke, D., Ly, A., Boehm, U., Marsman, M., ... & Steingroever, H. (2017).** A tutorial on bridge sampling. *Journal of Mathematical Psychology*, 81, 80-97.
+
   - Bridge sampling method explained
   - Computational details
   - 📦 **Packages:** **bridgesampling**, used with **brms**
@@ -1708,11 +1914,13 @@ A: Yes, but:
 ### Bayesian Hypothesis Testing - Applied
 
 - **van Ravenzwaaij, D., & Wagenmakers, E.-J. (2022).** Advantages masquerading as 'issues' in Bayesian hypothesis testing: A commentary on Tendeiro and Kiers (2019). *Psychological Methods*, 27(3), 451-465.
+
   - Addresses common criticisms of Bayesian methods
   - Philosophy of hypothesis testing
   - 📦 **Packages:** Conceptual (defends Bayesian approach generally)
 
 - **Lee, M. D., & Wagenmakers, E.-J. (2013).** *Bayesian cognitive modeling: A practical course.* Cambridge University Press.
+
   - Practical guide to Bayesian hypothesis testing
   - Many worked examples
   - Interpretation scales for BF
@@ -1721,20 +1929,37 @@ A: Yes, but:
 ### Integration with ROPE
 
 - **Kruschke, J. K. (2018).** Rejecting or accepting parameter values in Bayesian estimation. *Advances in Methods and Practices in Psychological Science*, 1(2), 270-280.
+
   - HDI + ROPE decision rule
   - Comparison with Bayes Factors
   - When to use each approach
   - 📦 **Packages:** **bayestestR::rope()**, works with **brms**
 
+- **Linde, M., Tendeiro, J. N., Selker, R., Wagenmakers, E.-J., & van Ravenzwaaij, D. (2023).** Decisions about equivalence: A comparison of TOST, HDI-ROPE, and the Bayes factor. *Psychological Methods*, 28(3), 740-755.
+
+  - Comprehensive simulation study comparing three approaches
+  - Recommends Bayes Factor interval null approach
+  - Operating characteristics across scenarios
+  - 📦 **Packages:** **brms**, **bayestestR**, comparison frameworks
+
+- **Campbell, H., & Gustafson, P. (2022).** Re:Linde et al. (2021): The Bayes factor, HDI-ROPE and frequentist equivalence tests can all be reverse engineered -- almost exactly -- from one another. arXiv:2104.07834.
+
+  - Shows mathematical equivalence when calibrated
+  - Same Type I error → same Type II error
+  - Argues method choice is philosophical, not empirical
+  - 📦 **Packages:** Conceptual (applies to all approaches)
+
 ### Applications in Linguistics
 
 - **Nicenboim, B., Schad, D. J., & Vasishth, S. (2023).** *An introduction to Bayesian data analysis for cognitive science.* 
+
   - Chapter on hypothesis testing with brms
   - Linguistic examples
   - Prior specification guidance
   - 📦 **Packages:** **brms**, **hypothesis()**, complete workflows
 
 - **Schad, D. J., Nicenboim, B., Bürkner, P.-C., Betancourt, M., & Vasishth, S. (2024).** Workflow techniques for the robust use of Bayes factors. *Psychological Methods*.
+
   - Best practices for BF in practice
   - Sensitivity analysis
   - Reporting guidelines
@@ -1745,11 +1970,13 @@ A: Yes, but:
 ### brms
 
 - **hypothesis() documentation:** [https://paulbuerkner.com/brms/reference/hypothesis.brmsfit.html](https://paulbuerkner.com/brms/reference/hypothesis.brmsfit.html)
+
   - 📦 **brms::hypothesis()** complete API
   - Syntax for complex hypotheses
   - Examples of directional tests
 
 - **Bürkner, P.-C. (2017).** brms: An R package for Bayesian multilevel models using Stan. *Journal of Statistical Software*, 80(1), 1-28.
+
   - Primary citation for brms
   - Technical details
   - 📦 **brms** package paper
@@ -1757,6 +1984,7 @@ A: Yes, but:
 ### bridgesampling
 
 - **bridgesampling documentation:** [https://cran.r-project.org/package=bridgesampling](https://cran.r-project.org/package=bridgesampling)
+
   - 📦 **bridgesampling** package reference
   - Integration with **brms**
   - `bayes_factor()` function
@@ -1764,10 +1992,12 @@ A: Yes, but:
 ## Online Resources
 
 - **Paul Bürkner's Blog:** [https://paulbuerkner.com/software/brms-blogposts.html](https://paulbuerkner.com/software/brms-blogposts.html)
+
   - Community posts on **brms**
   - hypothesis() examples
 
 - **Stan Discourse Forum:** [https://discourse.mc-stan.org/](https://discourse.mc-stan.org/)
+
   - Active community
   - Bayes Factor discussions
   - **brms** technical support
@@ -1775,6 +2005,7 @@ A: Yes, but:
 ## Module 06 (Previous)
 
 - **Practical Significance and Effect Estimation:** See Module 06 for:
+
   - ROPE framework (bayestestR package)
   - Effect estimation with emmeans (factorial designs)
   - Flexible predictions with marginaleffects

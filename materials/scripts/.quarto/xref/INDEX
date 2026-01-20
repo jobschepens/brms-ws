@@ -44,6 +44,11 @@
     "08_convergence.tex": "4fe2ae20"
   },
   "06_sequential_testing.qmd": {
-    "06_sequential_testing.html": "0241823a"
+    "06_sequential_testing.html": "0241823a",
+    "06_sequential_testing.tex": "7c0360ad"
+  },
+  "06_sequential_testing_cont.qmd": {
+    "06_sequential_testing_cont.html": "fd9c815d",
+    "06_sequential_testing_cont.tex": "dffd5013"
   }
 }

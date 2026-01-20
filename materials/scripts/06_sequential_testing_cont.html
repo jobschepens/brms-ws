@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Job Schepens">
+<meta name="dcterms.date" content="2026-01-20">
+
+<title>Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-2441e7b16002a404fdf3664b2bffa0bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a5b34c7368fd572c905fe0d2719eb707.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-2441e7b16002a404fdf3664b2bffa0bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="5">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#part-2-continuous-predictor-simulation" id="toc-part-2-continuous-predictor-simulation" class="nav-link active" data-scroll-target="#part-2-continuous-predictor-simulation"><span class="header-section-number">1</span> Part 2: Continuous Predictor Simulation</a>
+  <ul>
+  <li><a href="#data-generation-continuous" id="toc-data-generation-continuous" class="nav-link" data-scroll-target="#data-generation-continuous"><span class="header-section-number">1.1</span> Data Generation (Continuous)</a></li>
+  <li><a href="#simulation-loop-continuous" id="toc-simulation-loop-continuous" class="nav-link" data-scroll-target="#simulation-loop-continuous"><span class="header-section-number">1.2</span> Simulation Loop (Continuous)</a></li>
+  <li><a href="#continuous-results-table" id="toc-continuous-results-table" class="nav-link" data-scroll-target="#continuous-results-table"><span class="header-section-number">1.3</span> Continuous Results Table</a></li>
+  <li><a href="#visualization-continuous" id="toc-visualization-continuous" class="nav-link" data-scroll-target="#visualization-continuous"><span class="header-section-number">1.4</span> Visualization (Continuous)</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="06_sequential_testing_cont.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)</h1>
+<p class="subtitle lead">Understanding Divergences in Bayesian Decision Making</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Job Schepens </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 20, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(posterior)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayestestR)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(marginaleffects)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="part-2-continuous-predictor-simulation" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Part 2: Continuous Predictor Simulation</h1>
+<p>In this second part, we repeat the sequential testing process for a <strong>continuous predictor</strong> (e.g., word frequency or trial number) to see if decision metrics behave similarly.</p>
+<section id="data-generation-continuous" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="data-generation-continuous"><span class="header-section-number">1.1</span> Data Generation (Continuous)</h2>
+<p>We simulate a log-RT variable with a continuous predictor <span class="math inline">\(X\)</span> (centered, range approx -2 to 2). True Effect of X: 0.05 (approx 5% change per unit of X).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">999</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>generate_data_cont <span class="ot">&lt;-</span> <span class="cf">function</span>(n_subj) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  n_item <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand_grid</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_subj),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">item =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_item),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">trial_x =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="at">length.out =</span> <span class="dv">10</span>) <span class="co"># Continuous predictor per item/trial</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">subj_intercept =</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.15</span>),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">subj_slope =</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="fl">0.05</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>      <span class="co"># True effect: 0.08 per unit of X</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">log_rt =</span> <span class="fl">6.0</span> <span class="sc">+</span> </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>               subj_intercept <span class="sc">+</span> </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>               <span class="fl">0.08</span> <span class="sc">*</span> trial_x <span class="sc">+</span> </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>               trial_x <span class="sc">*</span> subj_slope <span class="sc">+</span> </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>               <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="dv">0</span>, <span class="fl">0.2</span>),</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> log_rt</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(subject, item, trial_x, y)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="simulation-loop-continuous" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="simulation-loop-continuous"><span class="header-section-number">1.2</span> Simulation Loop (Continuous)</h2>
+<p>We fit three models again: 1. <strong>Null</strong>: <code>y ~ 1 + (1|subject) + (1|item)</code> 2. <strong>Wide</strong>: <code>y ~ trial_x</code>, prior <code>normal(0, 5)</code> 3. <strong>Narrow</strong>: <code>y ~ trial_x</code>, prior <code>normal(0, 0.2)</code></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same extended sample sizes</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sample_sizes_cont <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="fu">seq</span>(<span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">5</span>), <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">100</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>results_list_cont <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate full dataset</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>max_n_cont <span class="ot">&lt;-</span> <span class="fu">max</span>(sample_sizes_cont)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>data_full_cont <span class="ot">&lt;-</span> <span class="fu">generate_data_cont</span>(max_n_cont)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (n <span class="cf">in</span> sample_sizes_cont) {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Subset Data</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  data_n <span class="ot">&lt;-</span> data_full_cont <span class="sc">%&gt;%</span> </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="fu">as.integer</span>(subject) <span class="sc">&lt;=</span> n) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">droplevels</span>()</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Fit Models</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># H0: Null (Random slopes for X could be included, but keeping simple for null)</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  fit_null <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x <span class="sc">|</span> subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> item),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data_n,</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> <span class="fu">c</span>(</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">6</span>, <span class="fl">0.5</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sd),</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_cont_null_N"</span>, n),</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># H1 Wide</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  fit_wide <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    y <span class="sc">~</span> trial_x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x <span class="sc">|</span> subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> item),</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data_n,</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> <span class="fu">c</span>(</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">6</span>, <span class="fl">0.5</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.0</span>), <span class="at">class =</span> b), <span class="co"># Wide for slope</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sd),</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma)</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_cont_wide_N"</span>, n),</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># H1 Narrow</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  fit_narrow <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    y <span class="sc">~</span> trial_x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x <span class="sc">|</span> subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> item),</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data_n,</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> <span class="fu">c</span>(</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">6</span>, <span class="fl">0.5</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">0.1</span>), <span class="at">class =</span> b), <span class="co"># Narrow expectation for slope</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sd),</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma)</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_cont_narrow_N"</span>, n),</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Metrics</span></span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ROPE [-0.05, 0.05] on slope</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  rope_narrow <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_narrow, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)<span class="sc">$</span>ROPE_Percentage</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  rope_wide <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_wide, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)<span class="sc">$</span>ROPE_Percentage</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Bayes Factor (Slope = 0)</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  bf_wide <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_wide, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  bf_narrow <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_narrow, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>  <span class="co"># LOO</span></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>  loo_null <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_null)</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>  loo_wide <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_wide)</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>  loo_narrow <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_narrow)</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>  gain_wide <span class="ot">&lt;-</span> loo_wide<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>]</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>  gain_narrow <span class="ot">&lt;-</span> loo_narrow<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>]</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Estimates</span></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>  est_narrow <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_narrow, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  est_wide <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_wide, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>  results_list_cont[[<span class="fu">paste0</span>(<span class="st">"N"</span>, n)]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> n,</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Est</span></span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Estimate"</span>]), </span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q2.5"</span>]), </span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q97.5"</span>]),</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Estimate"</span>]), </span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q2.5"</span>]), </span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q97.5"</span>]),</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Metrics</span></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Narrow =</span> <span class="fu">as.numeric</span>(rope_narrow), </span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Wide =</span> <span class="fu">as.numeric</span>(rope_wide),</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Narrow =</span> <span class="fu">as.numeric</span>(bf_narrow), </span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Wide =</span> <span class="fu">as.numeric</span>(bf_wide),</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Narrow =</span> <span class="fu">as.numeric</span>(gain_narrow), </span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Wide =</span> <span class="fu">as.numeric</span>(gain_wide)</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list_cont)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="continuous-results-table" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="continuous-results-table"><span class="header-section-number">1.3</span> Continuous Results Table</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Metric"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"(.*)_(Narrow|Wide)"</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">map_dbl</span>(value, <span class="sc">~</span> <span class="cf">if</span>(<span class="fu">is.list</span>(.x)) <span class="fu">as.numeric</span>(.x[[<span class="dv">1</span>]]) <span class="cf">else</span> <span class="fu">as.numeric</span>(.x))) <span class="sc">%&gt;%</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Metric, <span class="at">values_from =</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">everything</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Estimate_CI =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f [%.2f, %.2f]"</span>, Est, Low, High)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, Prior, Estimate_CI, BF10, <span class="at">ROPE_Prob =</span> ROPE_in_prob, <span class="at">LOO_Gain =</span> LOO_gain) <span class="sc">%&gt;%</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(N, <span class="fu">desc</span>(Prior)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Continuous Predictor: Decision Metrics"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Continuous Predictor: Decision Metrics</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">N</th>
+<th style="text-align: left;">Prior</th>
+<th style="text-align: left;">Estimate_CI</th>
+<th style="text-align: right;">BF10</th>
+<th style="text-align: right;">ROPE_Prob</th>
+<th style="text-align: right;">LOO_Gain</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">-0.16 [-1.30, 0.73]</td>
+<td style="text-align: right;">1.780000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.387</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">-0.16 [-1.30, 0.73]</td>
+<td style="text-align: right;">1.780000e-01</td>
+<td style="text-align: right;">0.220</td>
+<td style="text-align: right;">-0.387</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">-0.01 [-0.16, 0.15]</td>
+<td style="text-align: right;">7.920000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.038</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">-0.01 [-0.16, 0.15]</td>
+<td style="text-align: right;">7.920000e-01</td>
+<td style="text-align: right;">0.508</td>
+<td style="text-align: right;">-0.038</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.34, 0.47]</td>
+<td style="text-align: right;">1.110000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.062</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.34, 0.47]</td>
+<td style="text-align: right;">1.110000e-01</td>
+<td style="text-align: right;">0.352</td>
+<td style="text-align: right;">0.062</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.02 [-0.13, 0.16]</td>
+<td style="text-align: right;">7.070000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.023</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.02 [-0.13, 0.16]</td>
+<td style="text-align: right;">7.070000e-01</td>
+<td style="text-align: right;">0.557</td>
+<td style="text-align: right;">0.023</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.18, 0.24]</td>
+<td style="text-align: right;">8.600000e-02</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.361</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.18, 0.24]</td>
+<td style="text-align: right;">8.600000e-02</td>
+<td style="text-align: right;">0.483</td>
+<td style="text-align: right;">0.361</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.02 [-0.09, 0.13]</td>
+<td style="text-align: right;">6.280000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.190</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.02 [-0.09, 0.13]</td>
+<td style="text-align: right;">6.280000e-01</td>
+<td style="text-align: right;">0.647</td>
+<td style="text-align: right;">0.190</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.08, 0.14]</td>
+<td style="text-align: right;">6.800000e-02</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.235</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.03 [-0.08, 0.14]</td>
+<td style="text-align: right;">6.800000e-02</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">-0.235</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.03 [-0.06, 0.11]</td>
+<td style="text-align: right;">6.170000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.133</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.03 [-0.06, 0.11]</td>
+<td style="text-align: right;">6.170000e-01</td>
+<td style="text-align: right;">0.733</td>
+<td style="text-align: right;">-0.133</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [-0.06, 0.19]</td>
+<td style="text-align: right;">1.460000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.053</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [-0.06, 0.19]</td>
+<td style="text-align: right;">1.460000e-01</td>
+<td style="text-align: right;">0.361</td>
+<td style="text-align: right;">0.053</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.06, 0.13]</td>
+<td style="text-align: right;">1.023000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.150</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.06, 0.13]</td>
+<td style="text-align: right;">1.023000e+00</td>
+<td style="text-align: right;">0.483</td>
+<td style="text-align: right;">0.150</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.04 [-0.07, 0.16]</td>
+<td style="text-align: right;">6.600000e-02</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.214</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.04 [-0.07, 0.16]</td>
+<td style="text-align: right;">6.600000e-02</td>
+<td style="text-align: right;">0.562</td>
+<td style="text-align: right;">0.214</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.04 [-0.06, 0.12]</td>
+<td style="text-align: right;">6.350000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.163</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.04 [-0.06, 0.12]</td>
+<td style="text-align: right;">6.350000e-01</td>
+<td style="text-align: right;">0.628</td>
+<td style="text-align: right;">0.163</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.04, 0.14]</td>
+<td style="text-align: right;">9.800000e-02</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.069</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">7</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.04, 0.14]</td>
+<td style="text-align: right;">9.800000e-02</td>
+<td style="text-align: right;">0.524</td>
+<td style="text-align: right;">0.069</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">7</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.04 [-0.04, 0.11]</td>
+<td style="text-align: right;">8.460000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.117</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">7</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.04 [-0.04, 0.11]</td>
+<td style="text-align: right;">8.460000e-01</td>
+<td style="text-align: right;">0.602</td>
+<td style="text-align: right;">0.117</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [-0.02, 0.14]</td>
+<td style="text-align: right;">1.680000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.205</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [-0.02, 0.14]</td>
+<td style="text-align: right;">1.680000e-01</td>
+<td style="text-align: right;">0.378</td>
+<td style="text-align: right;">0.205</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.02, 0.12]</td>
+<td style="text-align: right;">1.338000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.010</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.02, 0.12]</td>
+<td style="text-align: right;">1.338000e+00</td>
+<td style="text-align: right;">0.421</td>
+<td style="text-align: right;">-0.010</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.02, 0.13]</td>
+<td style="text-align: right;">1.420000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.005</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.02, 0.13]</td>
+<td style="text-align: right;">1.420000e-01</td>
+<td style="text-align: right;">0.438</td>
+<td style="text-align: right;">-0.005</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.02, 0.11]</td>
+<td style="text-align: right;">1.094000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.426</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.02, 0.11]</td>
+<td style="text-align: right;">1.094000e+00</td>
+<td style="text-align: right;">0.507</td>
+<td style="text-align: right;">0.426</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">10</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.01, 0.11]</td>
+<td style="text-align: right;">1.410000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">10</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [-0.01, 0.11]</td>
+<td style="text-align: right;">1.410000e-01</td>
+<td style="text-align: right;">0.484</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">10</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.01, 0.10]</td>
+<td style="text-align: right;">1.450000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.014</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">10</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [-0.01, 0.10]</td>
+<td style="text-align: right;">1.450000e+00</td>
+<td style="text-align: right;">0.519</td>
+<td style="text-align: right;">0.014</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [0.01, 0.09]</td>
+<td style="text-align: right;">6.710000e-01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.513</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.05 [0.01, 0.09]</td>
+<td style="text-align: right;">6.710000e-01</td>
+<td style="text-align: right;">0.462</td>
+<td style="text-align: right;">0.513</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [0.01, 0.09]</td>
+<td style="text-align: right;">5.445000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">-0.100</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.05 [0.01, 0.09]</td>
+<td style="text-align: right;">5.445000e+00</td>
+<td style="text-align: right;">0.498</td>
+<td style="text-align: right;">-0.100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">7.014000e+00</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.833</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">7.014000e+00</td>
+<td style="text-align: right;">0.192</td>
+<td style="text-align: right;">0.833</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">5.400300e+01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.548</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">5.400300e+01</td>
+<td style="text-align: right;">0.239</td>
+<td style="text-align: right;">0.548</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">3.674800e+01</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.379</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">3.674800e+01</td>
+<td style="text-align: right;">0.221</td>
+<td style="text-align: right;">0.379</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">1.050360e+02</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.513</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.06 [0.03, 0.09]</td>
+<td style="text-align: right;">1.050360e+02</td>
+<td style="text-align: right;">0.277</td>
+<td style="text-align: right;">0.513</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.04, 0.10]</td>
+<td style="text-align: right;">4.132826e+05</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.786</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.04, 0.10]</td>
+<td style="text-align: right;">4.132826e+05</td>
+<td style="text-align: right;">0.046</td>
+<td style="text-align: right;">0.786</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.04, 0.09]</td>
+<td style="text-align: right;">5.481336e+17</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">1.036</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.04, 0.09]</td>
+<td style="text-align: right;">5.481336e+17</td>
+<td style="text-align: right;">0.060</td>
+<td style="text-align: right;">1.036</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.05, 0.09]</td>
+<td style="text-align: right;">1.375817e+15</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">2.498</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.05, 0.09]</td>
+<td style="text-align: right;">1.375817e+15</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">2.498</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.05, 0.09]</td>
+<td style="text-align: right;">Inf</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">2.218</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.05, 0.09]</td>
+<td style="text-align: right;">Inf</td>
+<td style="text-align: right;">0.026</td>
+<td style="text-align: right;">2.218</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.06, 0.09]</td>
+<td style="text-align: right;">1.465803e+15</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">3.197</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.07 [0.06, 0.09]</td>
+<td style="text-align: right;">1.465803e+15</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">3.197</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.06, 0.09]</td>
+<td style="text-align: right;">Inf</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">3.473</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.07 [0.06, 0.09]</td>
+<td style="text-align: right;">Inf</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">3.473</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">100</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.08 [0.07, 0.09]</td>
+<td style="text-align: right;">3.552615e+14</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">10.803</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">100</td>
+<td style="text-align: left;">Wide</td>
+<td style="text-align: left;">0.08 [0.07, 0.09]</td>
+<td style="text-align: right;">3.552615e+14</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">10.803</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">100</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.08 [0.07, 0.09]</td>
+<td style="text-align: right;">1.330036e+15</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">11.100</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">100</td>
+<td style="text-align: left;">Narrow</td>
+<td style="text-align: left;">0.08 [0.07, 0.09]</td>
+<td style="text-align: right;">1.330036e+15</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">11.100</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="visualization-continuous" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="visualization-continuous"><span class="header-section-number">1.4</span> Visualization (Continuous)</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First, ensure all columns are properly numeric by unnesting and converting</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>results_clean <span class="ot">&lt;-</span> results_df_cont <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> {</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="fu">is.list</span>(.x)) {</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">map_dbl</span>(.x, <span class="sc">~</span> <span class="cf">if</span>(<span class="fu">length</span>(.x) <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="fu">as.numeric</span>(.x[[<span class="dv">1</span>]]) <span class="cf">else</span> <span class="cn">NA_real_</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.numeric</span>(.x)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  })) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Double-check: convert to data frame to remove any remaining list structure</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Estimates</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>p_est_c <span class="ot">&lt;-</span> results_clean <span class="sc">%&gt;%</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">starts_with</span>(<span class="st">"Est"</span>), <span class="fu">starts_with</span>(<span class="st">"Low"</span>), <span class="fu">starts_with</span>(<span class="st">"High"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>N, <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Type"</span>, <span class="st">"Prior"</span>), <span class="at">names_sep =</span> <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Type, <span class="at">values_from =</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(Est, Low, High)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Est, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High), <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.3</span>)) <span class="sc">+</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.08</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Estimates (Slope)"</span>, <span class="at">y =</span> <span class="st">"Beta"</span>) <span class="sc">+</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Metrics</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>plot_met_c <span class="ot">&lt;-</span> results_clean <span class="sc">%&gt;%</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">contains</span>(<span class="st">"BF10"</span>), <span class="fu">contains</span>(<span class="st">"ROPE"</span>), <span class="fu">contains</span>(<span class="st">"LOO"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>N, <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"MetricType"</span>, <span class="st">"Prior"</span>), <span class="at">names_pattern =</span> <span class="st">"(.*)_(Wide|Narrow)"</span>, <span class="at">values_to =</span> <span class="st">"Value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Value =</span> <span class="fu">as.numeric</span>(Value))</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>p_bf_c <span class="ot">&lt;-</span> plot_met_c <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"BF10"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">linetype =</span> <span class="fu">c</span>(<span class="st">"dashed"</span>, <span class="st">"dotted"</span>)) <span class="sc">+</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Bayes Factor (Slope != 0)"</span>)</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>p_rope_c <span class="ot">&lt;-</span> plot_met_c <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"ROPE_in_prob"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ROPE Prob (Slope ~ 0)"</span>)</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>p_loo_c <span class="ot">&lt;-</span> plot_met_c <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"LOO_gain"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LOO Gain"</span>)</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>(p_est_c <span class="sc">+</span> p_bf_c <span class="sc">+</span> p_rope_c <span class="sc">+</span> p_loo_c) <span class="sc">+</span> </span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_sequential_testing_cont_files/figure-html/wiz-cont-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            // default icon
+            link.classList.add("external");
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

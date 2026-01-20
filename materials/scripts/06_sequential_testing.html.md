@@ -46,10 +46,10 @@ In this specific example, we will simulate a scenario where we collect data sequ
 
 We will also see how **prior width** affects the Bayes Factor but has less impact on ROPE and LOO (once N is moderate).
 
-```{r}
-#| label: setup
-#| message: false
 
+::: {.cell}
+
+```{.r .cell-code}
 library(brms)
 library(tidyverse)
 library(bayesplot)
@@ -62,6 +62,8 @@ library(tidybayes)
 
 theme_set(theme_minimal(base_size = 14))
 ```
+:::
+
 
 # Part 1: The Simulation Study
 
@@ -69,9 +71,10 @@ theme_set(theme_minimal(base_size = 14))
 
 We generate data where there is a **small but real effect** ($d \approx 0.2$). This is the "danger zone" where decision criteria often disagree.
 
-```{r}
-#| label: data-generation
 
+::: {.cell}
+
+```{.r .cell-code}
 set.seed(2025) # Fixed seed for reproducibility
 
 # Function to generate data
@@ -110,6 +113,8 @@ generate_data <- function(n_subj) {
     select(subject, item, condition, y)
 }
 ```
+:::
+
 
 ## The Loop
 
@@ -119,11 +124,10 @@ We will loop through sample sizes $N = \{20, 50, 100\}$. At each step, we fit th
 2.  **Wide Prior Model ($H_1$ Wide)**: `y ~ condition`, prior `normal(0, 5)`
 3.  **Narrow Prior Model ($H_1$ Narrow)**: `y ~ condition`, prior `normal(0, 0.2)`
 
-```{r}
-#| label: simulation-loop
-#| output: false
-#| cache: true
 
+::: {.cell}
+
+```{.r .cell-code}
 # Sample sizes (Number of subjects)
 # Sample sizes (Number of subjects)
 sample_sizes <- c(1:10, seq(15, 30, 5), 40, 50, 100)
@@ -249,11 +253,15 @@ for (n in sample_sizes) {
 
 results_df <- bind_rows(results_list)
 ```
+:::
+
 
 ## Results Table
 
-```{r}
-#| label: results-table
+
+::: {.cell}
+
+```{.r .cell-code}
 results_df %>%
   pivot_longer(
     cols = -N,
@@ -269,15 +277,33 @@ results_df %>%
   knitr::kable(digits = 3, caption = "Comparison of Decision Metrics by Sample Size and Prior Sensitivity")
 ```
 
+::: {.cell-output-display}
+
+
+Table: Comparison of Decision Metrics by Sample Size and Prior Sensitivity
+
+|  N|Prior  |Estimate_CI       |         BF10| ROPE_Prob| LOO_Gain|
+|--:|:------|:-----------------|------------:|---------:|--------:|
+| 10|Wide   |0.17 [0.08, 0.25] | 1.003400e+01|     0.000|    1.318|
+| 10|Narrow |0.14 [0.05, 0.22] | 2.778000e+01|     0.000|    1.596|
+| 20|Wide   |0.13 [0.05, 0.20] | 5.132000e+00|     0.000|    1.282|
+| 20|Narrow |0.11 [0.04, 0.19] | 3.622400e+01|     0.026|    0.893|
+| 50|Wide   |0.13 [0.10, 0.16] | 7.450869e+92|     0.000|   13.583|
+| 50|Narrow |0.12 [0.10, 0.15] | 4.183176e+15|     0.000|   13.620|
+
+
+:::
+:::
+
+
 ## Visualization of Divergence
 
 Let's visualize how these metrics evolve as N increases.
 
-```{r}
-#| label: visual-divergence
-#| fig.width: 10
-#| fig.height: 8
 
+::: {.cell}
+
+```{.r .cell-code}
 # 1. Estimates Data
 plot_est <- results_df %>%
   select(N, starts_with("Est"), starts_with("Low"), starts_with("High")) %>%
@@ -342,6 +368,12 @@ p3 <- plot_metrics %>%
 (p0 + p1 + p2 + p3) + 
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
+
+::: {.cell-output-display}
+![](06_sequential_testing_files/figure-html/visual-divergence-1.png){width=960}
+:::
+:::
+
 
 ### Interpretation
 
