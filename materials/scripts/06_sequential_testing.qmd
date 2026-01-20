@@ -811,6 +811,11 @@ This is computationally expensive, so we run fewer simulations ($Sims=20$) but u
 library(lme4)
 library(brms)
 
+# Ensure cache directory exists
+dir.create("cache", showWarnings = FALSE)
+results_path <- "cache/sim_lmm_results.rds"
+dir.create("models", showWarnings = FALSE)
+
 # 0. Pre-compile brms model (saves C++ compilation time in loop)
 # We fit on dummy data once
 dat_dummy <- tibble(y = rnorm(10), condition = factor(rep(c("A", "B"), 5)), subject = factor(1:10), item = factor(rep(1:2, 5)))
@@ -825,7 +830,7 @@ brm_template <- brm(
   backend = "cmdstanr" # Faster if available, falls back to rstan
 )
 
-run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = NULL) {
+run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = NULL, sim_prefix="sim") {
   results <- tibble()
   
   for (i in 1:n_sim) {
@@ -885,7 +890,12 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
       bf10_brms <- 0
       if (!is.null(brm_model) && !stopped_bf10_brms) {
         try({
-          m_brms <- update(brm_model, newdata = curr_dat, iter = 2000, warmup = 1000, refresh = 0)
+          # Update with file caching
+          model_file <- paste0("models/", sim_prefix, "_id", i, "_N", n)
+          m_brms <- update(brm_model, newdata = curr_dat, 
+                           iter = 2000, warmup = 1000, refresh = 0,
+                           file = model_file)
+          
           h <- hypothesis(m_brms, "conditionB = 0")
           bf01_brms <- h$hypothesis$Evid.Ratio
           bf10_brms <- 1 / bf01_brms
@@ -911,34 +921,54 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
   return(results)
 }
 
-# Run Simulations (4 Conditions)
-set.seed(999)
+if (file.exists(results_path)) {
+  lmm_summary_all <- readRDS(results_path)
+} else {
+  # Run Simulations (4 Conditions)
+  set.seed(999)
+  
+  # 1. LOW NOISE (SD = 0.2)
+  sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h0") %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+  sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h1") %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
+  
+  # 2. HIGH NOISE (SD = 0.8)
+  sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h0") %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+  sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h1") %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
+  
+  # Combine & Summarize
+  lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
+  
+  lmm_summary_all <- lmm_data_all %>%
+    group_by(Noise, Scenario, check_n) %>%
+    summarise(
+      prop_p = mean(decision_p, na.rm=TRUE),
+      prop_bf10 = mean(decision_bf10, na.rm=TRUE),
+      prop_bf10_brms = mean(decision_bf10_brms, na.rm=TRUE),
+      .groups = "drop"
+    ) %>%
+    pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+  
+  saveRDS(lmm_summary_all, results_path)
+}
+```
 
-# 1. LOW NOISE (SD = 0.2)
-sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
-sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2, brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
+```{r}
+#| label: lmm-stopping-plot
+#| fig.width: 10
+#| fig.height: 8
 
-# 2. HIGH NOISE (SD = 0.8)
-sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
-sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8, brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
-
-# Combine & Summarize
-lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
-
-lmm_summary_all <- lmm_data_all %>%
-  group_by(Noise, Scenario, check_n) %>%
-  summarise(
-
-    prop_p = mean(decision_p, na.rm=TRUE),
-    prop_bf10 = mean(decision_bf10, na.rm=TRUE),
-    prop_bf10_brms = mean(decision_bf10_brms, na.rm=TRUE),
-    .groups = "drop"
-  ) %>%
-  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+# Ensure data is loaded if this chunk is run independently
+if (!exists("lmm_summary_all")) {
+   if (file.exists("cache/sim_lmm_results.rds")) {
+     lmm_summary_all <- readRDS("cache/sim_lmm_results.rds")
+   } else {
+     stop("Simulation results not found. Run previous chunk.")
+   }
+}
 
 # Plotting Function
 plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {

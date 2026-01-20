@@ -1205,6 +1205,27 @@ differed meaningfully from each other (all 95% CIs excluded the ROPE),
 with average differences ranging from 0.08 to 0.15 log-units.
 ```
 
+```markdown
+### Reading Time Analysis [2, Negligible Effects]
+
+Native speakers showed numerically slightly lower reading times than L2 speakers, 
+but this difference was negligible ($\beta = -0.01$, 95\% CI: [-0.03, 0.00]). 
+
+There was substantial evidence **against** an effect of Group (BF$_{01}$ = 7.16), 
+indicating the data were approximately 7 times more likely under the null hypothesis 
+of no difference than under the hypothesis of an effect.
+
+Using a ROPE of $\pm 0.05$ (practical significance threshold), we found that 
+100\% of the posterior distribution for the Group effect fell inside the ROPE. 
+Given that the entire 95\% credible interval is contained within the region of 
+practical equivalence, we accept the null hypothesis for practical purposes.
+
+Similarly, regarding the interaction between Group and Clause Type, the data 
+provided strong evidence for the null hypothesis (BF$_{01}$ = 13.4). The estimated 
+interaction effect was -0.01, and 100\% of the posterior distribution fell within the ROPE, 
+confirming that native and L2 speakers were influenced by clause type in a practically equivalent manner.
+```
+
 ## Common Pitfalls to Avoid
 
 **❌ Don't say:**

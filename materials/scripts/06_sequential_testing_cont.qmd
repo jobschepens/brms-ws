@@ -387,10 +387,22 @@ p_loo_unc_c <- ggplot(plot_loo_unc_c, aes(x = factor(N), y = gain, color = Prior
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
+```{r}
+#| label: lmm-cont-sim
+#| cache: true
+#| message: false
+#| warning: false
+
+# Ensure cache directory exists
+library(lme4)
+library(brms)
+dir.create("cache", showWarnings = FALSE)
+results_cont_path <- "cache/sim_cont_results.rds"
+dir.create("models/cache_fits", recursive = TRUE, showWarnings = FALSE)
+
 # Pre-compile a template model (Standard/Wide Prior) once to save C++ time
 # We use sample_prior="yes" for Savage-Dickey BF
 if (!file.exists("models/brm_template_cont.rds")) {
-  dir.create("models", showWarnings = FALSE)
   # Minimal data for template
   tmp_dat <- tibble(subject=factor(1:2), item=factor(1:2), trial_x=c(-1,1), y=c(0,0))
   prior_h1 <- c(
@@ -436,6 +448,7 @@ run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cac
       done_n <- unique(iter_results$check_n)
     }
     
+    check_points <- seq(15, 60, by = 5)
     points_to_run <- setdiff(check_points, done_n)
     
     if (length(points_to_run) == 0) {
@@ -452,24 +465,25 @@ run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cac
     # Quick Fix: Set seed based on iteration ID to guarantee consistency.
     set.seed(999 + i) 
     
-    dat_full <- expand_grid(subject=factor(1:100), item=factor(1:10), trial_x=seq(-1,1,length.out=10)) %>%
+    n_param <- 100
+    dat_full <- expand_grid(subject=factor(1:n_param), item=factor(1:10), trial_x=seq(-1,1,length.out=10)) %>%
       group_by(subject) %>% mutate(subj_int = rnorm(1,0,0.15)) %>% ungroup() %>%
       mutate(y = 6 + subj_int + true_effect*trial_x + rnorm(n(), 0, noise_sd))
     
     # Initialize stopping flags based on PREVIOUS partial results if strictly sequential
     # If we stopped at N=30, we must carry that state.
-    stopped_p <- any(iter_results$decision_p)
-    stopped_bf10 <- any(iter_results$decision_bf10)
+    stopped_p <- FALSE
+    stopped_bf10 <- FALSE
     stopped_bf10_brms <- FALSE
-    if("decision_bf10_brms" %in% names(iter_results)) {
-      stopped_bf10_brms <- any(iter_results$decision_bf10_brms, na.rm=TRUE)
+    
+    if(nrow(iter_results) > 0) {
+        stopped_p <- any(iter_results$decision_p)
+        stopped_bf10 <- any(iter_results$decision_bf10)
+        if("decision_bf10_brms" %in% names(iter_results)) {
+          stopped_bf10_brms <- any(iter_results$decision_bf10_brms, na.rm=TRUE)
+        }
     }
     
-    for (n in points_to_run) {
-      # Need to ensure sequential order if 'stopped' logic matters?
-      # points_to_run is sorted? setdiff might unsort.
-      # sort it.
-    }
     points_to_run <- sort(points_to_run)
     
     for (n in points_to_run) {
@@ -505,11 +519,14 @@ run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cac
         # Optimize: Store brms models to disk?
         # User requested saving models. We can do it!
         model_file <- paste0("models/cache_fits/", cache_prefix, "_iter", i, "_N", n)
-        if (!dir.exists("models/cache_fits")) dir.create("models/cache_fits", recursive=TRUE)
         
         # Check if model exists? brms has 'file' arg, but update() logic is manual.
         # We'll use update() with 'file' argument if possible, or save manually.
         # update() with file= writes the updated model to file.
+        
+        # NOTE: update() with 'file' might assume the file contains the model to update FROM, 
+        # or the location to save TO? brms::update usually just takes the object. 
+        # Actually brms::update returns a NEW object. If we want caching, we use 'file'.
         
         m_brms <- update(brm_model, newdata = curr_dat, 
                          chains = 2, iter = 2000, 
@@ -547,37 +564,57 @@ run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cac
   return(results)
 }
 
-# Run 4 Simulation Conditions with brms template
-# We reuse the same template for all since the model FORMULA is the same (H1 model)
-# and we just update data.
-sim_cont_low_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, 
-                                       cache_prefix = "low_h0_brms", brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+if (file.exists(results_cont_path)) {
+  cont_summary <- readRDS(results_cont_path)
+} else {
+  # Run 4 Simulation Conditions with brms template
+  # We reuse the same template for all since the model FORMULA is the same (H1 model)
+  # and we just update data.
+  sim_cont_low_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, 
+                                         cache_prefix = "low_h0_brms", brm_model = brm_template) %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+  
+  sim_cont_low_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.2, 
+                                         cache_prefix = "low_h1_brms", brm_model = brm_template) %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect=0.05)")
+  
+  sim_cont_high_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, 
+                                          cache_prefix = "high_h0_brms", brm_model = brm_template) %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+  
+  sim_cont_high_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.8, 
+                                          cache_prefix = "high_h1_brms", brm_model = brm_template) %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect=0.05)")
+  
+  # Combine
+  cont_data_all <- bind_rows(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)
+  
+  cont_summary <- cont_data_all %>%
+    group_by(Noise, Scenario, check_n) %>%
+    summarise(
+      prop_p = mean(decision_p),
+      prop_bf10 = mean(decision_bf10),
+      prop_bf10_brms = mean(decision_bf10_brms),
+      .groups = "drop"
+    ) %>%
+    pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+  
+  saveRDS(cont_summary, results_cont_path)
+}
+```
 
-sim_cont_low_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.2, 
-                                       cache_prefix = "low_h1_brms", brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect=0.05)")
+```{r}
+#| label: lmm-cont-plot
+#| fig.width: 10
+#| fig.height: 8
 
-sim_cont_high_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, 
-                                        cache_prefix = "high_h0_brms", brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
-
-sim_cont_high_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.8, 
-                                        cache_prefix = "high_h1_brms", brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect=0.05)")
-
-# Combine
-cont_data_all <- bind_rows(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)
-
-cont_summary <- cont_data_all %>%
-  group_by(Noise, Scenario, check_n) %>%
-  summarise(
-    prop_p = mean(decision_p),
-    prop_bf10 = mean(decision_bf10),
-    prop_bf10_brms = mean(decision_bf10_brms),
-    .groups = "drop"
-  ) %>%
-  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+if (!exists("cont_summary")) {
+  if (file.exists("cache/sim_cont_results.rds")) {
+    cont_summary <- readRDS("cache/sim_cont_results.rds")
+  } else {
+    stop("Continuous simulation results not found. Run previous chunk.")
+  }
+}
 
 # 4-Panel Plot Helper
 plot_panel <- function(data, title) {

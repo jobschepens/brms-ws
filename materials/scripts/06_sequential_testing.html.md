@@ -120,11 +120,30 @@ generate_data <- function(n_subj) {
 
 ## The Loop
 
-We will loop through sample sizes $N = \{20, 50, 100\}$. At each step, we fit three models:
+We will loop through sample sizes. At each step, we fit three models:
 
 1.  **Null Model ($H_0$)**: `y ~ 1`
-2.  **Wide Prior Model ($H_1$ Wide)**: `y ~ condition`, prior `normal(0, 5)`
-3.  **Narrow Prior Model ($H_1$ Narrow)**: `y ~ condition`, prior `normal(0, 0.2)`
+2.  **Wide Prior Model ($H_1$ Wide)**: `y ~ condition`, prior `normal(0, 1.0)`.
+    *   **Scale Context**: Since we are analyzing **log-reaction times** (where $y = \log(RT)$), a coefficient of $\beta$ roughly corresponds to a fractional change in raw seconds ($e^\beta$).
+    *   **Why this width?** A prior of $\sigma=1.0$ implies that we consider effects of magnitude 1.0 ($e^1 \approx 2.7 \times$ change) to be plausible. This is effectively "uninformative" because it is orders of magnitude larger than typical Stroop/Priming effects (which are usually 5-20%). A naive prior of `normal(0, 5)` would be even worse, implying standard deviations of $e^5 \approx 148 \times$, which is physically impossible for human reaction times.
+3.  **Narrow Prior Model ($H_1$ Narrow)**: `y ~ condition`, prior `normal(0, 0.1)`.
+    *   **Why this width?** This is "scientifically informed" by the literature. We expect effects in the range of 5-15%, which corresponds to $\beta \approx 0.05 - 0.15$ on the log scale. A standard deviation of $\sigma=0.1$ places 95% of the probability mass between $\pm 0.2$ (±22% effect), penalizing absurdly large effects while remaining open to robust psychological phenomena.
+
+> **Deep Dive: From Milliseconds to Log-Scale (and back)**
+>
+> To understand why `normal(0, 1)` is "wide" and `normal(0, 0.1)` is "narrow", we must look at the transformation.
+>
+> 1.  **Baseline**: Suppose a typical reaction time is **400 ms**.
+>     *   Log-Scale: $\log(400) \approx 5.99$. (This explains why our Intercept prior is around 6).
+> 2.  **Effect Size (The Prior)**:
+>     *   A coefficient $\beta$ on the log scale represents a **multiplicative shift** on the raw scale: $RT_{new} = RT_{base} \times e^\beta$.
+>     *   For $\beta = 0.1$: Multiplier is $e^{0.1} \approx 1.105$.
+>         *   Effect: A **10.5% increase**.
+>         *   Calculation: $400 \text{ ms} \times 1.105 \approx 442 \text{ ms}$. (A +42 ms effect).
+>     *   For $\beta = 1.0$ (The "Wide" Prior $\sigma$): Multiplier is $e^{1.0} \approx 2.718$.
+>         *   Effect: A **171% increase** (nearly tripling the time).
+>         *   Calculation: $400 \text{ ms} \times 2.718 \approx 1087 \text{ ms}$. (A +687 ms effect).
+> 3.  **Conclusion**: A prior of `normal(0, 1)` says "I expect the effect of the condition to potentially **triple** the reaction time". This is extremely unlikely in a standard cognitive task. A prior of `normal(0, 0.1)` says "I expect the effect to be around 10% (e.g., 40ms)", which is a reasonable effect size for a cognitive constraint.
 
 
 ::: {.cell}
@@ -559,7 +578,6 @@ You might notice that **Bayes Factors** ($BF_{10}$) and **Posterior Estimates** 
     *   Prediction is limited by the **residual noise** ($\sigma$) in individual data points.
     *   **Signal-to-Noise Ratio**: If the effect size is small (e.g., shifts the mean by 0.1 SD) but the data is noisy, knowing the effect gives you almost no advantage in predicting an individual person's score compared to just guessing the grand mean.
     *   Therefore, an effect can be **statistically "real"** (high BF, CI excludes 0) but **predictively "negligible"** (low LOO gain).
-    *   *Analogy*: We might be 100% certain that "Height" affects "IQ" (statistically significant correlation), but knowing someone's height barely helps you predict their IQ (poor predictive utility).
 
 ## 2. The Accumulation of Evidence
 
@@ -614,23 +632,33 @@ Here is a quick reference for interpreting the values from the plots above.
     
 # Part 5: The Danger of Optional Stopping (P-Hacking)
 
-A key advantage of Bayesian methods is their robustness to **Optional Stopping**—the practice of checking your results as data comes in and deciding whether to stop or continue collecting data.
+An advantage of Bayesian methods is their robustness to **Optional Stopping**—the practice of checking your results as data comes in and deciding whether to stop or continue collecting data.
 
 ### 1. The Likelihood Principle
 The reason Bayesian methods handle optional stopping gracefully is the **Likelihood Principle**: *All the evidence from the data relevant to model parameters is contained in the likelihood function.*
 In simple terms, **the intention of the experimenter does not change the evidence**. Whether you planned to stop at $N=50$ or you just happened to stop there because the result looked good, the data ($D$) is the same, and therefore $P(D|H_0)$ and $P(D|H_1)$ are the same.
 
-*   **Frequentist P-values** violate this. They calculate probabilities of unobserved data ("data more extreme than observed") based on a specific sampling plan ($N$). If you check multiple times, you change the "sampling plan" to a sequential one, inflating the probability of a Type 1 error (false positive) dramatically (often > 20% if not corrected).
+*   **Frequentist P-values** violate this. They calculate the probability of observing data **as extreme or more extreme** than observed, which depends on hypothetical outcomes that did not occur ("unobserved data").
+    *   **The Sampling Plan Matters**: To define "what is possible", you need a sampling plan. If you plan to stop at $N=50$, the space of possible outcomes is different than if you plan to stop "when significant".
+    *   **Example**: Two researchers both observe 5 Heads in a row. Researcher A planned to flip 5 times; for them, this is rare ($p < .05$). Researcher B planned to flip until they saw Tails; for them, 5 Heads is just one of many stopping points, so it is less surprising and often not significant.
+    *   Because p-values depend on this "Plan B" (what you *would have done* if data were different), checking results repeatedly changes the sampling plan to a sequential one, inflating the false positive rate (often > 20%).
 *   **Bayes Factors** respect this. They simply update the odds. If $H_0$ is true, adding more data generally pushes the BF towards 0 (evidence *for* null). It does not "drift" toward a significance threshold in the same way p-values do (random walk vs. convergence).
 
 ### 2. Assumptions & Validity
 While robust, optional stopping with Bayes Factors is not magic. It relies on:
 1.  **Likelihood Validity**: Your model (distribution, noise) must reasonably approximate the data-generating process.
+    *   **Garbage In, Garbage Out**: The Bayes Factor measures how much *better* one model predicts the data than another. If both models are fundamentally wrong (e.g., assuming a Normal distribution for data that is actually Log-Normal or has heavy outliers), the "evidence" is meaningless.
+    *   **Outlier Sensitivity**: If your likelihood does not account for outliers (e.g., using a pure Gaussian likelihood), a single extreme data point can dominate the likelihood calculation. The BF might sway wildly based on which model accidentally "captures" that outlier better, rather than reflecting the true effect.
+    *   **Check Your Residuals**: You must still perform posterior predictive checks. Optional stopping doesn't save you from a bad model.
 2.  **Prior Sensitivity**: If you use a Prior that is "too wide" (the Dilution Effect seen in our earlier plots), you artificially penalize $H_1$, making it harder to find evidence for an effect even if it exists.
 3.  **Finite Horizons**: In theory, if you sample *forever*, a Bayes Factor can transiently cross a threshold (e.g., $BF > 3$) even if $H_0$ is true, though the probability of this is much lower than for p-values.
 
 ### 3. Practical Rules for Psycholinguistics
-For real experiments, "continuous monitoring" is valid, but structured approaches (Sequential Bayes Factor Design) are best for planning:
+For real experiments, **"continuous monitoring" is valid**—meaning you can check your Bayes Factor after every subject without "breaking" the stats.
+*   **Why?** Because the Bayes Factor at $N=50$ answers: *"Given the data I represent right now, what are the relative odds?"* It doesn't care if you also looked at $N=49$.
+*   **Contrast**: If you check a p-value at $N=50$, you are technically asking: *"What is the probability of this data occurring given that I planned to stop at N=50?"*. If you peeked at $N=49$, you weren't planning to stop at 50 ( you were planning to stop at 49 OR 50), so the p-value calculation is wrong.
+
+However, even though it IS valid, **structured approaches (Sequential Bayes Factor Design)** are better for practical planning:
 
 *   **Define Thresholds**: Pre-register a strict evidence threshold (e.g., Stop if $BF_{10} > 10$ or $BF_{10} < 1/10$). $BF > 3$ is often considered "anecdotal" or too weak for stopping in high-noise fields like linguistics.
 *   **Set a Maximum N**: Resources are finite. Define a hard stopping point (e.g., $N=100$) where you stop regardless of evidence (usually concluding "Inconclusive").
@@ -854,6 +882,11 @@ This is computationally expensive, so we run fewer simulations ($Sims=20$) but u
 library(lme4)
 library(brms)
 
+# Ensure cache directory exists
+dir.create("cache", showWarnings = FALSE)
+results_path <- "cache/sim_lmm_results.rds"
+dir.create("models", showWarnings = FALSE)
+
 # 0. Pre-compile brms model (saves C++ compilation time in loop)
 # We fit on dummy data once
 dat_dummy <- tibble(y = rnorm(10), condition = factor(rep(c("A", "B"), 5)), subject = factor(1:10), item = factor(rep(1:2, 5)))
@@ -868,7 +901,7 @@ brm_template <- brm(
   backend = "cmdstanr" # Faster if available, falls back to rstan
 )
 
-run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = NULL) {
+run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = NULL, sim_prefix="sim") {
   results <- tibble()
   
   for (i in 1:n_sim) {
@@ -928,7 +961,12 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
       bf10_brms <- 0
       if (!is.null(brm_model) && !stopped_bf10_brms) {
         try({
-          m_brms <- update(brm_model, newdata = curr_dat, iter = 2000, warmup = 1000, refresh = 0)
+          # Update with file caching
+          model_file <- paste0("models/", sim_prefix, "_id", i, "_N", n)
+          m_brms <- update(brm_model, newdata = curr_dat, 
+                           iter = 2000, warmup = 1000, refresh = 0,
+                           file = model_file)
+          
           h <- hypothesis(m_brms, "conditionB = 0")
           bf01_brms <- h$hypothesis$Evid.Ratio
           bf10_brms <- 1 / bf01_brms
@@ -954,34 +992,55 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
   return(results)
 }
 
-# Run Simulations (4 Conditions)
-set.seed(999)
+if (file.exists(results_path)) {
+  lmm_summary_all <- readRDS(results_path)
+} else {
+  # Run Simulations (4 Conditions)
+  set.seed(999)
+  
+  # 1. LOW NOISE (SD = 0.2)
+  sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h0") %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+  sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h1") %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
+  
+  # 2. HIGH NOISE (SD = 0.8)
+  sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h0") %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+  sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h1") %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
+  
+  # Combine & Summarize
+  lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
+  
+  lmm_summary_all <- lmm_data_all %>%
+    group_by(Noise, Scenario, check_n) %>%
+    summarise(
+      prop_p = mean(decision_p, na.rm=TRUE),
+      prop_bf10 = mean(decision_bf10, na.rm=TRUE),
+      prop_bf10_brms = mean(decision_bf10_brms, na.rm=TRUE),
+      .groups = "drop"
+    ) %>%
+    pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+  
+  saveRDS(lmm_summary_all, results_path)
+}
+```
+:::
 
-# 1. LOW NOISE (SD = 0.2)
-sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
-sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2, brm_model = brm_template) %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
 
-# 2. HIGH NOISE (SD = 0.8)
-sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
-sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8, brm_model = brm_template) %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
 
-# Combine & Summarize
-lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
+::: {.cell}
 
-lmm_summary_all <- lmm_data_all %>%
-  group_by(Noise, Scenario, check_n) %>%
-  summarise(
-
-    prop_p = mean(decision_p, na.rm=TRUE),
-    prop_bf10 = mean(decision_bf10, na.rm=TRUE),
-    prop_bf10_brms = mean(decision_bf10_brms, na.rm=TRUE),
-    .groups = "drop"
-  ) %>%
-  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+```{.r .cell-code}
+# Ensure data is loaded if this chunk is run independently
+if (!exists("lmm_summary_all")) {
+   if (file.exists("cache/sim_lmm_results.rds")) {
+     lmm_summary_all <- readRDS("cache/sim_lmm_results.rds")
+   } else {
+     stop("Simulation results not found. Run previous chunk.")
+   }
+}
 
 # Plotting Function
 plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {
@@ -1016,7 +1075,7 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
 ```
 
 ::: {.cell-output-display}
-![](06_sequential_testing_files/figure-html/lmm-stopping-sim-1.png){width=672}
+![](06_sequential_testing_files/figure-html/lmm-stopping-plot-1.png){width=960}
 :::
 :::
 
