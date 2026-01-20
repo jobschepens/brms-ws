@@ -453,3 +453,158 @@ p_loo_unc_c <- ggplot(plot_loo_unc_c, aes(x = factor(N), y = gain, color = Prior
 :::
 :::
 
+
+# Part 3: Long-Run Operating Characteristics (Error vs Power)
+
+We now run a larger simulation (multiple iterations) to see the long-run False Positive Rate and Power for the continuous predictor case, comparing Standard P-values against Bayes Factors.
+
+
+::: {.cell}
+
+```{.r .cell-code}
+library(lme4)
+
+run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cache_prefix = "sim_cont") {
+  
+  # Ensure cache dir exists
+  dir.create("results_cont", showWarnings = FALSE)
+  
+  results <- tibble()
+  
+  for (i in 1:n_sim) {
+    # File-based cache for THIS simulation iteration
+    cache_file <- paste0("results_cont/", cache_prefix, "_iter", i, ".rds")
+    
+    if (file.exists(cache_file)) {
+      results <- bind_rows(results, readRDS(cache_file))
+      next 
+    }
+    
+    # 1. Generate full dataset for this iteration
+    # Max N = 100
+    dat_full <- generate_data_cont(n_subj = 100) # Uses default params unless overridden? No, need args.
+    # Refactor generate_data_cont slightly to accept args or assume structure
+    # Since existing generate_data_cont is fixed, we might need a local version or modify it? 
+    # Let's rely on modifying generate_data_cont slightly OR create a local one for safety.
+    # Local generator for this simulation section to avoid breaking Part 2:
+    
+    gen_local <- function(N, eff, err) {
+       expand_grid(subject=factor(1:N), item=factor(1:10), x=seq(-1,1,l=10)) %>%
+       mutate(y = 6 + rnorm(1,0,.15)[subject] + eff*x + rnorm(n(),0,err))
+    }
+    
+    dat_full <- expand_grid(subject=factor(1:100), item=factor(1:10), trial_x=seq(-1,1,length.out=10)) %>%
+      group_by(subject) %>% mutate(subj_int = rnorm(1,0,0.15)) %>% ungroup() %>%
+      mutate(y = 6 + subj_int + true_effect*trial_x + rnorm(n(), 0, noise_sd))
+    
+    # Sequential Checks
+    check_points <- seq(20, 100, by = 10) # Check every 10 obs
+    
+    stopped_p <- FALSE
+    stopped_bf10 <- FALSE
+    
+    iter_results <- tibble()
+    
+    for (n in check_points) {
+      curr_dat <- dat_full %>% filter(as.numeric(subject) <= n)
+      
+      # Optimization: Skip derivative calculation (only needed for SEs, not point est/likelihood)
+      ctrl <- lmerControl(calc.derivs = FALSE)
+      
+      # A. Fast Frequentist + BIC Approx
+      m1 <- suppressMessages(lmer(y ~ trial_x + (1 + trial_x|subject) + (1|item), 
+                                data = curr_dat, REML=FALSE, control = ctrl))
+      m0 <- suppressMessages(lmer(y ~ 1 + (1 + trial_x|subject) + (1|item), 
+                                data = curr_dat, REML=FALSE, control = ctrl))
+      
+      # Optimization: Calculate Stats directly from LogLik (faster than anova/BIC)
+      ll1 <- as.numeric(logLik(m1))
+      ll0 <- as.numeric(logLik(m0))
+      df1 <- attr(logLik(m1), "df")
+      df0 <- attr(logLik(m0), "df")
+      
+      # LRT P-value
+      chisq_val <- 2 * (ll1 - ll0)
+      p_val <- pchisq(chisq_val, df = df1 - df0, lower.tail = FALSE)
+      if(is.na(p_val)) p_val <- 1
+      
+      # BIC Bayes Factor
+      # BIC = k*ln(n) - 2*ln(L)
+      # BF10 = exp( (BIC0 - BIC1) / 2 )
+      n_obs <- nrow(curr_dat)
+      bic1 <- df1 * log(n_obs) - 2 * ll1
+      bic0 <- df0 * log(n_obs) - 2 * ll0
+      bf10 <- exp((bic0 - bic1) / 2)
+      
+      # Decisions
+      if (!stopped_p && p_val < 0.05) stopped_p <- TRUE
+      if (!stopped_bf10 && bf10 > 10) stopped_bf10 <- TRUE
+      
+      iter_results <- bind_rows(iter_results, tibble(
+        sim_id = i,
+        check_n = n,
+        decision_p = stopped_p,
+        decision_bf10 = stopped_bf10
+      ))
+    }
+    
+    saveRDS(iter_results, cache_file)
+    results <- bind_rows(results, iter_results)
+  }
+  return(results)
+}
+
+# Run 4 Simulation Conditions
+# 1. Low Noise H0
+sim_cont_low_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, cache_prefix = "low_h0") %>%
+  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+
+# 2. Low Noise H1
+sim_cont_low_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.2, cache_prefix = "low_h1") %>%
+  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect=0.05)")
+
+# 3. High Noise H0
+sim_cont_high_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, cache_prefix = "high_h0") %>%
+  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+
+# 4. High Noise H1
+sim_cont_high_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.8, cache_prefix = "high_h1") %>%
+  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect=0.05)")
+
+# Combine
+cont_data_all <- bind_rows(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)
+
+cont_summary <- cont_data_all %>%
+  group_by(Noise, Scenario, check_n) %>%
+  summarise(
+    prop_p = mean(decision_p),
+    prop_bf10 = mean(decision_bf10),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+
+# 4-Panel Plot
+p1 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H0 (No Effect)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
+  labs(title="False Positives (Low Noise)", x=NULL) + theme(legend.position="none")
+
+p2 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H1 (Effect=0.05)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
+  labs(title="Power (Low Noise)", x=NULL) + theme(legend.position="none")
+
+p3 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H0 (No Effect)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
+  labs(title="False Positives (High Noise)", x="N") + theme(legend.position="none")
+
+p4 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H1 (Effect=0.05)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
+  labs(title="Power (High Noise)", x="N") + theme(legend.position="none")
+
+(p1 + p2) / (p3 + p4) + plot_layout(guides = "collect") & scale_color_manual(values = c("prop_p"="#E74C3C", "prop_bf10"="#2ECC71"))
+```
+
+::: {.cell-output-display}
+![](06_sequential_testing_cont_files/figure-html/sim-loop-error-cont-1.png){width=672}
+:::
+:::
+
