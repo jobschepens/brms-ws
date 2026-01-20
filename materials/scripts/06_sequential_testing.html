@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
-<head>
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
 
-<meta charset="utf-8" />
-<meta name="generator" content="quarto-1.8.25" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-
-<meta name="author" content="Job Schepens" />
-<meta name="dcterms.date" content="2026-01-20" />
+<meta name="author" content="Job Schepens">
+<meta name="dcterms.date" content="2026-01-20">
 
 <title>6: Sequential Testing: ROPE vs Bayes Factor vs LOO</title>
 <style>
@@ -61,7 +59,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
-<!-- htmldependencies:E3FAD763 -->
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-e87c9e8c45ecd29038ad154ff3f33c57.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a60f2ed0341f347feceb1fefe1ef1e89.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-e87c9e8c45ecd29038ad154ff3f33c57.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -122,19 +141,7 @@ window.Quarto = {
 
 </head>
 
-<body>
-
-<div id="quarto-search-results"></div>
-<!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
-<!-- sidebar -->
-<!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <div id="quarto-toc-target"></div>
-    </div>
-<!-- main -->
-<main class="content" id="quarto-document-content">
-<script id = "quarto-html-before-body" type="application/javascript">
+<body class="quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -298,6 +305,63 @@ window.Quarto = {
     }
   </script>
 
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="5">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#part-1-the-simulation-study" id="toc-part-1-the-simulation-study" class="nav-link" data-scroll-target="#part-1-the-simulation-study"><span class="header-section-number">2</span> Part 1: The Simulation Study</a>
+  <ul>
+  <li><a href="#data-generation" id="toc-data-generation" class="nav-link" data-scroll-target="#data-generation"><span class="header-section-number">2.1</span> Data Generation</a></li>
+  <li><a href="#the-loop" id="toc-the-loop" class="nav-link" data-scroll-target="#the-loop"><span class="header-section-number">2.2</span> The Loop</a></li>
+  <li><a href="#results-table" id="toc-results-table" class="nav-link" data-scroll-target="#results-table"><span class="header-section-number">2.3</span> Results Table</a></li>
+  <li><a href="#visualization-of-divergence" id="toc-visualization-of-divergence" class="nav-link" data-scroll-target="#visualization-of-divergence"><span class="header-section-number">2.4</span> Visualization of Divergence</a></li>
+  <li><a href="#visualization-zoomed-n-10" id="toc-visualization-zoomed-n-10" class="nav-link" data-scroll-target="#visualization-zoomed-n-10"><span class="header-section-number">2.5</span> Visualization (Zoomed: N &gt;= 10)</a></li>
+  <li><a href="#visualization-uncertainty-n-10" id="toc-visualization-uncertainty-n-10" class="nav-link" data-scroll-target="#visualization-uncertainty-n-10"><span class="header-section-number">2.6</span> Visualization (Uncertainty: N &gt;= 10)</a></li>
+  </ul></li>
+  <li><a href="#statistical-interpretation-of-loo" id="toc-statistical-interpretation-of-loo" class="nav-link" data-scroll-target="#statistical-interpretation-of-loo"><span class="header-section-number">3</span> Statistical Interpretation of LOO</a>
+  <ul>
+  <li><a href="#what-does-2-se-represent" id="toc-what-does-2-se-represent" class="nav-link" data-scroll-target="#what-does-2-se-represent"><span class="header-section-number">3.1</span> What does <code>2 * SE</code> represent?</a>
+  <ul>
+  <li><a href="#crossing-the-0-line" id="toc-crossing-the-0-line" class="nav-link" data-scroll-target="#crossing-the-0-line"><span class="header-section-number">3.1.1</span> 1. Crossing the 0 line</a></li>
+  <li><a href="#why-doesnt-the-error-band-get-narrower" id="toc-why-doesnt-the-error-band-get-narrower" class="nav-link" data-scroll-target="#why-doesnt-the-error-band-get-narrower"><span class="header-section-number">3.1.2</span> 2. Why doesn’t the error band get narrower?</a></li>
+  </ul></li>
+  <li><a href="#alternatives-bayesian-stacking" id="toc-alternatives-bayesian-stacking" class="nav-link" data-scroll-target="#alternatives-bayesian-stacking"><span class="header-section-number">3.2</span> Alternatives: Bayesian Stacking</a></li>
+  </ul></li>
+  <li><a href="#part-3-why-do-the-metrics-disagree" id="toc-part-3-why-do-the-metrics-disagree" class="nav-link" data-scroll-target="#part-3-why-do-the-metrics-disagree"><span class="header-section-number">4</span> Part 3: Why do the metrics disagree?</a>
+  <ul>
+  <li><a href="#parameter-estimation-vs.-prediction-the-core-difference" id="toc-parameter-estimation-vs.-prediction-the-core-difference" class="nav-link" data-scroll-target="#parameter-estimation-vs.-prediction-the-core-difference"><span class="header-section-number">4.1</span> 1. Parameter Estimation vs.&nbsp;Prediction (The Core Difference)</a></li>
+  <li><a href="#the-accumulation-of-evidence" id="toc-the-accumulation-of-evidence" class="nav-link" data-scroll-target="#the-accumulation-of-evidence"><span class="header-section-number">4.2</span> 2. The Accumulation of Evidence</a></li>
+  </ul></li>
+  <li><a href="#part-4-interpretation-cheat-sheet" id="toc-part-4-interpretation-cheat-sheet" class="nav-link" data-scroll-target="#part-4-interpretation-cheat-sheet"><span class="header-section-number">5</span> Part 4: Interpretation Cheat Sheet</a>
+  <ul>
+  <li><a href="#bayes-factor-bf_10" id="toc-bayes-factor-bf_10" class="nav-link" data-scroll-target="#bayes-factor-bf_10"><span class="header-section-number">5.1</span> 1. Bayes Factor (<span class="math inline">\(BF_{10}\)</span>)</a></li>
+  <li><a href="#loo-elpd_diff" id="toc-loo-elpd_diff" class="nav-link" data-scroll-target="#loo-elpd_diff"><span class="header-section-number">5.2</span> 2. LOO (<code>elpd_diff</code>)</a></li>
+  <li><a href="#rope-region-of-practical-equivalence" id="toc-rope-region-of-practical-equivalence" class="nav-link" data-scroll-target="#rope-region-of-practical-equivalence"><span class="header-section-number">5.3</span> 3. ROPE (Region of Practical Equivalence)</a></li>
+  <li><a href="#posterior-estimates-95-ci" id="toc-posterior-estimates-95-ci" class="nav-link" data-scroll-target="#posterior-estimates-95-ci"><span class="header-section-number">5.4</span> 4. Posterior Estimates (95% CI)</a></li>
+  </ul></li>
+  <li><a href="#part-5-the-danger-of-optional-stopping-p-hacking" id="toc-part-5-the-danger-of-optional-stopping-p-hacking" class="nav-link" data-scroll-target="#part-5-the-danger-of-optional-stopping-p-hacking"><span class="header-section-number">6</span> Part 5: The Danger of Optional Stopping (P-Hacking)</a>
+  <ul>
+  <li><a href="#the-likelihood-principle" id="toc-the-likelihood-principle" class="nav-link" data-scroll-target="#the-likelihood-principle"><span class="header-section-number">6.0.1</span> 1. The Likelihood Principle</a></li>
+  <li><a href="#assumptions-validity" id="toc-assumptions-validity" class="nav-link" data-scroll-target="#assumptions-validity"><span class="header-section-number">6.0.2</span> 2. Assumptions &amp; Validity</a></li>
+  <li><a href="#practical-rules-for-psycholinguistics" id="toc-practical-rules-for-psycholinguistics" class="nav-link" data-scroll-target="#practical-rules-for-psycholinguistics"><span class="header-section-number">6.0.3</span> 3. Practical Rules for Psycholinguistics</a></li>
+  <li><a href="#simulation-testing-repeatedly" id="toc-simulation-testing-repeatedly" class="nav-link" data-scroll-target="#simulation-testing-repeatedly"><span class="header-section-number">6.1</span> Simulation: Testing Repeatedly</a></li>
+  <li><a href="#visualization-error-vs.-power" id="toc-visualization-error-vs.-power" class="nav-link" data-scroll-target="#visualization-error-vs.-power"><span class="header-section-number">6.2</span> Visualization: Error vs.&nbsp;Power</a></li>
+  <li><a href="#simulation-2-psycholinguistic-experiment-mixed-models" id="toc-simulation-2-psycholinguistic-experiment-mixed-models" class="nav-link" data-scroll-target="#simulation-2-psycholinguistic-experiment-mixed-models"><span class="header-section-number">6.3</span> Simulation 2: Psycholinguistic Experiment (Mixed Models)</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="06_sequential_testing.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</h1>
@@ -329,52 +393,7 @@ window.Quarto = {
 
 </header>
 
-<nav id="TOC" role="doc-toc">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#introduction" id="toc-introduction"><span class="header-section-number">1</span> Introduction</a></li>
-  <li><a href="#part-1-the-simulation-study" id="toc-part-1-the-simulation-study"><span class="header-section-number">2</span> Part 1: The Simulation Study</a>
-  <ul>
-  <li><a href="#data-generation" id="toc-data-generation"><span class="header-section-number">2.1</span> Data Generation</a></li>
-  <li><a href="#the-loop" id="toc-the-loop"><span class="header-section-number">2.2</span> The Loop</a></li>
-  <li><a href="#results-table" id="toc-results-table"><span class="header-section-number">2.3</span> Results Table</a></li>
-  <li><a href="#visualization-of-divergence" id="toc-visualization-of-divergence"><span class="header-section-number">2.4</span> Visualization of Divergence</a></li>
-  <li><a href="#visualization-zoomed-n-10" id="toc-visualization-zoomed-n-10"><span class="header-section-number">2.5</span> Visualization (Zoomed: N &gt;= 10)</a></li>
-  <li><a href="#visualization-uncertainty-n-10" id="toc-visualization-uncertainty-n-10"><span class="header-section-number">2.6</span> Visualization (Uncertainty: N &gt;= 10)</a></li>
-  </ul></li>
-  <li><a href="#statistical-interpretation-of-loo" id="toc-statistical-interpretation-of-loo"><span class="header-section-number">3</span> Statistical Interpretation of LOO</a>
-  <ul>
-  <li><a href="#what-does-2-se-represent" id="toc-what-does-2-se-represent"><span class="header-section-number">3.1</span> What does <code>2 * SE</code> represent?</a>
-  <ul>
-  <li><a href="#crossing-the-0-line" id="toc-crossing-the-0-line"><span class="header-section-number">3.1.1</span> 1. Crossing the 0 line</a></li>
-  <li><a href="#why-doesnt-the-error-band-get-narrower" id="toc-why-doesnt-the-error-band-get-narrower"><span class="header-section-number">3.1.2</span> 2. Why doesn’t the error band get narrower?</a></li>
-  </ul></li>
-  <li><a href="#alternatives-bayesian-stacking" id="toc-alternatives-bayesian-stacking"><span class="header-section-number">3.2</span> Alternatives: Bayesian Stacking</a></li>
-  </ul></li>
-  <li><a href="#part-3-why-do-the-metrics-disagree" id="toc-part-3-why-do-the-metrics-disagree"><span class="header-section-number">4</span> Part 3: Why do the metrics disagree?</a>
-  <ul>
-  <li><a href="#parameter-estimation-vs.-prediction-the-core-difference" id="toc-parameter-estimation-vs.-prediction-the-core-difference"><span class="header-section-number">4.1</span> 1. Parameter Estimation vs. Prediction (The Core Difference)</a></li>
-  <li><a href="#the-accumulation-of-evidence" id="toc-the-accumulation-of-evidence"><span class="header-section-number">4.2</span> 2. The Accumulation of Evidence</a></li>
-  </ul></li>
-  <li><a href="#part-4-interpretation-cheat-sheet" id="toc-part-4-interpretation-cheat-sheet"><span class="header-section-number">5</span> Part 4: Interpretation Cheat Sheet</a>
-  <ul>
-  <li><a href="#bayes-factor-bf_10" id="toc-bayes-factor-bf_10"><span class="header-section-number">5.1</span> 1. Bayes Factor (<span class="math inline">\(BF_{10}\)</span>)</a></li>
-  <li><a href="#loo-elpd_diff" id="toc-loo-elpd_diff"><span class="header-section-number">5.2</span> 2. LOO (<code>elpd_diff</code>)</a></li>
-  <li><a href="#rope-region-of-practical-equivalence" id="toc-rope-region-of-practical-equivalence"><span class="header-section-number">5.3</span> 3. ROPE (Region of Practical Equivalence)</a></li>
-  <li><a href="#posterior-estimates-95-ci" id="toc-posterior-estimates-95-ci"><span class="header-section-number">5.4</span> 4. Posterior Estimates (95% CI)</a></li>
-  </ul></li>
-  <li><a href="#part-5-the-danger-of-optional-stopping-p-hacking" id="toc-part-5-the-danger-of-optional-stopping-p-hacking"><span class="header-section-number">6</span> Part 5: The Danger of Optional Stopping (P-Hacking)</a>
-  <ul>
-  <li><a href="#the-likelihood-principle" id="toc-the-likelihood-principle"><span class="header-section-number">6.0.1</span> 1. The Likelihood Principle</a></li>
-  <li><a href="#assumptions-validity" id="toc-assumptions-validity"><span class="header-section-number">6.0.2</span> 2. Assumptions &amp; Validity</a></li>
-  <li><a href="#practical-rules-for-psycholinguistics" id="toc-practical-rules-for-psycholinguistics"><span class="header-section-number">6.0.3</span> 3. Practical Rules for Psycholinguistics</a></li>
-  <li><a href="#simulation-testing-repeatedly" id="toc-simulation-testing-repeatedly"><span class="header-section-number">6.1</span> Simulation: Testing Repeatedly</a></li>
-  <li><a href="#visualization-error-vs.-power" id="toc-visualization-error-vs.-power"><span class="header-section-number">6.2</span> Visualization: Error vs. Power</a></li>
-  <li><a href="#simulation-2-psycholinguistic-experiment-mixed-models" id="toc-simulation-2-psycholinguistic-experiment-mixed-models"><span class="header-section-number">6.3</span> Simulation 2: Psycholinguistic Experiment (Mixed Models)</a></li>
-  </ul></li>
-  </ul>
-</nav>
+
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
 <p>In this example, we will simulate a scenario where we collect data sequentially (<span class="math inline">\(N=1, ...., 100\)</span>) and track how three different Bayesian decision metrics behave:</p>
@@ -387,7 +406,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(posterior)</span>
@@ -398,19 +417,19 @@ window.Quarto = {
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(BayesFactor)</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>))</span></code></pre></div>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="part-1-the-simulation-study" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Part 1: The Simulation Study</h1>
 <section id="data-generation" class="level2" data-number="2.1">
-<h2 data-number="2.1"><span class="header-section-number">2.1</span> Data Generation</h2>
+<h2 data-number="2.1" class="anchored" data-anchor-id="data-generation"><span class="header-section-number">2.1</span> Data Generation</h2>
 <p>We generate data where there is a <strong>real effect</strong> (raw effect 0.12, approx <span class="math inline">\(d \approx 0.45\)</span> (<span class="math inline">\(d = 0.12/0.27\)</span>)). This is a “medium” effect size. <span class="math display">\[ SD_{total} = \sqrt{0.20^2 + 0.15^2 + 0.10^2} \approx 0.27 \]</span></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2025</span>) <span class="co"># Fixed seed for reproducibility</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2025</span>) <span class="co"># Fixed seed for reproducibility</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to generate data</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># n represents number of subjects here</span></span>
@@ -420,7 +439,7 @@ window.Quarto = {
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand_grid</span>(</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_subj),</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">item =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_item),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>))</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>))</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add random effects</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span></span>
@@ -435,23 +454,23 @@ window.Quarto = {
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate log-RT</span></span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">condition_effect =</span> <span class="fu">if_else</span>(condition <span class="sc">==</span> <span class="st">&quot;B&quot;</span>, <span class="fl">0.12</span>, <span class="dv">0</span>),  <span class="co"># 12% slower (effect size)</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">condition_effect =</span> <span class="fu">if_else</span>(condition <span class="sc">==</span> <span class="st">"B"</span>, <span class="fl">0.12</span>, <span class="dv">0</span>),  <span class="co"># 12% slower (effect size)</span></span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">log_rt =</span> <span class="fl">6.0</span> <span class="sc">+</span>  <span class="co"># baseline ≈ 400ms (log scale)</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>               subj_intercept <span class="sc">+</span> </span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>               item_intercept <span class="sc">+</span> </span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>               condition_effect <span class="sc">+</span> </span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>               (condition <span class="sc">==</span> <span class="st">&quot;B&quot;</span>) <span class="sc">*</span> subj_slope <span class="sc">+</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>               (condition <span class="sc">==</span> <span class="st">"B"</span>) <span class="sc">*</span> subj_slope <span class="sc">+</span></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>               <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="fl">0.20</span>),  <span class="co"># residual noise</span></span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Map log_rt to y for compatibility</span></span>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> log_rt</span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(subject, item, condition, y)</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="the-loop" class="level2" data-number="2.2">
-<h2 data-number="2.2"><span class="header-section-number">2.2</span> The Loop</h2>
+<h2 data-number="2.2" class="anchored" data-anchor-id="the-loop"><span class="header-section-number">2.2</span> The Loop</h2>
 <p>We will loop through sample sizes <span class="math inline">\(N = \{20, 50, 100\}\)</span>. At each step, we fit three models:</p>
 <ol type="1">
 <li><strong>Null Model (<span class="math inline">\(H_0\)</span>)</strong>: <code>y ~ 1</code></li>
@@ -461,13 +480,13 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample sizes (Number of subjects)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample sizes (Number of subjects)</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Sample sizes (Number of subjects)</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>sample_sizes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="fu">seq</span>(<span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">5</span>), <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">100</span>)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>results_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure models directory exists</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">&quot;models&quot;</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"models"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate the full dataset once (Sequential design: N=20 contains N=10)</span></span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>max_n <span class="ot">&lt;-</span> <span class="fu">max</span>(sample_sizes)</span>
@@ -493,7 +512,7 @@ window.Quarto = {
 <span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma),</span>
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">prior</span>(<span class="fu">lkj</span>(<span class="dv">2</span>), <span class="at">class =</span> cor)</span>
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">&quot;models/fit_null_N&quot;</span>, n),</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_null_N"</span>, n),</span>
 <span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
 <span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -508,8 +527,8 @@ window.Quarto = {
 <span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma),</span>
 <span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">lkj</span>(<span class="dv">2</span>), <span class="at">class =</span> cor)</span>
 <span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">&quot;yes&quot;</span>, <span class="co"># Needed for Bayes Factor</span></span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">&quot;models/fit_wide_N&quot;</span>, n),</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"yes"</span>, <span class="co"># Needed for Bayes Factor</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_wide_N"</span>, n),</span>
 <span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
 <span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -524,8 +543,8 @@ window.Quarto = {
 <span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma),</span>
 <span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>      <span class="fu">prior</span>(<span class="fu">lkj</span>(<span class="dv">2</span>), <span class="at">class =</span> cor)</span>
 <span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">&quot;yes&quot;</span>,</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">&quot;models/fit_narrow_N&quot;</span>, n),</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">paste0</span>(<span class="st">"models/fit_narrow_N"</span>, n),</span>
 <span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
 <span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  </span>
@@ -544,11 +563,11 @@ window.Quarto = {
 <span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- Bayes Factor (Savage-Dickey) ---</span></span>
 <span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>  <span class="co"># For Wide Model</span></span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  bf_wide <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(fit_wide, <span class="st">&quot;conditionB = 0&quot;</span>)</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  bf_wide <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(fit_wide, <span class="st">"conditionB = 0"</span>)</span>
 <span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>  bf_val_wide <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> bf_wide<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio <span class="co"># BF10 (evidence FOR effect)</span></span>
 <span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>  <span class="co"># For Narrow Model</span></span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>  bf_narrow <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(fit_narrow, <span class="st">&quot;conditionB = 0&quot;</span>)</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>  bf_narrow <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(fit_narrow, <span class="st">"conditionB = 0"</span>)</span>
 <span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>  bf_val_narrow <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> bf_narrow<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio <span class="co"># BF10</span></span>
 <span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- LOO ---</span></span>
@@ -559,35 +578,35 @@ window.Quarto = {
 <span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>  <span class="co"># elpd_gain: elpd(H1) - elpd(H0)</span></span>
 <span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>  <span class="co"># We use loo_compare to get the difference and the SE of the difference</span></span>
 <span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>  comp_wide <span class="ot">&lt;-</span> <span class="fu">loo_compare</span>(loo_wide, loo_null)</span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Extract difference where model is &quot;fit_wide&quot; (row 1 is better model, need to match name)</span></span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loo_compare output has rownames like &quot;model1&quot;, &quot;model2&quot; corresponding to input order?</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Extract difference where model is "fit_wide" (row 1 is better model, need to match name)</span></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loo_compare output has rownames like "model1", "model2" corresponding to input order?</span></span>
 <span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Safer: loo_compare(x, y) returns diff relative to best. </span></span>
 <span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Simpler: The difference object from loo_compare(list(H1=loo_wide, H0=loo_null))</span></span>
 <span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Manual diff (consistent with previous) + SE estimation</span></span>
 <span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>  <span class="co"># SE of diff = sqrt(n * var(pointwise_diff))</span></span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>  diff_wide <span class="ot">&lt;-</span> loo_wide<span class="sc">$</span>pointwise[,<span class="st">&quot;elpd_loo&quot;</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">&quot;elpd_loo&quot;</span>]</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>  diff_wide <span class="ot">&lt;-</span> loo_wide<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>]</span>
 <span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>  elpd_gain_wide <span class="ot">&lt;-</span> <span class="fu">sum</span>(diff_wide)</span>
 <span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>  elpd_se_wide <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(diff_wide) <span class="sc">*</span> <span class="fu">var</span>(diff_wide))</span>
 <span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>  diff_narrow <span class="ot">&lt;-</span> loo_narrow<span class="sc">$</span>pointwise[,<span class="st">&quot;elpd_loo&quot;</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">&quot;elpd_loo&quot;</span>]</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>  diff_narrow <span class="ot">&lt;-</span> loo_narrow<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>]</span>
 <span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>  elpd_gain_narrow <span class="ot">&lt;-</span> <span class="fu">sum</span>(diff_narrow)</span>
 <span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>  elpd_se_narrow <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(diff_narrow) <span class="sc">*</span> <span class="fu">var</span>(diff_narrow))</span>
 <span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- Posterior Estimates (with 95% CIs) ---</span></span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>  est_narrow <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_narrow, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">&quot;conditionB&quot;</span>, ]</span>
-<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>  est_wide <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_wide, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">&quot;conditionB&quot;</span>, ]</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>  est_narrow <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_narrow, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"conditionB"</span>, ]</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>  est_wide <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_wide, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"conditionB"</span>, ]</span>
 <span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Store</span></span>
-<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>  results_list[[<span class="fu">paste0</span>(<span class="st">&quot;N&quot;</span>, n)]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>  results_list[[<span class="fu">paste0</span>(<span class="st">"N"</span>, n)]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> n,</span>
 <span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Estimates</span></span>
-<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Narrow =</span> est_narrow[<span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Narrow =</span> est_narrow[<span class="st">&quot;Q2.5&quot;</span>],</span>
-<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Narrow =</span> est_narrow[<span class="st">&quot;Q97.5&quot;</span>],</span>
-<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Wide =</span> est_wide[<span class="st">&quot;Estimate&quot;</span>],</span>
-<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Wide =</span> est_wide[<span class="st">&quot;Q2.5&quot;</span>],</span>
-<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Wide =</span> est_wide[<span class="st">&quot;Q97.5&quot;</span>],</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Narrow =</span> est_narrow[<span class="st">"Estimate"</span>],</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Narrow =</span> est_narrow[<span class="st">"Q2.5"</span>],</span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Narrow =</span> est_narrow[<span class="st">"Q97.5"</span>],</span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Wide =</span> est_wide[<span class="st">"Estimate"</span>],</span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Wide =</span> est_wide[<span class="st">"Q2.5"</span>],</span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Wide =</span> est_wide[<span class="st">"Q97.5"</span>],</span>
 <span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Metrics</span></span>
 <span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Wide =</span> rope_pct_in_wide,</span>
 <span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Narrow =</span> rope_pct_in_narrow,</span>
@@ -600,31 +619,31 @@ window.Quarto = {
 <span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>results_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span></code></pre></div>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>results_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="results-table" class="level2" data-number="2.3">
-<h2 data-number="2.3"><span class="header-section-number">2.3</span> Results Table</h2>
+<h2 data-number="2.3" class="anchored" data-anchor-id="results-table"><span class="header-section-number">2.3</span> Results Table</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>results_df <span class="sc">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>results_df <span class="sc">%&gt;%</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;Metric&quot;</span>, <span class="st">&quot;Prior&quot;</span>),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">&quot;(.*)_(Narrow|Wide)&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Metric"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"(.*)_(Narrow|Wide)"</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Metric, <span class="at">values_from =</span> value) <span class="sc">%&gt;%</span></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Estimate_CI =</span> <span class="fu">sprintf</span>(<span class="st">&quot;%.2f [%.2f, %.2f]&quot;</span>, Est, Low, High)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Estimate_CI =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f [%.2f, %.2f]"</span>, Est, Low, High)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, Prior, Estimate_CI, BF10, <span class="at">ROPE_Prob =</span> ROPE_in_prob, <span class="at">LOO_Gain =</span> LOO_gain) <span class="sc">%&gt;%</span></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(N, <span class="fu">desc</span>(Prior)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">&quot;Comparison of Decision Metrics by Sample Size and Prior Sensitivity&quot;</span>)</span></code></pre></div>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Comparison of Decision Metrics by Sample Size and Prior Sensitivity"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
-<table class="caption-top">
+<table class="caption-top table table-sm table-striped small">
 <caption>Comparison of Decision Metrics by Sample Size and Prior Sensitivity</caption>
 <thead>
 <tr class="header">
@@ -915,127 +934,127 @@ window.Quarto = {
 </div>
 </section>
 <section id="visualization-of-divergence" class="level2" data-number="2.4">
-<h2 data-number="2.4"><span class="header-section-number">2.4</span> Visualization of Divergence</h2>
+<h2 data-number="2.4" class="anchored" data-anchor-id="visualization-of-divergence"><span class="header-section-number">2.4</span> Visualization of Divergence</h2>
 <p>Let’s visualize how these metrics evolve as N increases.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Estimates Data</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Estimates Data</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>plot_est <span class="ot">&lt;-</span> results_df <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">starts_with</span>(<span class="st">&quot;Est&quot;</span>), <span class="fu">starts_with</span>(<span class="st">&quot;Low&quot;</span>), <span class="fu">starts_with</span>(<span class="st">&quot;High&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">starts_with</span>(<span class="st">"Est"</span>), <span class="fu">starts_with</span>(<span class="st">"Low"</span>), <span class="fu">starts_with</span>(<span class="st">"High"</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;Type&quot;</span>, <span class="st">&quot;Prior&quot;</span>),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_sep =</span> <span class="st">&quot;_&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Type"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_sep =</span> <span class="st">"_"</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Type, <span class="at">values_from =</span> value)</span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Metrics Data</span></span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>plot_metrics <span class="ot">&lt;-</span> results_df <span class="sc">%&gt;%</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">contains</span>(<span class="st">&quot;BF10&quot;</span>), <span class="fu">contains</span>(<span class="st">&quot;ROPE&quot;</span>), <span class="fu">contains</span>(<span class="st">&quot;LOO&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">contains</span>(<span class="st">"BF10"</span>), <span class="fu">contains</span>(<span class="st">"ROPE"</span>), <span class="fu">contains</span>(<span class="st">"LOO"</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;MetricType&quot;</span>, <span class="st">&quot;Prior&quot;</span>),</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">&quot;(.*)_(Wide|Narrow)&quot;</span>,</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">&quot;Value&quot;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"MetricType"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"(.*)_(Wide|Narrow)"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 0: Estimates</span></span>
 <span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>p0 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_est, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Est, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
 <span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High), <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.3</span>), <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.12</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span> <span class="co"># True effect</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect Estimates&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;Mean &amp; 95% CI&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimate (log-RT)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.12</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span> <span class="co"># True effect</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Effect Estimates"</span>, <span class="at">subtitle =</span> <span class="st">"Mean &amp; 95% CI"</span>, <span class="at">y =</span> <span class="st">"Estimate (log-RT)"</span>) <span class="sc">+</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
 <span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 1: Bayes Factors</span></span>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> plot_metrics <span class="sc">%&gt;%</span></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;BF10&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"BF10"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">3</span>, <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">3</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
 <span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
 <span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Evidence (BF)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;BF10 (Log Scale)&quot;</span>)</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Evidence (BF)"</span>, <span class="at">y =</span> <span class="st">"BF10 (Log Scale)"</span>)</span>
 <span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 2: ROPE</span></span>
 <span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> plot_metrics <span class="sc">%&gt;%</span></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;ROPE_in_prob&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"ROPE_in_prob"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
 <span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Practical Sig. (ROPE)&quot;</span>, </span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;% in [-0.05, 0.05]&quot;</span>, </span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Prob. in ROPE&quot;</span>) </span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Practical Sig. (ROPE)"</span>, </span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"% in [-0.05, 0.05]"</span>, </span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Prob. in ROPE"</span>) </span>
 <span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ylim removed for dynamic scaling</span></span>
 <span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot 3: LOO Prediction</span></span>
 <span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> plot_metrics <span class="sc">%&gt;%</span></span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;LOO_gain&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"LOO_gain"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
 <span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Predictive Gain (LOO)&quot;</span>, </span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;elpd(H1) - elpd(H0)&quot;</span>,</span>
-<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Delta elpd&quot;</span>)</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Predictive Gain (LOO)"</span>, </span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"elpd(H1) - elpd(H0)"</span>,</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Delta elpd"</span>)</span>
 <span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>(p0 <span class="sc">+</span> p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3) <span class="sc">+</span> </span>
-<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&quot;collect&quot;</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
-<figure>
-<p><img src="06_sequential_testing_files/figure-html/visual-divergence-1.png" class="img-fluid" width="960" /></p>
+<figure class="figure">
+<p><img src="06_sequential_testing_files/figure-html/visual-divergence-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="visualization-zoomed-n-10" class="level2" data-number="2.5">
-<h2 data-number="2.5"><span class="header-section-number">2.5</span> Visualization (Zoomed: N &gt;= 10)</h2>
+<h2 data-number="2.5" class="anchored" data-anchor-id="visualization-zoomed-n-10"><span class="header-section-number">2.5</span> Visualization (Zoomed: N &gt;= 10)</h2>
 <p>Here is the same plot, but filtering out the very small sample sizes (N &lt; 10) to focus on the stability and convergence of the metrics.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter data</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter data</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plot_est_zoom <span class="ot">&lt;-</span> plot_est <span class="sc">%&gt;%</span> <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>plot_metrics_zoom <span class="ot">&lt;-</span> plot_metrics <span class="sc">%&gt;%</span> <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Re-create plots with filtered data</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>p0_z <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_est_zoom, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Est, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High), <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.3</span>), <span class="at">size =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.12</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Effect Estimates&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;N &gt;= 10&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimate (log-RT)&quot;</span>) <span class="sc">+</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.12</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Effect Estimates"</span>, <span class="at">subtitle =</span> <span class="st">"N &gt;= 10"</span>, <span class="at">y =</span> <span class="st">"Estimate (log-RT)"</span>) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>p1_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;BF10&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>p1_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"BF10"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">3</span>, <span class="at">linetype =</span> <span class="st">&quot;dotted&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">3</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
 <span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Evidence (BF)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;BF10 (Log Scale)&quot;</span>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Evidence (BF)"</span>, <span class="at">y =</span> <span class="st">"BF10 (Log Scale)"</span>)</span>
 <span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>p2_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;ROPE_in_prob&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>p2_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"ROPE_in_prob"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Practical Sig. (ROPE)&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;% in [-0.05, 0.05]&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Prob. in ROPE&quot;</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Practical Sig. (ROPE)"</span>, <span class="at">subtitle =</span> <span class="st">"% in [-0.05, 0.05]"</span>, <span class="at">y =</span> <span class="st">"Prob. in ROPE"</span>)</span>
 <span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>p3_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">&quot;LOO_gain&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>p3_z <span class="ot">&lt;-</span> plot_metrics_zoom <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"LOO_gain"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
 <span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Predictive Gain (LOO)&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;elpd(H1) - elpd(H0)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Delta elpd&quot;</span>)</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Predictive Gain (LOO)"</span>, <span class="at">subtitle =</span> <span class="st">"elpd(H1) - elpd(H0)"</span>, <span class="at">y =</span> <span class="st">"Delta elpd"</span>)</span>
 <span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>(p0_z <span class="sc">+</span> p1_z <span class="sc">+</span> p2_z <span class="sc">+</span> p3_z) <span class="sc">+</span> </span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&quot;collect&quot;</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
-<figure>
-<p><img src="06_sequential_testing_files/figure-html/visual-divergence-zoomed-1.png" class="img-fluid" width="960" /></p>
+<figure class="figure">
+<p><img src="06_sequential_testing_files/figure-html/visual-divergence-zoomed-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -1043,7 +1062,7 @@ window.Quarto = {
 <p><strong>Plot Reference Lines:</strong> * <strong>Red Dotted Line (<span class="math inline">\(y=0\)</span>)</strong>: Represents the <strong>Null Hypothesis</strong> (no effect). * <strong>Gray Dashed Line (<span class="math inline">\(y=0.12\)</span>)</strong>: Represents the <strong>True Effect Size</strong> used in data generation. * <strong>Gray Dashed/Dotted Lines (BF Panel)</strong>: Thresholds for evidence (<span class="math inline">\(BF=1\)</span> is neutral, <span class="math inline">\(BF=3\)</span> is moderate evidence).</p>
 </section>
 <section id="visualization-uncertainty-n-10" class="level2" data-number="2.6">
-<h2 data-number="2.6"><span class="header-section-number">2.6</span> Visualization (Uncertainty: N &gt;= 10)</h2>
+<h2 data-number="2.6" class="anchored" data-anchor-id="visualization-uncertainty-n-10"><span class="header-section-number">2.6</span> Visualization (Uncertainty: N &gt;= 10)</h2>
 <p>This third version includes <strong>uncertainty bounds</strong> where readily available (specifically for LOO).</p>
 <ul>
 <li><strong>LOO Panel</strong>: Shaded areas represent <span class="math inline">\(\pm 2 \times SE_{diff}\)</span>.</li>
@@ -1052,14 +1071,14 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create specific LOO data frame with SE</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create specific LOO data frame with SE</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>plot_loo_unc <span class="ot">&lt;-</span> results_df <span class="sc">%&gt;%</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, LOO_gain_Wide, LOO_se_Wide, LOO_gain_Narrow, LOO_se_Narrow) <span class="sc">%&gt;%</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">&quot;.value&quot;</span>, <span class="st">&quot;Prior&quot;</span>),</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">&quot;LOO_(.*)_(Wide|Narrow)&quot;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"LOO_(.*)_(Wide|Narrow)"</span></span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="co"># Creates N, Prior, gain, se</span></span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low =</span> gain <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>se,</span>
@@ -1068,19 +1087,19 @@ window.Quarto = {
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># New LOO Plot with SE</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>p3_unc <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_loo_unc, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> gain, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High, <span class="at">fill =</span> Prior), <span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span> </span>
 <span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Predictive Gain (LOO)&quot;</span>, <span class="at">subtitle =</span> <span class="st">&quot;Mean +/- 2 SE&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Delta elpd&quot;</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Predictive Gain (LOO)"</span>, <span class="at">subtitle =</span> <span class="st">"Mean +/- 2 SE"</span>, <span class="at">y =</span> <span class="st">"Delta elpd"</span>)</span>
 <span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>(p0_z <span class="sc">+</span> p1_z <span class="sc">+</span> p2_z <span class="sc">+</span> p3_unc) <span class="sc">+</span> </span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&quot;collect&quot;</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
-<figure>
-<p><img src="06_sequential_testing_files/figure-html/visual-divergence-uncertainty-1.png" class="img-fluid" width="960" /></p>
+<figure class="figure">
+<p><img src="06_sequential_testing_files/figure-html/visual-divergence-uncertainty-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -1090,19 +1109,19 @@ window.Quarto = {
 <section id="statistical-interpretation-of-loo" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Statistical Interpretation of LOO</h1>
 <section id="what-does-2-se-represent" class="level2" data-number="3.1">
-<h2 data-number="3.1"><span class="header-section-number">3.1</span> What does <code>2 * SE</code> represent?</h2>
+<h2 data-number="3.1" class="anchored" data-anchor-id="what-does-2-se-represent"><span class="header-section-number">3.1</span> What does <code>2 * SE</code> represent?</h2>
 <p>In the LOO plots above, we visualized the difference in expected log predictive density (<code>elpd_diff</code>) along with its standard error (<code>se_diff</code>).</p>
 <section id="crossing-the-0-line" class="level3" data-number="3.1.1">
-<h3 data-number="3.1.1"><span class="header-section-number">3.1.1</span> 1. Crossing the 0 line</h3>
+<h3 data-number="3.1.1" class="anchored" data-anchor-id="crossing-the-0-line"><span class="header-section-number">3.1.1</span> 1. Crossing the 0 line</h3>
 <p>If the <code>2 * SE</code> band crosses the zero line (dashed), it means <strong>we cannot statistically distinguish the predictive performance of the two models</strong>. * Even if the mean difference is positive (suggesting <span class="math inline">\(H_1\)</span> is better), the uncertainty is large enough that the difference could arguably be due to noise. * In the plot, you might see the bands overlapping 0 for smaller sample sizes, indicating that we don’t yet have enough data to confidently claim the “effect” model predicts better than the null.</p>
 </section>
 <section id="why-doesnt-the-error-band-get-narrower" class="level3" data-number="3.1.2">
-<h3 data-number="3.1.2"><span class="header-section-number">3.1.2</span> 2. Why doesn’t the error band get narrower?</h3>
+<h3 data-number="3.1.2" class="anchored" data-anchor-id="why-doesnt-the-error-band-get-narrower"><span class="header-section-number">3.1.2</span> 2. Why doesn’t the error band get narrower?</h3>
 <p>You might expect the error bars to shrink as <span class="math inline">\(N\)</span> increases (like standard errors of mean estimates, which scale as <span class="math inline">\(1/\sqrt{N}\)</span>). <strong>However, for ELPD, the standard error typically grows or stays constant.</strong> * <strong>Reason</strong>: ELPD is a <strong>sum</strong> over all <span class="math inline">\(N\)</span> data points, not an average. * <span class="math inline">\(ELPD = \sum_{i=1}^N \log p(y_i | y_{-i})\)</span> * As you calculate a sum over more items, the total uncertainty accumulates. * The signal (difference in ELPD) scales with <span class="math inline">\(N\)</span>. * The noise (SE of the difference) scales roughly with <span class="math inline">\(\sqrt{N}\)</span>. * <strong>Result</strong>: The <em>relative</em> error shrinks (the signal-to-noise ratio improves), but the <em>absolute</em> width of the <code>2 * SE</code> band on the plot will actually expand as <span class="math inline">\(N\)</span> grows. This is a feature of summing predictive densities, not a bug.</p>
 </section>
 </section>
 <section id="alternatives-bayesian-stacking" class="level2" data-number="3.2">
-<h2 data-number="3.2"><span class="header-section-number">3.2</span> Alternatives: Bayesian Stacking</h2>
+<h2 data-number="3.2" class="anchored" data-anchor-id="alternatives-bayesian-stacking"><span class="header-section-number">3.2</span> Alternatives: Bayesian Stacking</h2>
 <p>Instead of using LOO solely for <strong>model selection</strong> (picking the single “best” model), a more robust Bayesian approach is <strong>model averaging</strong> or <strong>stacking</strong>.</p>
 <p>Bayesian Stacking combines the posterior predictive distributions of multiple models using weights (<span class="math inline">\(w_k\)</span>) that maximize the leave-one-out predictive density of the combined distribution. This avoids the “all-or-nothing” decision of selection and preserves uncertainty across models.</p>
 </section>
@@ -1111,7 +1130,7 @@ window.Quarto = {
 <h1 data-number="4"><span class="header-section-number">4</span> Part 3: Why do the metrics disagree?</h1>
 <p>You might notice that <strong>Bayes Factors</strong> (<span class="math inline">\(BF_{10}\)</span>) and <strong>Posterior Estimates</strong> (95% CI) often scream “Effect!” (BF &gt; 100, CI excludes 0) while <strong>LOO</strong> remains cautious (bands crossing 0 or small gains). This is not a contradiction; they are asking different questions.</p>
 <section id="parameter-estimation-vs.-prediction-the-core-difference" class="level2" data-number="4.1">
-<h2 data-number="4.1"><span class="header-section-number">4.1</span> 1. Parameter Estimation vs. Prediction (The Core Difference)</h2>
+<h2 data-number="4.1" class="anchored" data-anchor-id="parameter-estimation-vs.-prediction-the-core-difference"><span class="header-section-number">4.1</span> 1. Parameter Estimation vs.&nbsp;Prediction (The Core Difference)</h2>
 <ul>
 <li><strong>Bayes Factor / Posterior Estimates</strong>: Ask <em>“Is the effect non-zero?”</em> (In-Sample / Parameter Focus)
 <ul>
@@ -1128,7 +1147,7 @@ window.Quarto = {
 </ul>
 </section>
 <section id="the-accumulation-of-evidence" class="level2" data-number="4.2">
-<h2 data-number="4.2"><span class="header-section-number">4.2</span> 2. The Accumulation of Evidence</h2>
+<h2 data-number="4.2" class="anchored" data-anchor-id="the-accumulation-of-evidence"><span class="header-section-number">4.2</span> 2. The Accumulation of Evidence</h2>
 <ul>
 <li><strong>BF</strong> grows exponentially with <span class="math inline">\(N\)</span> because evidence multiplies. It’s a measure of <em>relative</em> probability.</li>
 <li><strong>LOO difference</strong> grows linearly with <span class="math inline">\(N\)</span> (sum of log-likelihoods), but the <strong>uncertainty</strong> (SE) also grows (as <span class="math inline">\(\approx \sqrt{N}\)</span>). This keeps the “distinguishability” lower for longer, reflecting the inherent difficulty of prediction in noisy data.</li>
@@ -1139,9 +1158,9 @@ window.Quarto = {
 <h1 data-number="5"><span class="header-section-number">5</span> Part 4: Interpretation Cheat Sheet</h1>
 <p>Here is a quick reference for interpreting the values from the plots above.</p>
 <section id="bayes-factor-bf_10" class="level2" data-number="5.1">
-<h2 data-number="5.1"><span class="header-section-number">5.1</span> 1. Bayes Factor (<span class="math inline">\(BF_{10}\)</span>)</h2>
+<h2 data-number="5.1" class="anchored" data-anchor-id="bayes-factor-bf_10"><span class="header-section-number">5.1</span> 1. Bayes Factor (<span class="math inline">\(BF_{10}\)</span>)</h2>
 <p><em>Evidence for the Alternative Hypothesis (<span class="math inline">\(H_1\)</span>) over the Null (<span class="math inline">\(H_0\)</span>).</em></p>
-<table class="caption-top">
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: left;"><span class="math inline">\(BF_{10}\)</span> Value</th>
@@ -1169,14 +1188,14 @@ window.Quarto = {
 </table>
 </section>
 <section id="loo-elpd_diff" class="level2" data-number="5.2">
-<h2 data-number="5.2"><span class="header-section-number">5.2</span> 2. LOO (<code>elpd_diff</code>)</h2>
+<h2 data-number="5.2" class="anchored" data-anchor-id="loo-elpd_diff"><span class="header-section-number">5.2</span> 2. LOO (<code>elpd_diff</code>)</h2>
 <p><em>Predictive performance difference. Ratio = <code>|elpd_diff| / se_diff</code>.</em></p>
-<table class="caption-top">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1209,7 +1228,7 @@ window.Quarto = {
 </table>
 </section>
 <section id="rope-region-of-practical-equivalence" class="level2" data-number="5.3">
-<h2 data-number="5.3"><span class="header-section-number">5.3</span> 3. ROPE (Region of Practical Equivalence)</h2>
+<h2 data-number="5.3" class="anchored" data-anchor-id="rope-region-of-practical-equivalence"><span class="header-section-number">5.3</span> 3. ROPE (Region of Practical Equivalence)</h2>
 <p><em>Based on the 95% Highest Density Interval (HDI) of the posterior distribution relative to the ROPE (e.g., <span class="math inline">\([-0.05, 0.05]\)</span>).</em></p>
 <ul>
 <li><strong>Reject <span class="math inline">\(H_0\)</span></strong> (Effect is meaningful):
@@ -1228,7 +1247,7 @@ window.Quarto = {
 <p><em>&gt; Note: The ROPE Probability plot shows what % of the posterior is inside the ROPE. A value of ~10-20% usually corresponds to the “Undecided” or “Reject H0” cases depending on where the bulk of the density lies.</em></p>
 </section>
 <section id="posterior-estimates-95-ci" class="level2" data-number="5.4">
-<h2 data-number="5.4"><span class="header-section-number">5.4</span> 4. Posterior Estimates (95% CI)</h2>
+<h2 data-number="5.4" class="anchored" data-anchor-id="posterior-estimates-95-ci"><span class="header-section-number">5.4</span> 4. Posterior Estimates (95% CI)</h2>
 <p><em>Estimate of the effect size (log-RT difference) with uncertainty.</em></p>
 <ul>
 <li><strong>Credible Effect</strong>:
@@ -1248,19 +1267,19 @@ window.Quarto = {
 <h1 data-number="6"><span class="header-section-number">6</span> Part 5: The Danger of Optional Stopping (P-Hacking)</h1>
 <p>A key advantage of Bayesian methods is their robustness to <strong>Optional Stopping</strong>—the practice of checking your results as data comes in and deciding whether to stop or continue collecting data.</p>
 <section id="the-likelihood-principle" class="level3" data-number="6.0.1">
-<h3 data-number="6.0.1"><span class="header-section-number">6.0.1</span> 1. The Likelihood Principle</h3>
+<h3 data-number="6.0.1" class="anchored" data-anchor-id="the-likelihood-principle"><span class="header-section-number">6.0.1</span> 1. The Likelihood Principle</h3>
 <p>The reason Bayesian methods handle optional stopping gracefully is the <strong>Likelihood Principle</strong>: <em>All the evidence from the data relevant to model parameters is contained in the likelihood function.</em> In simple terms, <strong>the intention of the experimenter does not change the evidence</strong>. Whether you planned to stop at <span class="math inline">\(N=50\)</span> or you just happened to stop there because the result looked good, the data (<span class="math inline">\(D\)</span>) is the same, and therefore <span class="math inline">\(P(D|H_0)\)</span> and <span class="math inline">\(P(D|H_1)\)</span> are the same.</p>
 <ul>
 <li><strong>Frequentist P-values</strong> violate this. They calculate probabilities of unobserved data (“data more extreme than observed”) based on a specific sampling plan (<span class="math inline">\(N\)</span>). If you check multiple times, you change the “sampling plan” to a sequential one, inflating the probability of a Type 1 error (false positive) dramatically (often &gt; 20% if not corrected).</li>
-<li><strong>Bayes Factors</strong> respect this. They simply update the odds. If <span class="math inline">\(H_0\)</span> is true, adding more data generally pushes the BF towards 0 (evidence <em>for</em> null). It does not “drift” toward a significance threshold in the same way p-values do (random walk vs. convergence).</li>
+<li><strong>Bayes Factors</strong> respect this. They simply update the odds. If <span class="math inline">\(H_0\)</span> is true, adding more data generally pushes the BF towards 0 (evidence <em>for</em> null). It does not “drift” toward a significance threshold in the same way p-values do (random walk vs.&nbsp;convergence).</li>
 </ul>
 </section>
 <section id="assumptions-validity" class="level3" data-number="6.0.2">
-<h3 data-number="6.0.2"><span class="header-section-number">6.0.2</span> 2. Assumptions &amp; Validity</h3>
+<h3 data-number="6.0.2" class="anchored" data-anchor-id="assumptions-validity"><span class="header-section-number">6.0.2</span> 2. Assumptions &amp; Validity</h3>
 <p>While robust, optional stopping with Bayes Factors is not magic. It relies on: 1. <strong>Likelihood Validity</strong>: Your model (distribution, noise) must reasonably approximate the data-generating process. 2. <strong>Prior Sensitivity</strong>: If you use a Prior that is “too wide” (the Dilution Effect seen in our earlier plots), you artificially penalize <span class="math inline">\(H_1\)</span>, making it harder to find evidence for an effect even if it exists. 3. <strong>Finite Horizons</strong>: In theory, if you sample <em>forever</em>, a Bayes Factor can transiently cross a threshold (e.g., <span class="math inline">\(BF &gt; 3\)</span>) even if <span class="math inline">\(H_0\)</span> is true, though the probability of this is much lower than for p-values.</p>
 </section>
 <section id="practical-rules-for-psycholinguistics" class="level3" data-number="6.0.3">
-<h3 data-number="6.0.3"><span class="header-section-number">6.0.3</span> 3. Practical Rules for Psycholinguistics</h3>
+<h3 data-number="6.0.3" class="anchored" data-anchor-id="practical-rules-for-psycholinguistics"><span class="header-section-number">6.0.3</span> 3. Practical Rules for Psycholinguistics</h3>
 <p>For real experiments, “continuous monitoring” is valid, but structured approaches (Sequential Bayes Factor Design) are best for planning:</p>
 <ul>
 <li><strong>Define Thresholds</strong>: Pre-register a strict evidence threshold (e.g., Stop if <span class="math inline">\(BF_{10} &gt; 10\)</span> or <span class="math inline">\(BF_{10} &lt; 1/10\)</span>). <span class="math inline">\(BF &gt; 3\)</span> is often considered “anecdotal” or too weak for stopping in high-noise fields like linguistics.</li>
@@ -1269,7 +1288,7 @@ window.Quarto = {
 </ul>
 </section>
 <section id="simulation-testing-repeatedly" class="level2" data-number="6.1">
-<h2 data-number="6.1"><span class="header-section-number">6.1</span> Simulation: Testing Repeatedly</h2>
+<h2 data-number="6.1" class="anchored" data-anchor-id="simulation-testing-repeatedly"><span class="header-section-number">6.1</span> Simulation: Testing Repeatedly</h2>
 <p>We simulate 500 experiments. In each, we collect data sequentially up to <span class="math inline">\(N=100\)</span>, checking the results every 5 subjects.</p>
 <ul>
 <li><strong>H1 True</strong>: Effect = 0.5 (Moderate effect).</li>
@@ -1283,7 +1302,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(BayesFactor)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(BayesFactor)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>run_simulation <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n_sim =</span> <span class="dv">500</span>, <span class="at">true_effect =</span> <span class="dv">0</span>) {</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Storage</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
@@ -1306,7 +1325,7 @@ window.Quarto = {
 <span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sequential checks</span></span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    check_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">10</span>, n_max, <span class="at">by =</span> <span class="dv">5</span>)</span>
 <span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Track if we have already &quot;stopped&quot; for this sim</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Track if we have already "stopped" for this sim</span></span>
 <span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    stopped_p <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
 <span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    stopped_bf3_pkg <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
 <span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    stopped_bf3_bic <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
@@ -1321,7 +1340,7 @@ window.Quarto = {
 <span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Prepare data for BIC calculation</span></span>
 <span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>      dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">val =</span> <span class="fu">c</span>(a, b),</span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">grp =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>), <span class="at">each =</span> n))</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">grp =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>), <span class="at">each =</span> n))</span>
 <span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>      </span>
 <span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Tests</span></span>
@@ -1371,11 +1390,11 @@ window.Quarto = {
 <span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">888</span>)</span>
 <span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a><span class="co"># H0 True (Type 1 Error Check)</span></span>
 <span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>sim_h0 <span class="ot">&lt;-</span> <span class="fu">run_simulation</span>(<span class="at">n_sim =</span> <span class="dv">500</span>, <span class="at">true_effect =</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Scenario =</span> <span class="st">&quot;H0 True (No Effect)&quot;</span>)</span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Scenario =</span> <span class="st">"H0 True (No Effect)"</span>)</span>
 <span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a><span class="co"># H1 True (Power Check)</span></span>
 <span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>sim_h1 <span class="ot">&lt;-</span> <span class="fu">run_simulation</span>(<span class="at">n_sim =</span> <span class="dv">500</span>, <span class="at">true_effect =</span> <span class="fl">0.4</span>) <span class="sc">%&gt;%</span> <span class="co"># d=0.4</span></span>
-<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Scenario =</span> <span class="st">&quot;H1 True (Effect d=0.4)&quot;</span>)</span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Scenario =</span> <span class="st">"H1 True (Effect d=0.4)"</span>)</span>
 <span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
 <span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_h0, sim_h1)</span>
@@ -1390,23 +1409,23 @@ window.Quarto = {
 <span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf3_bic =</span> <span class="fu">mean</span>(decision_bf3_bic),</span>
 <span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf10_pkg =</span> <span class="fu">mean</span>(decision_bf10_pkg),</span>
 <span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf10_bic =</span> <span class="fu">mean</span>(decision_bf10_bic),</span>
-<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
 <span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;prop&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;Method&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Rate&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>    <span class="at">Method =</span> <span class="fu">case_when</span>(</span>
-<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">&quot;prop_p&quot;</span> <span class="sc">~</span> <span class="st">&quot;P-Value (&lt; .05)&quot;</span>,</span>
-<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">&quot;prop_bf3_pkg&quot;</span> <span class="sc">~</span> <span class="st">&quot;BF &gt; 3 (Package)&quot;</span>,</span>
-<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">&quot;prop_bf3_bic&quot;</span> <span class="sc">~</span> <span class="st">&quot;BF &gt; 3 (BIC)&quot;</span>,</span>
-<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">&quot;prop_bf10_pkg&quot;</span> <span class="sc">~</span> <span class="st">&quot;BF &gt; 10 (Package)&quot;</span>,</span>
-<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">&quot;prop_bf10_bic&quot;</span> <span class="sc">~</span> <span class="st">&quot;BF &gt; 10 (BIC)&quot;</span></span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">"prop_p"</span> <span class="sc">~</span> <span class="st">"P-Value (&lt; .05)"</span>,</span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">"prop_bf3_pkg"</span> <span class="sc">~</span> <span class="st">"BF &gt; 3 (Package)"</span>,</span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">"prop_bf3_bic"</span> <span class="sc">~</span> <span class="st">"BF &gt; 3 (BIC)"</span>,</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">"prop_bf10_pkg"</span> <span class="sc">~</span> <span class="st">"BF &gt; 10 (Package)"</span>,</span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>      Method <span class="sc">==</span> <span class="st">"prop_bf10_bic"</span> <span class="sc">~</span> <span class="st">"BF &gt; 10 (BIC)"</span></span>
 <span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
 <section id="visualization-error-vs.-power" class="level2" data-number="6.2">
-<h2 data-number="6.2"><span class="header-section-number">6.2</span> Visualization: Error vs. Power</h2>
+<h2 data-number="6.2" class="anchored" data-anchor-id="visualization-error-vs.-power"><span class="header-section-number">6.2</span> Visualization: Error vs.&nbsp;Power</h2>
 <p><strong>How to Read this Plot:</strong></p>
 <p>This visualization demonstrates the fundamental trade-off in sequential testing:</p>
 <ul>
@@ -1430,47 +1449,47 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H0 True Plot (False Positive Rate)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># H0 True Plot (False Positive Rate)</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>p_h0 <span class="ot">&lt;-</span> sim_summary <span class="sc">%&gt;%</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Scenario <span class="sc">==</span> <span class="st">&quot;H0 True (No Effect)&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Scenario <span class="sc">==</span> <span class="st">"H0 True (No Effect)"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.4</span>)) <span class="sc">+</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;False Positive Rate (Type 1 Error)&quot;</span>,</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;H0 is True: How often do we wrongly claim an effect?&quot;</span>,</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Sample Size (N) - Checking every 5&quot;</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Cumulative % Significant&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"False Positive Rate (Type 1 Error)"</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"H0 is True: How often do we wrongly claim an effect?"</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Sample Size (N) - Checking every 5"</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cumulative % Significant"</span></span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">&quot;text&quot;</span>, <span class="at">x =</span> <span class="dv">20</span>, <span class="at">y =</span> <span class="fl">0.06</span>, <span class="at">label =</span> <span class="st">&quot;Nominal 5%&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">0</span>, <span class="at">size=</span><span class="dv">3</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">20</span>, <span class="at">y =</span> <span class="fl">0.06</span>, <span class="at">label =</span> <span class="st">"Nominal 5%"</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">0</span>, <span class="at">size=</span><span class="dv">3</span>)</span>
 <span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co"># H1 True Plot (Power)</span></span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>p_h1 <span class="ot">&lt;-</span> sim_summary <span class="sc">%&gt;%</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Scenario <span class="sc">==</span> <span class="st">&quot;H1 True (Effect d=0.4)&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Scenario <span class="sc">==</span> <span class="st">"H1 True (Effect d=0.4)"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
 <span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Power (True Positive Rate)&quot;</span>,</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;H1 is True: How correctly do we detect it?&quot;</span>,</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Sample Size (N) - Checking every 5&quot;</span>,</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Cumulative Power&quot;</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Power (True Positive Rate)"</span>,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"H1 is True: How correctly do we detect it?"</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Sample Size (N) - Checking every 5"</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Cumulative Power"</span></span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>p_h0 <span class="sc">+</span> p_h1 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&quot;collect&quot;</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>p_h0 <span class="sc">+</span> p_h1 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
-<figure>
-<p><img src="06_sequential_testing_files/figure-html/plot-optional-stopping-1.png" class="img-fluid" width="960" /></p>
+<figure class="figure">
+<p><img src="06_sequential_testing_files/figure-html/plot-optional-stopping-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="simulation-2-psycholinguistic-experiment-mixed-models" class="level2" data-number="6.3">
-<h2 data-number="6.3"><span class="header-section-number">6.3</span> Simulation 2: Psycholinguistic Experiment (Mixed Models)</h2>
+<h2 data-number="6.3" class="anchored" data-anchor-id="simulation-2-psycholinguistic-experiment-mixed-models"><span class="header-section-number">6.3</span> Simulation 2: Psycholinguistic Experiment (Mixed Models)</h2>
 <p>In this second simulation, we replicate the structure of a real psycholinguistic experiment with <strong>Subjects</strong> and <strong>Items</strong>. This is computationally expensive, so we run fewer simulations (<span class="math inline">\(Sims=20\)</span>) but use the appropriate <strong>Linear Mixed Models (LMM)</strong>.</p>
 <ul>
 <li><strong>Structure</strong>: 20 Items, Random Intercepts for Subjects and Items.</li>
@@ -1484,21 +1503,21 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 0. Pre-compile brms model (saves C++ compilation time in loop)</span></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># We fit on dummy data once</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>dat_dummy <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">rnorm</span>(<span class="dv">10</span>), <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>), <span class="dv">5</span>)), <span class="at">subject =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">item =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">5</span>)))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>dat_dummy <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">rnorm</span>(<span class="dv">10</span>), <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>), <span class="dv">5</span>)), <span class="at">subject =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">item =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="dv">5</span>)))</span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>brm_template <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> condition <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item),</span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dat_dummy,</span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span>, <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">set_prior</span>(<span class="st">&quot;normal(0, 1)&quot;</span>, <span class="at">class =</span> <span class="st">&quot;b&quot;</span>, <span class="at">coef =</span> <span class="st">&quot;conditionB&quot;</span>), <span class="co"># Proper prior for BF</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">set_prior</span>(<span class="st">"normal(0, 1)"</span>, <span class="at">class =</span> <span class="st">"b"</span>, <span class="at">coef =</span> <span class="st">"conditionB"</span>), <span class="co"># Proper prior for BF</span></span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">save_pars =</span> <span class="fu">save_pars</span>(<span class="at">all =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">sample_prior =</span> <span class="st">&quot;yes&quot;</span>, <span class="co"># Needed for Savage-Dickey Ratio</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">sample_prior =</span> <span class="st">"yes"</span>, <span class="co"># Needed for Savage-Dickey Ratio</span></span>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>,</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">backend =</span> <span class="st">&quot;cmdstanr&quot;</span> <span class="co"># Faster if available, falls back to rstan</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">backend =</span> <span class="st">"cmdstanr"</span> <span class="co"># Faster if available, falls back to rstan</span></span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>run_lmm_simulation <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> <span class="cn">NULL</span>) {</span>
@@ -1513,7 +1532,7 @@ window.Quarto = {
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    dat_full <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(</span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">subject =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_param),</span>
 <span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      <span class="at">item =</span> <span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_item),</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>))</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">condition =</span> <span class="fu">factor</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>))</span>
 <span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
 <span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
 <span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Random Effects</span></span>
@@ -1522,7 +1541,7 @@ window.Quarto = {
 <span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Noise</span></span>
 <span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">err =</span> <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="dv">0</span>, noise_sd),</span>
 <span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Effect</span></span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">cond_eff =</span> <span class="fu">if_else</span>(condition <span class="sc">==</span> <span class="st">&quot;B&quot;</span>, true_effect, <span class="dv">0</span>),</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">cond_eff =</span> <span class="fu">if_else</span>(condition <span class="sc">==</span> <span class="st">"B"</span>, true_effect, <span class="dv">0</span>),</span>
 <span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="dv">6</span> <span class="sc">+</span> subj_int <span class="sc">+</span> item_int <span class="sc">+</span> cond_eff <span class="sc">+</span> err</span>
 <span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>      )</span>
 <span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    </span>
@@ -1544,7 +1563,7 @@ window.Quarto = {
 <span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>      </span>
 <span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>      <span class="co"># 1. Frequentist: LRT</span></span>
 <span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>      lrt <span class="ot">&lt;-</span> <span class="fu">anova</span>(m0, m1)</span>
-<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>      p_val <span class="ot">&lt;-</span> lrt<span class="sc">$</span><span class="st">&quot;Pr(&gt;Chisq)&quot;</span>[<span class="dv">2</span>]</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>      p_val <span class="ot">&lt;-</span> lrt<span class="sc">$</span><span class="st">"Pr(&gt;Chisq)"</span>[<span class="dv">2</span>]</span>
 <span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span>(<span class="fu">is.na</span>(p_val) <span class="sc">||</span> <span class="fu">length</span>(p_val) <span class="sc">==</span> <span class="dv">0</span>) p_val <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="co"># Fail safe</span></span>
 <span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>      </span>
 <span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>      <span class="co"># 2. Bayesian: BIC Approx</span></span>
@@ -1562,7 +1581,7 @@ window.Quarto = {
 <span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(brm_model) <span class="sc">&amp;&amp;</span> <span class="sc">!</span>stopped_bf10_brms) {</span>
 <span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>        <span class="fu">try</span>({</span>
 <span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>          m_brms <span class="ot">&lt;-</span> <span class="fu">update</span>(brm_model, <span class="at">newdata =</span> curr_dat, <span class="at">iter =</span> <span class="dv">2000</span>, <span class="at">warmup =</span> <span class="dv">1000</span>, <span class="at">refresh =</span> <span class="dv">0</span>)</span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>          h <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(m_brms, <span class="st">&quot;conditionB = 0&quot;</span>)</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>          h <span class="ot">&lt;-</span> <span class="fu">hypothesis</span>(m_brms, <span class="st">"conditionB = 0"</span>)</span>
 <span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>          bf01_brms <span class="ot">&lt;-</span> h<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
 <span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>          bf10_brms <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> bf01_brms</span>
 <span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>        }, <span class="at">silent =</span> <span class="cn">TRUE</span>)</span>
@@ -1592,15 +1611,15 @@ window.Quarto = {
 <span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. LOW NOISE (SD = 0.2)</span></span>
 <span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>sim_low_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">&quot;Low Noise (SD=0.2)&quot;</span>, <span class="at">Scenario =</span> <span class="st">&quot;H0 (No Effect)&quot;</span>)</span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
 <span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>sim_low_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.15</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">&quot;Low Noise (SD=0.2)&quot;</span>, <span class="at">Scenario =</span> <span class="st">&quot;H1 (Effect d=0.15)&quot;</span>)</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.15)"</span>)</span>
 <span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. HIGH NOISE (SD = 0.8)</span></span>
 <span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>sim_high_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">&quot;High Noise (SD=0.8)&quot;</span>, <span class="at">Scenario =</span> <span class="st">&quot;H0 (No Effect)&quot;</span>)</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
 <span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>sim_high_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.15</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">&quot;High Noise (SD=0.8)&quot;</span>, <span class="at">Scenario =</span> <span class="st">&quot;H1 (Effect d=0.15)&quot;</span>)</span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.15)"</span>)</span>
 <span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine &amp; Summarize</span></span>
 <span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>lmm_data_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)</span>
@@ -1612,60 +1631,56 @@ window.Quarto = {
 <span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_p =</span> <span class="fu">mean</span>(decision_p, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
 <span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf10 =</span> <span class="fu">mean</span>(decision_bf10, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
 <span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf10_brms =</span> <span class="fu">mean</span>(decision_bf10_brms, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span></span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
 <span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;prop&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;Method&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;Rate&quot;</span>)</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>)</span>
 <span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting Function</span></span>
 <span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>plot_sim_panel <span class="ot">&lt;-</span> <span class="cf">function</span>(data, noise_filter, scenario_filter, title_text) {</span>
 <span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
 <span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Noise <span class="sc">==</span> noise_filter, Scenario <span class="sc">==</span> scenario_filter) <span class="sc">%&gt;%</span></span>
 <span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;gray50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
 <span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
 <span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
 <span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> title_text,</span>
 <span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="fu">paste</span>(noise_filter),</span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">&quot;Sample Size (Subjects)&quot;</span>, </span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">&quot;Cumulative Rate&quot;</span></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="st">"Sample Size (Subjects)"</span>, </span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Cumulative Rate"</span></span>
 <span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;prop_p&quot;</span> <span class="ot">=</span> <span class="st">&quot;#E74C3C&quot;</span>, <span class="st">&quot;prop_bf10&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2ECC71&quot;</span>, <span class="st">&quot;prop_bf10_brms&quot;</span> <span class="ot">=</span> <span class="st">&quot;#9B59B6&quot;</span>), </span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;BF &gt; 10 (BIC)&quot;</span>, <span class="st">&quot;BF &gt; 10 (brms)&quot;</span>, <span class="st">&quot;P-Value (&lt; .05)&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"prop_p"</span> <span class="ot">=</span> <span class="st">"#E74C3C"</span>, <span class="st">"prop_bf10"</span> <span class="ot">=</span> <span class="st">"#2ECC71"</span>, <span class="st">"prop_bf10_brms"</span> <span class="ot">=</span> <span class="st">"#9B59B6"</span>), </span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"BF &gt; 10 (BIC)"</span>, <span class="st">"BF &gt; 10 (brms)"</span>, <span class="st">"P-Value (&lt; .05)"</span>)) <span class="sc">+</span></span>
 <span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
 <span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a><span class="co"># Create 4 Panels</span></span>
-<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">&quot;Low Noise (SD=0.2)&quot;</span>, <span class="st">&quot;H0 (No Effect)&quot;</span>, <span class="st">&quot;False Positives (H0)&quot;</span>)</span>
-<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">&quot;Low Noise (SD=0.2)&quot;</span>, <span class="st">&quot;H1 (Effect d=0.15)&quot;</span>, <span class="st">&quot;Power (H1)&quot;</span>)</span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">&quot;High Noise (SD=0.8)&quot;</span>, <span class="st">&quot;H0 (No Effect)&quot;</span>, <span class="st">&quot;False Positives (H0)&quot;</span>)</span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">&quot;High Noise (SD=0.8)&quot;</span>, <span class="st">&quot;H1 (Effect d=0.15)&quot;</span>, <span class="st">&quot;Power (H1)&quot;</span>)</span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"Low Noise (SD=0.2)"</span>, <span class="st">"H0 (No Effect)"</span>, <span class="st">"False Positives (H0)"</span>)</span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"Low Noise (SD=0.2)"</span>, <span class="st">"H1 (Effect d=0.15)"</span>, <span class="st">"Power (H1)"</span>)</span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"High Noise (SD=0.8)"</span>, <span class="st">"H0 (No Effect)"</span>, <span class="st">"False Positives (H0)"</span>)</span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"High Noise (SD=0.8)"</span>, <span class="st">"H1 (Effect d=0.15)"</span>, <span class="st">"Power (H1)"</span>)</span>
 <span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a><span class="co"># Assemble 2x2 Grid</span></span>
 <span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">+</span> p2) <span class="sc">/</span> (p3 <span class="sc">+</span> p4) <span class="sc">+</span> </span>
-<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&quot;collect&quot;</span>) <span class="sc">&amp;</span> </span>
-<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>)</span></code></pre></div>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> </span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
-<figure>
-<p><img src="06_sequential_testing_files/figure-html/lmm-stopping-sim-1.png" class="img-fluid" width="672" /></p>
+<figure class="figure">
+<p><img src="06_sequential_testing_files/figure-html/lmm-stopping-sim-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<div id="quarto-navigation-envelope" class="hidden">
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyLXRpdGxl">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXItdGl0bGU=">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</span></p>
-</div>
-<div id="quarto-meta-markdown" class="hidden">
-<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGF0aXRsZQ==">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkdGl0bGU=">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZHRpdGxl">6: Sequential Testing: ROPE vs Bayes Factor vs LOO</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkZGVzYw==">Understanding Divergences in Bayesian Decision Making</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZGRkZXNj">Understanding Divergences in Bayesian Decision Making</span></p>
-</div>
+
+
 </section>
 </section>
 
 </main> <!-- /main -->
-<script id = "quarto-html-after-body" type="application/javascript">
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
@@ -2087,6 +2102,7 @@ window.Quarto = {
   </script>
 </div> <!-- /content -->
 
-</body>
 
-</html>
+
+
+</body></html>
