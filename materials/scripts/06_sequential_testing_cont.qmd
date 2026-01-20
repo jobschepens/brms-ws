@@ -169,8 +169,13 @@ for (n in sample_sizes_cont) {
   # Metrics
   
   # ROPE [-0.05, 0.05] on slope
-  rope_narrow <- rope(fit_narrow, range = c(-0.05, 0.05), ci = 0.95)$ROPE_Percentage
-  rope_wide <- rope(fit_wide, range = c(-0.05, 0.05), ci = 0.95)$ROPE_Percentage
+  rope_wide_df <- rope(fit_wide, range = c(-0.05, 0.05), ci = 0.95)
+  rope_narrow_df <- rope(fit_narrow, range = c(-0.05, 0.05), ci = 0.95)
+  
+  # Select duplicate rows (Intercept + Trial_x) -> Take only trial_x (usually 2nd param)
+  # Safer: filter by Parameter name if possible, or take index 2
+  rope_wide <- rope_wide_df$ROPE_Percentage[2]
+  rope_narrow <- rope_narrow_df$ROPE_Percentage[2]
   
   # Bayes Factor (Slope = 0)
   bf_wide <- 1 / hypothesis(fit_wide, "trial_x = 0")$hypothesis$Evid.Ratio
@@ -181,8 +186,14 @@ for (n in sample_sizes_cont) {
   loo_wide <- loo(fit_wide)
   loo_narrow <- loo(fit_narrow)
   
-  gain_wide <- loo_wide$estimates["elpd_loo","Estimate"] - loo_null$estimates["elpd_loo","Estimate"]
-  gain_narrow <- loo_narrow$estimates["elpd_loo","Estimate"] - loo_null$estimates["elpd_loo","Estimate"]
+  # Calculate LOO gain and SE of the difference
+  diff_wide <- loo_wide$pointwise[,"elpd_loo"] - loo_null$pointwise[,"elpd_loo"]
+  gain_wide <- sum(diff_wide)
+  se_wide <- sqrt(length(diff_wide) * var(diff_wide))
+  
+  diff_narrow <- loo_narrow$pointwise[,"elpd_loo"] - loo_null$pointwise[,"elpd_loo"]
+  gain_narrow <- sum(diff_narrow)
+  se_narrow <- sqrt(length(diff_narrow) * var(diff_narrow))
   
   # Estimates
   est_narrow <- fixef(fit_narrow, probs = c(0.025, 0.975))["trial_x", ]
@@ -203,7 +214,9 @@ for (n in sample_sizes_cont) {
     BF10_Narrow = as.numeric(bf_narrow), 
     BF10_Wide = as.numeric(bf_wide),
     LOO_gain_Narrow = as.numeric(gain_narrow), 
-    LOO_gain_Wide = as.numeric(gain_wide)
+    LOO_se_Narrow = as.numeric(se_narrow),
+    LOO_gain_Wide = as.numeric(gain_wide),
+    LOO_se_Wide = as.numeric(se_wide)
   )
 }
 
@@ -214,6 +227,7 @@ results_df_cont <- bind_rows(results_list_cont)
 
 ```{r}
 #| label: results-table-cont
+#| cache: true
 results_df_cont %>%
   pivot_longer(
     cols = -N,
@@ -284,5 +298,91 @@ p_loo_c <- plot_met_c %>% filter(MetricType == "LOO_gain") %>%
   labs(title = "LOO Gain")
 
 (p_est_c + p_bf_c + p_rope_c + p_loo_c) + 
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
+```
+
+## Visualization (Zoomed: N >= 10)
+
+Checking convergence by ignoring small N chaos.
+
+```{r}
+#| label: wiz-cont-zoomed
+#| fig.width: 10
+#| fig.height: 8
+
+results_clean_zoom <- results_clean %>% filter(N >= 10)
+
+# 1. Estimates
+p_est_cz <- results_clean_zoom %>%
+  select(N, starts_with("Est"), starts_with("Low"), starts_with("High")) %>%
+  pivot_longer(cols = -N, names_to = c("Type", "Prior"), names_sep = "_") %>%
+  pivot_wider(names_from = Type, values_from = value) %>%
+  unnest(cols = c(Est, Low, High)) %>%
+  ggplot(aes(x = factor(N), y = Est, color = Prior, group = Prior)) +
+  geom_pointrange(aes(ymin = Low, ymax = High), position = position_dodge(width = 0.3)) +
+  geom_hline(yintercept = 0.08, linetype = "dashed", color = "gray50") +
+  labs(title = "Estimates (Slope)", y = "Beta", subtitle="N >= 10") +
+  theme(legend.position = "bottom")
+
+# 2. Metrics
+plot_met_cz <- results_clean_zoom %>%
+  select(N, contains("BF10"), contains("ROPE"), contains("LOO_gain")) %>% # Exclude SE for this long format
+  pivot_longer(cols = -N, names_to = c("MetricType", "Prior"), names_pattern = "(.*)_(Wide|Narrow)", values_to = "Value") %>%
+  mutate(Value = as.numeric(Value))
+
+p_bf_cz <- plot_met_cz %>% filter(MetricType == "BF10") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_line() + geom_point() + scale_y_log10() +
+  geom_hline(yintercept = c(1, 3), linetype = c("dashed", "dotted")) +
+  labs(title = "Bayes Factor (Slope != 0)")
+
+p_rope_cz <- plot_met_cz %>% filter(MetricType == "ROPE_in_prob") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_line() + geom_point() +
+  labs(title = "ROPE Prob (Slope ~ 0)")
+
+p_loo_cz <- plot_met_cz %>% filter(MetricType == "LOO_gain") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_line() + geom_point() + geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "LOO Gain")
+
+(p_est_cz + p_bf_cz + p_rope_cz + p_loo_cz) + 
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+```
+
+## Visualization (Uncertainty: N >= 10)
+
+Including LOO uncertainty ($SE_{diff}$).
+
+```{r}
+#| label: wiz-cont-uncertainty
+#| fig.width: 10
+#| fig.height: 8
+
+# Create specific LOO data frame with SE
+plot_loo_unc_c <- results_clean_zoom %>%
+  select(N, LOO_gain_Wide, LOO_se_Wide, LOO_gain_Narrow, LOO_se_Narrow) %>%
+  pivot_longer(
+    cols = -N,
+    names_to = c(".value", "Prior"),
+    names_pattern = "LOO_(.*)_(Wide|Narrow)"
+  ) %>% # Creates N, Prior, gain, se
+  mutate(
+    # Unnest just in case, though results_clean should be flat
+    gain = as.numeric(gain),
+    se = as.numeric(se),
+    Low = gain - 2*se,
+    High = gain + 2*se
+  )
+
+p_loo_unc_c <- ggplot(plot_loo_unc_c, aes(x = factor(N), y = gain, color = Prior, group = Prior)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_ribbon(aes(ymin = Low, ymax = High, fill = Prior), alpha = 0.2, color = NA) +
+  geom_line(size = 1.2) + 
+  geom_point(size = 3) +
+  labs(title = "Predictive Gain (LOO)", subtitle = "Mean +/- 2 SE", y = "Delta elpd")
+
+(p_est_cz + p_bf_cz + p_rope_cz + p_loo_unc_c) + 
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```

@@ -320,6 +320,8 @@ window.Quarto = {
   <li><a href="#simulation-loop-continuous" id="toc-simulation-loop-continuous" class="nav-link" data-scroll-target="#simulation-loop-continuous"><span class="header-section-number">1.2</span> Simulation Loop (Continuous)</a></li>
   <li><a href="#continuous-results-table" id="toc-continuous-results-table" class="nav-link" data-scroll-target="#continuous-results-table"><span class="header-section-number">1.3</span> Continuous Results Table</a></li>
   <li><a href="#visualization-continuous" id="toc-visualization-continuous" class="nav-link" data-scroll-target="#visualization-continuous"><span class="header-section-number">1.4</span> Visualization (Continuous)</a></li>
+  <li><a href="#visualization-zoomed-n-10" id="toc-visualization-zoomed-n-10" class="nav-link" data-scroll-target="#visualization-zoomed-n-10"><span class="header-section-number">1.5</span> Visualization (Zoomed: N &gt;= 10)</a></li>
+  <li><a href="#visualization-uncertainty-n-10" id="toc-visualization-uncertainty-n-10" class="nav-link" data-scroll-target="#visualization-uncertainty-n-10"><span class="header-section-number">1.6</span> Visualization (Uncertainty: N &gt;= 10)</a></li>
   </ul></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="06_sequential_testing_cont.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -483,45 +485,58 @@ window.Quarto = {
 <span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Metrics</span></span>
 <span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ROPE [-0.05, 0.05] on slope</span></span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  rope_narrow <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_narrow, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)<span class="sc">$</span>ROPE_Percentage</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  rope_wide <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_wide, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)<span class="sc">$</span>ROPE_Percentage</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  rope_wide_df <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_wide, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  rope_narrow_df <span class="ot">&lt;-</span> <span class="fu">rope</span>(fit_narrow, <span class="at">range =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>), <span class="at">ci =</span> <span class="fl">0.95</span>)</span>
 <span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Bayes Factor (Slope = 0)</span></span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  bf_wide <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_wide, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  bf_narrow <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_narrow, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>  <span class="co"># LOO</span></span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>  loo_null <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_null)</span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>  loo_wide <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_wide)</span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>  loo_narrow <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_narrow)</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Select duplicate rows (Intercept + Trial_x) -&gt; Take only trial_x (usually 2nd param)</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Safer: filter by Parameter name if possible, or take index 2</span></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  rope_wide <span class="ot">&lt;-</span> rope_wide_df<span class="sc">$</span>ROPE_Percentage[<span class="dv">2</span>]</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>  rope_narrow <span class="ot">&lt;-</span> rope_narrow_df<span class="sc">$</span>ROPE_Percentage[<span class="dv">2</span>]</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Bayes Factor (Slope = 0)</span></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>  bf_wide <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_wide, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>  bf_narrow <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">hypothesis</span>(fit_narrow, <span class="st">"trial_x = 0"</span>)<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
 <span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>  gain_wide <span class="ot">&lt;-</span> loo_wide<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>]</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>  gain_narrow <span class="ot">&lt;-</span> loo_narrow<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>estimates[<span class="st">"elpd_loo"</span>,<span class="st">"Estimate"</span>]</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Estimates</span></span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>  est_narrow <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_narrow, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  est_wide <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_wide, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>  results_list_cont[[<span class="fu">paste0</span>(<span class="st">"N"</span>, n)]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> n,</span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Est</span></span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Estimate"</span>]), </span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q2.5"</span>]), </span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q97.5"</span>]),</span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Estimate"</span>]), </span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q2.5"</span>]), </span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q97.5"</span>]),</span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Metrics</span></span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Narrow =</span> <span class="fu">as.numeric</span>(rope_narrow), </span>
-<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Wide =</span> <span class="fu">as.numeric</span>(rope_wide),</span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Narrow =</span> <span class="fu">as.numeric</span>(bf_narrow), </span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Wide =</span> <span class="fu">as.numeric</span>(bf_wide),</span>
-<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Narrow =</span> <span class="fu">as.numeric</span>(gain_narrow), </span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Wide =</span> <span class="fu">as.numeric</span>(gain_wide)</span>
-<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list_cont)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>  <span class="co"># LOO</span></span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>  loo_null <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_null)</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>  loo_wide <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_wide)</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>  loo_narrow <span class="ot">&lt;-</span> <span class="fu">loo</span>(fit_narrow)</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate LOO gain and SE of the difference</span></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>  diff_wide <span class="ot">&lt;-</span> loo_wide<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>]</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>  gain_wide <span class="ot">&lt;-</span> <span class="fu">sum</span>(diff_wide)</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>  se_wide <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(diff_wide) <span class="sc">*</span> <span class="fu">var</span>(diff_wide))</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>  diff_narrow <span class="ot">&lt;-</span> loo_narrow<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>] <span class="sc">-</span> loo_null<span class="sc">$</span>pointwise[,<span class="st">"elpd_loo"</span>]</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>  gain_narrow <span class="ot">&lt;-</span> <span class="fu">sum</span>(diff_narrow)</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>  se_narrow <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(diff_narrow) <span class="sc">*</span> <span class="fu">var</span>(diff_narrow))</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Estimates</span></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>  est_narrow <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_narrow, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>  est_wide <span class="ot">&lt;-</span> <span class="fu">fixef</span>(fit_wide, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))[<span class="st">"trial_x"</span>, ]</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>  results_list_cont[[<span class="fu">paste0</span>(<span class="st">"N"</span>, n)]] <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> n,</span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Est</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Estimate"</span>]), </span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q2.5"</span>]), </span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Narrow =</span> <span class="fu">as.numeric</span>(est_narrow[<span class="st">"Q97.5"</span>]),</span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">Est_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Estimate"</span>]), </span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q2.5"</span>]), </span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a>    <span class="at">High_Wide =</span> <span class="fu">as.numeric</span>(est_wide[<span class="st">"Q97.5"</span>]),</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Metrics</span></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Narrow =</span> <span class="fu">as.numeric</span>(rope_narrow), </span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>    <span class="at">ROPE_in_prob_Wide =</span> <span class="fu">as.numeric</span>(rope_wide),</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Narrow =</span> <span class="fu">as.numeric</span>(bf_narrow), </span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>    <span class="at">BF10_Wide =</span> <span class="fu">as.numeric</span>(bf_wide),</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Narrow =</span> <span class="fu">as.numeric</span>(gain_narrow), </span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_se_Narrow =</span> <span class="fu">as.numeric</span>(se_narrow),</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_gain_Wide =</span> <span class="fu">as.numeric</span>(gain_wide),</span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>    <span class="at">LOO_se_Wide =</span> <span class="fu">as.numeric</span>(se_wide)</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list_cont)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -563,24 +578,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">-0.16 [-1.30, 0.73]</td>
 <td style="text-align: right;">1.780000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.387</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">-0.16 [-1.30, 0.73]</td>
-<td style="text-align: right;">1.780000e-01</td>
 <td style="text-align: right;">0.220</td>
 <td style="text-align: right;">-0.387</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">-0.01 [-0.16, 0.15]</td>
-<td style="text-align: right;">7.920000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.038</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1</td>
@@ -595,24 +594,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.03 [-0.34, 0.47]</td>
 <td style="text-align: right;">1.110000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.062</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.03 [-0.34, 0.47]</td>
-<td style="text-align: right;">1.110000e-01</td>
 <td style="text-align: right;">0.352</td>
 <td style="text-align: right;">0.062</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">2</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.02 [-0.13, 0.16]</td>
-<td style="text-align: right;">7.070000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.023</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
@@ -627,24 +610,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.03 [-0.18, 0.24]</td>
 <td style="text-align: right;">8.600000e-02</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.361</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">3</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.03 [-0.18, 0.24]</td>
-<td style="text-align: right;">8.600000e-02</td>
 <td style="text-align: right;">0.483</td>
 <td style="text-align: right;">0.361</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">3</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.02 [-0.09, 0.13]</td>
-<td style="text-align: right;">6.280000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.190</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">3</td>
@@ -659,24 +626,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.03 [-0.08, 0.14]</td>
 <td style="text-align: right;">6.800000e-02</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.235</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">4</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.03 [-0.08, 0.14]</td>
-<td style="text-align: right;">6.800000e-02</td>
 <td style="text-align: right;">0.662</td>
 <td style="text-align: right;">-0.235</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">4</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.03 [-0.06, 0.11]</td>
-<td style="text-align: right;">6.170000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.133</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">4</td>
@@ -691,24 +642,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.06 [-0.06, 0.19]</td>
 <td style="text-align: right;">1.460000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.053</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">5</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.06 [-0.06, 0.19]</td>
-<td style="text-align: right;">1.460000e-01</td>
 <td style="text-align: right;">0.361</td>
 <td style="text-align: right;">0.053</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">5</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.05 [-0.06, 0.13]</td>
-<td style="text-align: right;">1.023000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.150</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">5</td>
@@ -723,24 +658,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.04 [-0.07, 0.16]</td>
 <td style="text-align: right;">6.600000e-02</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.214</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">6</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.04 [-0.07, 0.16]</td>
-<td style="text-align: right;">6.600000e-02</td>
 <td style="text-align: right;">0.562</td>
 <td style="text-align: right;">0.214</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">6</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.04 [-0.06, 0.12]</td>
-<td style="text-align: right;">6.350000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.163</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">6</td>
@@ -755,24 +674,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.05 [-0.04, 0.14]</td>
 <td style="text-align: right;">9.800000e-02</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.069</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">7</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.05 [-0.04, 0.14]</td>
-<td style="text-align: right;">9.800000e-02</td>
 <td style="text-align: right;">0.524</td>
 <td style="text-align: right;">0.069</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">7</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.04 [-0.04, 0.11]</td>
-<td style="text-align: right;">8.460000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.117</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">7</td>
@@ -787,24 +690,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.06 [-0.02, 0.14]</td>
 <td style="text-align: right;">1.680000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.205</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">8</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.06 [-0.02, 0.14]</td>
-<td style="text-align: right;">1.680000e-01</td>
 <td style="text-align: right;">0.378</td>
 <td style="text-align: right;">0.205</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">8</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.05 [-0.02, 0.12]</td>
-<td style="text-align: right;">1.338000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.010</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">8</td>
@@ -819,24 +706,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.05 [-0.02, 0.13]</td>
 <td style="text-align: right;">1.420000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.005</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">9</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.05 [-0.02, 0.13]</td>
-<td style="text-align: right;">1.420000e-01</td>
 <td style="text-align: right;">0.438</td>
 <td style="text-align: right;">-0.005</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">9</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.05 [-0.02, 0.11]</td>
-<td style="text-align: right;">1.094000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.426</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">9</td>
@@ -851,24 +722,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.05 [-0.01, 0.11]</td>
 <td style="text-align: right;">1.410000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.001</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">10</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.05 [-0.01, 0.11]</td>
-<td style="text-align: right;">1.410000e-01</td>
 <td style="text-align: right;">0.484</td>
 <td style="text-align: right;">0.001</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">10</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.05 [-0.01, 0.10]</td>
-<td style="text-align: right;">1.450000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.014</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">10</td>
@@ -883,24 +738,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.05 [0.01, 0.09]</td>
 <td style="text-align: right;">6.710000e-01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.513</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">15</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.05 [0.01, 0.09]</td>
-<td style="text-align: right;">6.710000e-01</td>
 <td style="text-align: right;">0.462</td>
 <td style="text-align: right;">0.513</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">15</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.05 [0.01, 0.09]</td>
-<td style="text-align: right;">5.445000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">-0.100</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">15</td>
@@ -915,24 +754,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.06 [0.03, 0.09]</td>
 <td style="text-align: right;">7.014000e+00</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.833</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">20</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.06 [0.03, 0.09]</td>
-<td style="text-align: right;">7.014000e+00</td>
 <td style="text-align: right;">0.192</td>
 <td style="text-align: right;">0.833</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">20</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.06 [0.03, 0.09]</td>
-<td style="text-align: right;">5.400300e+01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.548</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">20</td>
@@ -947,24 +770,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.06 [0.03, 0.09]</td>
 <td style="text-align: right;">3.674800e+01</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.379</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">25</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.06 [0.03, 0.09]</td>
-<td style="text-align: right;">3.674800e+01</td>
 <td style="text-align: right;">0.221</td>
 <td style="text-align: right;">0.379</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">25</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.06 [0.03, 0.09]</td>
-<td style="text-align: right;">1.050360e+02</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.513</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">25</td>
@@ -979,24 +786,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.07 [0.04, 0.10]</td>
 <td style="text-align: right;">4.132826e+05</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.786</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">30</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.07 [0.04, 0.10]</td>
-<td style="text-align: right;">4.132826e+05</td>
 <td style="text-align: right;">0.046</td>
 <td style="text-align: right;">0.786</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">30</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.07 [0.04, 0.09]</td>
-<td style="text-align: right;">5.481336e+17</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">1.036</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">30</td>
@@ -1011,24 +802,8 @@ window.Quarto = {
 <td style="text-align: left;">Wide</td>
 <td style="text-align: left;">0.07 [0.05, 0.09]</td>
 <td style="text-align: right;">1.375817e+15</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">2.498</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">40</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.07 [0.05, 0.09]</td>
-<td style="text-align: right;">1.375817e+15</td>
 <td style="text-align: right;">0.020</td>
 <td style="text-align: right;">2.498</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">40</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.07 [0.05, 0.09]</td>
-<td style="text-align: right;">Inf</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">2.218</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">40</td>
@@ -1048,22 +823,6 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td style="text-align: right;">50</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.07 [0.06, 0.09]</td>
-<td style="text-align: right;">1.465803e+15</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">3.197</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">50</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.07 [0.06, 0.09]</td>
-<td style="text-align: right;">Inf</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">3.473</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">50</td>
 <td style="text-align: left;">Narrow</td>
 <td style="text-align: left;">0.07 [0.06, 0.09]</td>
 <td style="text-align: right;">Inf</td>
@@ -1077,22 +836,6 @@ window.Quarto = {
 <td style="text-align: right;">3.552615e+14</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">10.803</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">100</td>
-<td style="text-align: left;">Wide</td>
-<td style="text-align: left;">0.08 [0.07, 0.09]</td>
-<td style="text-align: right;">3.552615e+14</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">10.803</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">100</td>
-<td style="text-align: left;">Narrow</td>
-<td style="text-align: left;">0.08 [0.07, 0.09]</td>
-<td style="text-align: right;">1.330036e+15</td>
-<td style="text-align: right;">0.000</td>
-<td style="text-align: right;">11.100</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">100</td>
@@ -1166,6 +909,101 @@ window.Quarto = {
 <div>
 <figure class="figure">
 <p><img src="06_sequential_testing_cont_files/figure-html/wiz-cont-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="visualization-zoomed-n-10" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="visualization-zoomed-n-10"><span class="header-section-number">1.5</span> Visualization (Zoomed: N &gt;= 10)</h2>
+<p>Checking convergence by ignoring small N chaos.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>results_clean_zoom <span class="ot">&lt;-</span> results_clean <span class="sc">%&gt;%</span> <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Estimates</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>p_est_cz <span class="ot">&lt;-</span> results_clean_zoom <span class="sc">%&gt;%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">starts_with</span>(<span class="st">"Est"</span>), <span class="fu">starts_with</span>(<span class="st">"Low"</span>), <span class="fu">starts_with</span>(<span class="st">"High"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>N, <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Type"</span>, <span class="st">"Prior"</span>), <span class="at">names_sep =</span> <span class="st">"_"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Type, <span class="at">values_from =</span> value) <span class="sc">%&gt;%</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(Est, Low, High)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Est, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High), <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.3</span>)) <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.08</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Estimates (Slope)"</span>, <span class="at">y =</span> <span class="st">"Beta"</span>, <span class="at">subtitle=</span><span class="st">"N &gt;= 10"</span>) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Metrics</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>plot_met_cz <span class="ot">&lt;-</span> results_clean_zoom <span class="sc">%&gt;%</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, <span class="fu">contains</span>(<span class="st">"BF10"</span>), <span class="fu">contains</span>(<span class="st">"ROPE"</span>), <span class="fu">contains</span>(<span class="st">"LOO_gain"</span>)) <span class="sc">%&gt;%</span> <span class="co"># Exclude SE for this long format</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>N, <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"MetricType"</span>, <span class="st">"Prior"</span>), <span class="at">names_pattern =</span> <span class="st">"(.*)_(Wide|Narrow)"</span>, <span class="at">values_to =</span> <span class="st">"Value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Value =</span> <span class="fu">as.numeric</span>(Value))</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>p_bf_cz <span class="ot">&lt;-</span> plot_met_cz <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"BF10"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">linetype =</span> <span class="fu">c</span>(<span class="st">"dashed"</span>, <span class="st">"dotted"</span>)) <span class="sc">+</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Bayes Factor (Slope != 0)"</span>)</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>p_rope_cz <span class="ot">&lt;-</span> plot_met_cz <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"ROPE_in_prob"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ROPE Prob (Slope ~ 0)"</span>)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>p_loo_cz <span class="ot">&lt;-</span> plot_met_cz <span class="sc">%&gt;%</span> <span class="fu">filter</span>(MetricType <span class="sc">==</span> <span class="st">"LOO_gain"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> Value, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LOO Gain"</span>)</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>(p_est_cz <span class="sc">+</span> p_bf_cz <span class="sc">+</span> p_rope_cz <span class="sc">+</span> p_loo_cz) <span class="sc">+</span> </span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_sequential_testing_cont_files/figure-html/wiz-cont-zoomed-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="visualization-uncertainty-n-10" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="visualization-uncertainty-n-10"><span class="header-section-number">1.6</span> Visualization (Uncertainty: N &gt;= 10)</h2>
+<p>Including LOO uncertainty (<span class="math inline">\(SE_{diff}\)</span>).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create specific LOO data frame with SE</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>plot_loo_unc_c <span class="ot">&lt;-</span> results_clean_zoom <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, LOO_gain_Wide, LOO_se_Wide, LOO_gain_Narrow, LOO_se_Narrow) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"Prior"</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_pattern =</span> <span class="st">"LOO_(.*)_(Wide|Narrow)"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> <span class="co"># Creates N, Prior, gain, se</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Unnest just in case, though results_clean should be flat</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">gain =</span> <span class="fu">as.numeric</span>(gain),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">se =</span> <span class="fu">as.numeric</span>(se),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Low =</span> gain <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>se,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">High =</span> gain <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>se</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>p_loo_unc_c <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_loo_unc_c, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(N), <span class="at">y =</span> gain, <span class="at">color =</span> Prior, <span class="at">group =</span> Prior)) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> Low, <span class="at">ymax =</span> High, <span class="at">fill =</span> Prior), <span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span> </span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Predictive Gain (LOO)"</span>, <span class="at">subtitle =</span> <span class="st">"Mean +/- 2 SE"</span>, <span class="at">y =</span> <span class="st">"Delta elpd"</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>(p_est_cz <span class="sc">+</span> p_bf_cz <span class="sc">+</span> p_rope_cz <span class="sc">+</span> p_loo_unc_c) <span class="sc">+</span> </span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_sequential_testing_cont_files/figure-html/wiz-cont-uncertainty-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>

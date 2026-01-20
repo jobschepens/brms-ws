@@ -224,8 +224,22 @@ for (n in sample_sizes) {
   loo_narrow <- loo(fit_narrow)
   
   # elpd_gain: elpd(H1) - elpd(H0)
-  elpd_gain_wide <- loo_wide$estimates["elpd_loo", "Estimate"] - loo_null$estimates["elpd_loo", "Estimate"]
-  elpd_gain_narrow <- loo_narrow$estimates["elpd_loo", "Estimate"] - loo_null$estimates["elpd_loo", "Estimate"]
+  # We use loo_compare to get the difference and the SE of the difference
+  comp_wide <- loo_compare(loo_wide, loo_null)
+  # Extract difference where model is "fit_wide" (row 1 is better model, need to match name)
+  # loo_compare output has rownames like "model1", "model2" corresponding to input order?
+  # Safer: loo_compare(x, y) returns diff relative to best. 
+  # Simpler: The difference object from loo_compare(list(H1=loo_wide, H0=loo_null))
+  
+  # Manual diff (consistent with previous) + SE estimation
+  # SE of diff = sqrt(n * var(pointwise_diff))
+  diff_wide <- loo_wide$pointwise[,"elpd_loo"] - loo_null$pointwise[,"elpd_loo"]
+  elpd_gain_wide <- sum(diff_wide)
+  elpd_se_wide <- sqrt(length(diff_wide) * var(diff_wide))
+  
+  diff_narrow <- loo_narrow$pointwise[,"elpd_loo"] - loo_null$pointwise[,"elpd_loo"]
+  elpd_gain_narrow <- sum(diff_narrow)
+  elpd_se_narrow <- sqrt(length(diff_narrow) * var(diff_narrow))
   
   # --- Posterior Estimates (with 95% CIs) ---
   est_narrow <- fixef(fit_narrow, probs = c(0.025, 0.975))["conditionB", ]
@@ -245,9 +259,11 @@ for (n in sample_sizes) {
     ROPE_in_prob_Wide = rope_pct_in_wide,
     ROPE_in_prob_Narrow = rope_pct_in_narrow,
     BF10_Wide = bf_val_wide,
-    BF10_Narrow = bf_val_narrow,
-    LOO_gain_Wide = elpd_gain_wide,
-    LOO_gain_Narrow = elpd_gain_narrow
+    BF10_Narrow = as.numeric(bf_val_narrow),
+    LOO_gain_Wide = as.numeric(elpd_gain_wide),
+    LOO_se_Wide = as.numeric(elpd_se_wide),
+    LOO_gain_Narrow = as.numeric(elpd_gain_narrow),
+    LOO_se_Narrow = as.numeric(elpd_se_narrow)
   )
 }
 
@@ -375,7 +391,552 @@ p3 <- plot_metrics %>%
 :::
 
 
-### Interpretation
+## Visualization (Zoomed: N >= 10)
 
-1.  **Bayes Factor Divergence**: Notice that `BF10_Wide` is significantly lower than `BF10_Narrow`. The wide prior penalizes the alternative hypothesis because it spreads probability density over a huge range where data is not found ("Dilution Effect").
-2.  **Small N (20)**:
+Here is the same plot, but filtering out the very small sample sizes (N < 10) to focus on the stability and convergence of the metrics.
+
+
+::: {.cell}
+
+```{.r .cell-code}
+# Filter data
+plot_est_zoom <- plot_est %>% filter(N >= 10)
+plot_metrics_zoom <- plot_metrics %>% filter(N >= 10)
+
+# Re-create plots with filtered data
+p0_z <- ggplot(plot_est_zoom, aes(x = factor(N), y = Est, color = Prior, group = Prior)) +
+  geom_pointrange(aes(ymin = Low, ymax = High), position = position_dodge(width = 0.3), size = 0.8) +
+  geom_hline(yintercept = 0.12, linetype = "dashed", color = "gray50") +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "red") +
+  labs(title = "Effect Estimates", subtitle = "N >= 10", y = "Estimate (log-RT)") +
+  theme(legend.position = "bottom")
+
+p1_z <- plot_metrics_zoom %>% filter(MetricType == "BF10") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "gray50") +
+  geom_hline(yintercept = 3, linetype = "dotted", color = "gray50", alpha=0.5) +
+  geom_line(size = 1.2) + geom_point(size = 3) + scale_y_log10() +
+  labs(title = "Evidence (BF)", y = "BF10 (Log Scale)")
+
+p2_z <- plot_metrics_zoom %>% filter(MetricType == "ROPE_in_prob") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_line(size = 1.2) + geom_point(size = 3) +
+  labs(title = "Practical Sig. (ROPE)", subtitle = "% in [-0.05, 0.05]", y = "Prob. in ROPE")
+
+p3_z <- plot_metrics_zoom %>% filter(MetricType == "LOO_gain") %>%
+  ggplot(aes(x = factor(N), y = Value, color = Prior, group = Prior)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_line(size = 1.2) + geom_point(size = 3) +
+  labs(title = "Predictive Gain (LOO)", subtitle = "elpd(H1) - elpd(H0)", y = "Delta elpd")
+
+(p0_z + p1_z + p2_z + p3_z) + 
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+```
+
+::: {.cell-output-display}
+![](06_sequential_testing_files/figure-html/visual-divergence-zoomed-1.png){width=960}
+:::
+:::
+
+
+**Plot Reference Lines:**
+*   **Red Dotted Line ($y=0$)**: Represents the **Null Hypothesis** (no effect).
+*   **Gray Dashed Line ($y=0.12$)**: Represents the **True Effect Size** used in data generation.
+*   **Gray Dashed/Dotted Lines (BF Panel)**: Thresholds for evidence ($BF=1$ is neutral, $BF=3$ is moderate evidence).
+
+## Visualization (Uncertainty: N >= 10)
+
+This third version includes **uncertainty bounds** where readily available (specifically for LOO).
+
+*   **LOO Panel**: Shaded areas represent $\pm 2 \times SE_{diff}$.
+*   **BF/ROPE Panels**: Displayed as lines (Bayesian posterior summaries, not frequentist estimates).
+
+
+::: {.cell}
+
+```{.r .cell-code}
+# Create specific LOO data frame with SE
+plot_loo_unc <- results_df %>%
+  filter(N >= 10) %>%
+  select(N, LOO_gain_Wide, LOO_se_Wide, LOO_gain_Narrow, LOO_se_Narrow) %>%
+  pivot_longer(
+    cols = -N,
+    names_to = c(".value", "Prior"),
+    names_pattern = "LOO_(.*)_(Wide|Narrow)"
+  ) %>% # Creates N, Prior, gain, se
+  mutate(
+    Low = gain - 2*se,
+    High = gain + 2*se
+  )
+
+# New LOO Plot with SE
+p3_unc <- ggplot(plot_loo_unc, aes(x = factor(N), y = gain, color = Prior, group = Prior)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  geom_ribbon(aes(ymin = Low, ymax = High, fill = Prior), alpha = 0.2, color = NA) +
+  geom_line(size = 1.2) + 
+  geom_point(size = 3) +
+  labs(title = "Predictive Gain (LOO)", subtitle = "Mean +/- 2 SE", y = "Delta elpd")
+
+(p0_z + p1_z + p2_z + p3_unc) + 
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+```
+
+::: {.cell-output-display}
+![](06_sequential_testing_files/figure-html/visual-divergence-uncertainty-1.png){width=960}
+:::
+:::
+
+
+
+# Statistical Interpretation of LOO
+
+## What does `2 * SE` represent?
+
+In the LOO plots above, we visualized the difference in expected log predictive density (`elpd_diff`) along with its standard error (`se_diff`).
+
+### 1. Crossing the 0 line
+If the `2 * SE` band crosses the zero line (dashed), it means **we cannot statistically distinguish the predictive performance of the two models**.
+*   Even if the mean difference is positive (suggesting $H_1$ is better), the uncertainty is large enough that the difference could arguably be due to noise.
+*   In the plot, you might see the bands overlapping 0 for smaller sample sizes, indicating that we don't yet have enough data to confidently claim the "effect" model predicts better than the null.
+
+### 2. Why doesn't the error band get narrower?
+You might expect the error bars to shrink as $N$ increases (like standard errors of mean estimates, which scale as $1/\sqrt{N}$). **However, for ELPD, the standard error typically grows or stays constant.**
+*   **Reason**: ELPD is a **sum** over all $N$ data points, not an average.
+    *   $ELPD = \sum_{i=1}^N \log p(y_i | y_{-i})$
+*   As you calculate a sum over more items, the total uncertainty accumulates.
+    *   The signal (difference in ELPD) scales with $N$.
+    *   The noise (SE of the difference) scales roughly with $\sqrt{N}$.
+*   **Result**: The *relative* error shrinks (the signal-to-noise ratio improves), but the *absolute* width of the `2 * SE` band on the plot will actually expand as $N$ grows. This is a feature of summing predictive densities, not a bug.
+
+## Alternatives: Bayesian Stacking
+
+Instead of using LOO solely for **model selection** (picking the single "best" model), a more robust Bayesian approach is **model averaging** or **stacking**.
+
+Bayesian Stacking combines the posterior predictive distributions of multiple models using weights ($w_k$) that maximize the leave-one-out predictive density of the combined distribution. This avoids the "all-or-nothing" decision of selection and preserves uncertainty across models.
+
+
+# Part 3: Why do the metrics disagree?
+
+You might notice that **Bayes Factors** ($BF_{10}$) and **Posterior Estimates** (95% CI) often scream "Effect!" (BF > 100, CI excludes 0) while **LOO** remains cautious (bands crossing 0 or small gains). This is not a contradiction; they are asking different questions.
+
+## 1. Parameter Estimation vs. Prediction (The Core Difference)
+
+*   **Bayes Factor / Posterior Estimates**: Ask *"Is the effect non-zero?"* (In-Sample / Parameter Focus)
+    *   As sample size ($N$) grows, our certainty about the location of the *mean* parameter increases rapidly (Standard Error of Mean $\propto 1/\sqrt{N}$).
+    *   Even a tiny true effect (e.g., 1ms difference) becomes "highly statistically significant" with enough data. The BF effectively measures evidence for the *existence* of an effect, no matter how small.
+
+*   **LOO (Leave-One-Out)**: Asks *"Does knowing this effect help me predict the next data point?"* (Out-of-Sample / Prediction Focus)
+    *   Prediction is limited by the **residual noise** ($\sigma$) in individual data points.
+    *   **Signal-to-Noise Ratio**: If the effect size is small (e.g., shifts the mean by 0.1 SD) but the data is noisy, knowing the effect gives you almost no advantage in predicting an individual person's score compared to just guessing the grand mean.
+    *   Therefore, an effect can be **statistically "real"** (high BF, CI excludes 0) but **predictively "negligible"** (low LOO gain).
+    *   *Analogy*: We might be 100% certain that "Height" affects "IQ" (statistically significant correlation), but knowing someone's height barely helps you predict their IQ (poor predictive utility).
+
+## 2. The Accumulation of Evidence
+
+*   **BF** grows exponentially with $N$ because evidence multiplies. It's a measure of *relative* probability.
+*   **LOO difference** grows linearly with $N$ (sum of log-likelihoods), but the **uncertainty** (SE) also grows (as $\approx \sqrt{N}$). This keeps the "distinguishability" lower for longer, reflecting the inherent difficulty of prediction in noisy data.
+
+# Part 4: Interpretation Cheat Sheet
+
+
+Here is a quick reference for interpreting the values from the plots above.
+
+## 1. Bayes Factor ($BF_{10}$)
+*Evidence for the Alternative Hypothesis ($H_1$) over the Null ($H_0$).*
+
+| $BF_{10}$ Value | Strength of Evidence |
+| :--- | :--- |
+| **1 - 3** | **Anecdotal** (Barely worth mentioning) |
+| **3 - 10** | **Moderate** |
+| **10 - 30** | **Strong** |
+| **> 30** | **Very Strong** |
+
+## 2. LOO (`elpd_diff`)
+*Predictive performance difference. Ratio = `|elpd_diff| / se_diff`.*
+
+| `elpd_diff` | Ratio | Interpretation | Action |
+| :--- | :--- | :--- | :--- |
+| **< 4** | < 2 | **Equivalent models** | Pick simpler model (Occam's razor) |
+| **4 - 10** | 2 - 4 | **Moderate difference** | Consider model with larger elpd |
+| **> 10** | > 4 | **Clear winner** | Prefer model with larger elpd |
+
+## 3. ROPE (Region of Practical Equivalence)
+*Based on the 95% Highest Density Interval (HDI) of the posterior distribution relative to the ROPE (e.g., $[-0.05, 0.05]$).*
+
+*   **Reject $H_0$** (Effect is meaningful):
+    *   The entire 95% HDI is **outside** the ROPE.
+*   **Accept $H_0$** (Effect is negligible):
+    *   The entire 95% HDI is **inside** the ROPE.
+*   **UNDECIDED** (Insufficient precision):
+    *   The 95% HDI **overlaps** with the ROPE.
+
+*> Note: The ROPE Probability plot shows what % of the posterior is inside the ROPE. A value of ~10-20% usually corresponds to the "Undecided" or "Reject H0" cases depending on where the bulk of the density lies.*
+
+## 4. Posterior Estimates (95% CI)
+*Estimate of the effect size (log-RT difference) with uncertainty.*
+
+*   **Credible Effect**:
+    *   The **95% Credible Interval (CI)** (the error bar) **excludes 0**.
+    *   Interpretation: We are 95% confident that the true parameter is not zero.
+*   **Indistinguishable from Null**:
+    *   The **95% CI includes 0**.
+    *   Interpretation: Zero is a credible value for the parameter; we cannot rule out the null hypothesis.
+    
+# Part 5: The Danger of Optional Stopping (P-Hacking)
+
+A key advantage of Bayesian methods is their robustness to **Optional Stopping**—the practice of checking your results as data comes in and deciding whether to stop or continue collecting data.
+
+### 1. The Likelihood Principle
+The reason Bayesian methods handle optional stopping gracefully is the **Likelihood Principle**: *All the evidence from the data relevant to model parameters is contained in the likelihood function.*
+In simple terms, **the intention of the experimenter does not change the evidence**. Whether you planned to stop at $N=50$ or you just happened to stop there because the result looked good, the data ($D$) is the same, and therefore $P(D|H_0)$ and $P(D|H_1)$ are the same.
+
+*   **Frequentist P-values** violate this. They calculate probabilities of unobserved data ("data more extreme than observed") based on a specific sampling plan ($N$). If you check multiple times, you change the "sampling plan" to a sequential one, inflating the probability of a Type 1 error (false positive) dramatically (often > 20% if not corrected).
+*   **Bayes Factors** respect this. They simply update the odds. If $H_0$ is true, adding more data generally pushes the BF towards 0 (evidence *for* null). It does not "drift" toward a significance threshold in the same way p-values do (random walk vs. convergence).
+
+### 2. Assumptions & Validity
+While robust, optional stopping with Bayes Factors is not magic. It relies on:
+1.  **Likelihood Validity**: Your model (distribution, noise) must reasonably approximate the data-generating process.
+2.  **Prior Sensitivity**: If you use a Prior that is "too wide" (the Dilution Effect seen in our earlier plots), you artificially penalize $H_1$, making it harder to find evidence for an effect even if it exists.
+3.  **Finite Horizons**: In theory, if you sample *forever*, a Bayes Factor can transiently cross a threshold (e.g., $BF > 3$) even if $H_0$ is true, though the probability of this is much lower than for p-values.
+
+### 3. Practical Rules for Psycholinguistics
+For real experiments, "continuous monitoring" is valid, but structured approaches (Sequential Bayes Factor Design) are best for planning:
+
+*   **Define Thresholds**: Pre-register a strict evidence threshold (e.g., Stop if $BF_{10} > 10$ or $BF_{10} < 1/10$). $BF > 3$ is often considered "anecdotal" or too weak for stopping in high-noise fields like linguistics.
+*   **Set a Maximum N**: Resources are finite. Define a hard stopping point (e.g., $N=100$) where you stop regardless of evidence (usually concluding "Inconclusive").
+*   **Minimum N**: Collect a decent initial sample (e.g., $N=20$) before the first check to stabilize the priors and avoid early-stage noise.
+
+## Simulation: Testing Repeatedly
+
+We simulate 500 experiments. In each, we collect data sequentially up to $N=100$, checking the results every 5 subjects.
+
+*   **H1 True**: Effect = 0.5 (Moderate effect).
+*   **H0 True**: Effect = 0.
+*   **Stopping Rules**:
+    1.  **P-Value**: Stop if $p < .05$.
+    2.  **Bayes Factor**: Stop if $BF_{10} > 3$ (Moderate Evidence) or $BF_{10} > 10$ (Strong Evidence).
+
+
+::: {.cell}
+
+```{.r .cell-code}
+library(BayesFactor)
+run_simulation <- function(n_sim = 500, true_effect = 0) {
+  # Storage
+  results <- tibble(
+    sim_id = integer(),
+    check_n = integer(),
+    decision_p = logical(),
+    decision_bf3_pkg = logical(),
+    decision_bf3_bic = logical(),
+    decision_bf10_pkg = logical(),
+    decision_bf10_bic = logical()
+  )
+  
+  for (i in 1:n_sim) {
+    # Generate full dataset for one simulation (N=100)
+    # Using simple t-test structure for speed
+    n_max <- 100
+    group_A <- rnorm(n_max, mean = 0, sd = 1)
+    group_B <- rnorm(n_max, mean = true_effect, sd = 1)
+    
+    # Sequential checks
+    check_points <- seq(10, n_max, by = 5)
+    
+    # Track if we have already "stopped" for this sim
+    stopped_p <- FALSE
+    stopped_bf3_pkg <- FALSE
+    stopped_bf3_bic <- FALSE
+    stopped_bf10_pkg <- FALSE
+    stopped_bf10_bic <- FALSE
+    
+    for (n in check_points) {
+      # Subset data
+      a <- group_A[1:n]
+      b <- group_B[1:n]
+      
+      # Prepare data for BIC calculation
+      dat <- tibble(
+        val = c(a, b),
+        grp = factor(rep(c("A", "B"), each = n))
+      )
+      
+      # Tests
+      # 1. Frequentist T-test
+      p_val <- t.test(a, b)$p.value
+      
+      # 2. Bayesian T-test approximation (BIC)
+      # BF ~= exp((BIC(H0) - BIC(H1)) / 2)
+      m0 <- lm(val ~ 1, data = dat)
+      m1 <- lm(val ~ grp, data = dat)
+      bic0 <- BIC(m0)
+      bic1 <- BIC(m1)
+      bf_val_bic <- exp((bic0 - bic1) / 2)
+      
+      # 3. Bayesian T-test (Package)
+      bf_obj <- ttestBF(x = b, y = a)
+      bf_val_pkg <- extractBF(bf_obj)$bf
+      
+      # Check Decisions
+      if (!stopped_p && p_val < 0.05) stopped_p <- TRUE
+      
+      if (!stopped_bf3_pkg && bf_val_pkg > 3) stopped_bf3_pkg <- TRUE
+      if (!stopped_bf3_bic && bf_val_bic > 3) stopped_bf3_bic <- TRUE
+      
+      if (!stopped_bf10_pkg && bf_val_pkg > 10) stopped_bf10_pkg <- TRUE
+      if (!stopped_bf10_bic && bf_val_bic > 10) stopped_bf10_bic <- TRUE
+      
+      # Record cumulative status
+      results <- bind_rows(results, tibble(
+        sim_id = i,
+        check_n = n,
+        decision_p = stopped_p,
+        decision_bf3_pkg = stopped_bf3_pkg,
+        decision_bf3_bic = stopped_bf3_bic,
+        decision_bf10_pkg = stopped_bf10_pkg,
+        decision_bf10_bic = stopped_bf10_bic
+      ))
+      
+      # Optimization: If all stopped, break inner loop? 
+      # No, mostly visualization wants to see the curve.
+    }
+  }
+  return(results)
+}
+
+# Run Simulations (use cached chunk to save time)
+set.seed(888)
+# H0 True (Type 1 Error Check)
+sim_h0 <- run_simulation(n_sim = 500, true_effect = 0) %>%
+  mutate(Scenario = "H0 True (No Effect)")
+
+# H1 True (Power Check)
+sim_h1 <- run_simulation(n_sim = 500, true_effect = 0.4) %>% # d=0.4
+  mutate(Scenario = "H1 True (Effect d=0.4)")
+
+# Combine
+sim_data <- bind_rows(sim_h0, sim_h1)
+
+# Summarize for Plotting
+start_n <- 10
+sim_summary <- sim_data %>%
+  group_by(Scenario, check_n) %>%
+  summarise(
+    prop_p = mean(decision_p),
+    prop_bf3_pkg = mean(decision_bf3_pkg),
+    prop_bf3_bic = mean(decision_bf3_bic),
+    prop_bf10_pkg = mean(decision_bf10_pkg),
+    prop_bf10_bic = mean(decision_bf10_bic),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate") %>%
+  mutate(
+    Method = case_when(
+      Method == "prop_p" ~ "P-Value (< .05)",
+      Method == "prop_bf3_pkg" ~ "BF > 3 (Package)",
+      Method == "prop_bf3_bic" ~ "BF > 3 (BIC)",
+      Method == "prop_bf10_pkg" ~ "BF > 10 (Package)",
+      Method == "prop_bf10_bic" ~ "BF > 10 (BIC)"
+    )
+  )
+```
+:::
+
+
+## Visualization: Error vs. Power
+
+
+::: {.cell}
+
+```{.r .cell-code}
+# H0 True Plot (False Positive Rate)
+p_h0 <- sim_summary %>%
+  filter(Scenario == "H0 True (No Effect)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) +
+  geom_hline(yintercept = 0.05, linetype = "dashed", color = "black") +
+  geom_line(size = 1.2) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.4)) +
+  labs(
+    title = "False Positive Rate (Type 1 Error)",
+    subtitle = "H0 is True: How often do we wrongly claim an effect?",
+    x = "Sample Size (N) - Checking every 5",
+    y = "Cumulative % Significant"
+  ) +
+  annotate("text", x = 20, y = 0.06, label = "Nominal 5%", hjust = 0, vjust = 0, size=3)
+
+# H1 True Plot (Power)
+p_h1 <- sim_summary %>%
+  filter(Scenario == "H1 True (Effect d=0.4)") %>%
+  ggplot(aes(x = check_n, y = Rate, color = Method)) +
+  geom_line(size = 1.2) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(
+    title = "Power (True Positive Rate)",
+    subtitle = "H1 is True: How correctly do we detect it?",
+    x = "Sample Size (N)",
+    y = "Cumulative Power"
+  )
+
+p_h0 / p_h1 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+```
+
+::: {.cell-output-display}
+![](06_sequential_testing_files/figure-html/plot-optional-stopping-1.png){width=960}
+:::
+:::
+
+
+## Simulation 2: Psycholinguistic Experiment (Mixed Models)
+
+In this second simulation, we replicate the structure of a real psycholinguistic experiment with **Subjects** and **Items**.
+This is computationally expensive, so we run fewer simulations ($Sims=20$) but use the appropriate **Linear Mixed Models (LMM)**.
+
+*   **Structure**: 20 Items, Random Intercepts for Subjects and Items.
+*   **Sequential Test**: We add subjects in batches (N=10 to 60, step 5).
+*   **Comparison**: 
+    1.  **Likelihood Ratio Test (p < .05)**: `lmer(y ~ cond)` vs `lmer(y ~ 1)`.
+    2.  **Bayes Factor (BIC Approx)**: Using the BIC differences of the LMMs.
+
+
+::: {.cell}
+
+```{.r .cell-code}
+library(lme4)
+
+run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2) {
+  results <- tibble()
+  
+  for (i in 1:n_sim) {
+    # Data Generation Parameters
+    n_param <- 80 # Max subjects
+    n_item <- 20
+    
+    # 1. Generate FULL dataset once (to ensure consistent Subject/Item effects)
+    dat_full <- expand_grid(
+      subject = factor(1:n_param),
+      item = factor(1:n_item),
+      condition = factor(c("A", "B"))
+    ) %>%
+      mutate(
+        # Random Effects
+        subj_int = rep(rnorm(n_param, 0, 0.15), each = n_item * 2),
+        item_int = rep(rnorm(n_item, 0, 0.1), times = n_param * 2), # approx
+        # Noise
+        err = rnorm(n(), 0, noise_sd),
+        # Effect
+        cond_eff = if_else(condition == "B", true_effect, 0),
+        y = 6 + subj_int + item_int + cond_eff + err
+      )
+    
+    # Sequential Checks
+    check_points <- seq(15, 60, by = 5)
+    
+    stopped_p <- FALSE
+    stopped_bf10 <- FALSE
+    
+    for (n in check_points) {
+      # Subset data (first n subjects)
+      curr_dat <- dat_full %>% filter(as.numeric(subject) <= n)
+      
+      # Fit LMMs
+      # Suppress optimization warnings for this demo
+      m1 <- suppressMessages(lmer(y ~ condition + (1|subject) + (1|item), data = curr_dat, REML=FALSE))
+      m0 <- suppressMessages(lmer(y ~ 1 + (1|subject) + (1|item), data = curr_dat, REML=FALSE))
+      
+      # 1. Frequentist: LRT
+      lrt <- anova(m0, m1)
+      p_val <- lrt$"Pr(>Chisq)"[2]
+      if(is.na(p_val) || length(p_val) == 0) p_val <- 1 # Fail safe
+      
+      # 2. Bayesian: BIC Approx
+      # BF10 = exp((BIC0 - BIC1) / 2)
+      bic0 <- BIC(m0)
+      bic1 <- BIC(m1)
+      bf10 <- exp((bic0 - bic1) / 2)
+      if(is.na(bf10)) bf10 <- 0 # Fail safe
+      
+      # Decisions
+      if (!stopped_p && p_val < 0.05) stopped_p <- TRUE
+      if (!stopped_bf10 && bf10 > 10) stopped_bf10 <- TRUE
+      
+      results <- bind_rows(results, tibble(
+        sim_id = i,
+        check_n = n,
+        decision_p = stopped_p,
+        decision_bf10 = stopped_bf10
+      ))
+    }
+  }
+  return(results)
+}
+
+# Run Simulations (4 Conditions)
+set.seed(999)
+
+# 1. LOW NOISE (SD = 0.2)
+sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2) %>%
+  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2) %>%
+  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
+
+# 2. HIGH NOISE (SD = 0.8)
+sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8) %>%
+  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8) %>%
+  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
+
+# Combine & Summarize
+lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
+
+lmm_summary_all <- lmm_data_all %>%
+  group_by(Noise, Scenario, check_n) %>%
+  summarise(
+    prop_p = mean(decision_p, na.rm=TRUE),
+    prop_bf10 = mean(decision_bf10, na.rm=TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+
+# Plotting Function
+plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {
+  data %>%
+    filter(Noise == noise_filter, Scenario == scenario_filter) %>%
+    ggplot(aes(x = check_n, y = Rate, color = Method)) +
+    geom_hline(yintercept = 0.05, linetype = "dashed", color = "gray50") +
+    geom_line(size = 1.2) +
+    geom_point(size = 3) +
+    labs(
+      title = title_text,
+      subtitle = paste(noise_filter),
+      x = "Sample Size (Subjects)", 
+      y = "Cumulative Rate"
+    ) +
+    scale_color_manual(values = c("prop_p" = "#E74C3C", "prop_bf10" = "#2ECC71"), 
+                       labels = c("Bayes Factor (> 10)", "P-Value (< .05)")) +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    theme(legend.position = "none")
+}
+
+# Create 4 Panels
+p1 <- plot_sim_panel(lmm_summary_all, "Low Noise (SD=0.2)", "H0 (No Effect)", "False Positives (H0)")
+p2 <- plot_sim_panel(lmm_summary_all, "Low Noise (SD=0.2)", "H1 (Effect d=0.15)", "Power (H1)")
+p3 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H0 (No Effect)", "False Positives (H0)")
+p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)", "Power (H1)")
+
+# Assemble 2x2 Grid
+(p1 + p2) / (p3 + p4) + 
+  plot_layout(guides = "collect") & 
+  theme(legend.position = "bottom")
+```
+
+::: {.cell-output-display}
+![](06_sequential_testing_files/figure-html/lmm-stopping-sim-1.png){width=672}
+:::
+:::
+
+
+**Key Takeaways:**
+
+1.  **P-Hacking (Left Panel)**: If you check p-values repeatedly (the red line), your false positive rate rises well above 5% (approaching 20-30% over time). You are biased towards finding a result just by chance.
+2.  **Bayesian Control (Left Panel)**: The Bayes Factor (blue/green lines) controls this error naturally. It requires *more* evidence to cross a threshold (like 10) and doesn't inflate false positives as aggressively, even with repeated checking.
+3.  **Power (Right Panel)**: The trade-off is that stricter Bayesian thresholds (BF > 10) require more data to detect a real effect (lower immediate power) compared to the trigger-happy p-value.

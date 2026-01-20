@@ -705,26 +705,6 @@ sim_summary <- sim_data %>%
 
 ## Visualization: Error vs. Power
 
-**How to Read this Plot:**
-
-This visualization demonstrates the fundamental trade-off in sequential testing:
-
-*   **X-Axis (Sample Size)**: Represents the progress of the experiment as we add more subjects and "peek" at the data (every 5 subjects).
-*   **Y-Axis (Cumulative Rate)**: The percentage of experiments that stopped early because they found a "significant" result.
-
-**The Panels:**
-
-1.  **Left Column (False Positive Rate)**:
-    *   **Scenario**: **H0 is True** (No real effect). Ideally, these lines should be flat at 0% (or max 5%).
-    *   **Result**: The Red Line (**P-value**) climbs steadily. This is **P-Hacking**: by looking repeatedly, we inevitably find "lucky" noise and call it an effect. The Green/Purple Lines (**Bayes**) stay flat, showing they are robust to this error.
-
-2.  **Right Column (Power)**:
-    *   **Scenario**: **H1 is True** (Real effect exists). Ideally, these lines should go to 100% quickly.
-    *   **Result**: The Red Line rises fastest—P-values are "trigger happy" and detect effects quickly. The Bayesian lines rise more slowly (the curve). This is the cost of safety: to be sure it's not a false alarm, Bayes Factors require **more data** to reach the evidential threshold ($BF > 10$).
-
-**Conclusion**: P-values offer high power but dangerous false positives when peeking. Bayes Factors offer safety against false positives but require larger samples to reach strict thresholds.
-
-
 ```{r}
 #| label: plot-optional-stopping
 #| fig.width: 10
@@ -754,11 +734,11 @@ p_h1 <- sim_summary %>%
   labs(
     title = "Power (True Positive Rate)",
     subtitle = "H1 is True: How correctly do we detect it?",
-    x = "Sample Size (N) - Checking every 5",
+    x = "Sample Size (N)",
     y = "Cumulative Power"
   )
 
-p_h0 + p_h1 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+p_h0 / p_h1 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
 ## Simulation 2: Psycholinguistic Experiment (Mixed Models)
@@ -940,4 +920,10 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
   plot_layout(guides = "collect") & 
   theme(legend.position = "bottom")
 ```
+
+**Key Takeaways:**
+
+1.  **P-Hacking (Left Panel)**: If you check p-values repeatedly (the red line), your false positive rate rises well above 5% (approaching 20-30% over time). You are biased towards finding a result just by chance.
+2.  **Bayesian Control (Left Panel)**: The Bayes Factor (blue/green lines) controls this error naturally. It requires *more* evidence to cross a threshold (like 10) and doesn't inflate false positives as aggressively, even with repeated checking.
+3.  **Power (Right Panel)**: The trade-off is that stricter Bayesian thresholds (BF > 10) require more data to detect a real effect (lower immediate power) compared to the trigger-happy p-value.
 
