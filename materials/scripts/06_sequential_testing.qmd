@@ -1,5 +1,5 @@
 ---
-title: "Sequential Testing: ROPE vs Bayes Factor vs LOO"
+title: "6: Sequential Testing: ROPE vs Bayes Factor vs LOO"
 subtitle: "Understanding Divergences in Bayesian Decision Making"
 date: today
 author: "Job Schepens"
@@ -38,7 +38,7 @@ execute:
 
 # Introduction
 
-In this specific example, we will simulate a scenario where we collect data sequentially ($N=20, 50, 100$) and track how three different Bayesian decision metrics behave:
+In this example, we will simulate a scenario where we collect data sequentially ($N=1, ...., 100$) and track how three different Bayesian decision metrics behave:
 
 1.  **ROPE (Region of Practical Equivalence)**: Does the effect magnitude matter?
 2.  **Bayes Factor (via Savage-Dickey)**: Is the null hypothesis ($H_0: \beta=0$) less likely than the alternative?
@@ -60,6 +60,7 @@ library(emmeans)
 library(marginaleffects)
 library(patchwork)
 library(tidybayes)
+library(BayesFactor)
 
 theme_set(theme_minimal(base_size = 14))
 ```
@@ -68,7 +69,8 @@ theme_set(theme_minimal(base_size = 14))
 
 ## Data Generation
 
-We generate data where there is a **small but real effect** ($d \approx 0.2$). This is the "danger zone" where decision criteria often disagree.
+We generate data where there is a **real effect** (raw effect 0.12, approx $d \approx 0.45$ ($d = 0.12/0.27$)). This is a "medium" effect size. 
+$$ SD_{total} = \sqrt{0.20^2 + 0.15^2 + 0.10^2} \approx 0.27 $$ 
 
 ```{r}
 #| label: data-generation
@@ -774,7 +776,7 @@ This is computationally expensive, so we run fewer simulations ($Sims=20$) but u
 
 ```{r}
 #| label: lmm-stopping-sim
-#| cache: false
+#| cache: true
 #| message: false
 #| warning: false
 
@@ -790,6 +792,7 @@ brm_template <- brm(
   chains = 1, iter = 2000, warmup = 1000,
   prior = set_prior("normal(0, 1)", class = "b", coef = "conditionB"), # Proper prior for BF
   save_pars = save_pars(all = TRUE),
+  sample_prior = "yes", # Needed for Savage-Dickey Ratio
   silent = 2, refresh = 0,
   backend = "cmdstanr" # Faster if available, falls back to rstan
 )

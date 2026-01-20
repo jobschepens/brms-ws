@@ -1,5 +1,5 @@
 ---
-title: "Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)"
+title: "6: Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)"
 subtitle: "Understanding Divergences in Bayesian Decision Making"
 date: today
 author: "Job Schepens"

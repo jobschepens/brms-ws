@@ -192,6 +192,7 @@ install.packages(c(
   "performance",    # Model diagnostics and fit indices (easystats)
   "effectsize",     # Compute standardized effects (easystats)
   "modelbased",     # Model diagnostic summaries and predictions (easystats)
+  "BayesFactor",    # Bayes Factor analysis
   "collapse"        # Required by marginaleffects for brms models
 ), quiet = TRUE)
 

@@ -802,8 +802,22 @@ This is computationally expensive, so we run fewer simulations ($Sims=20$) but u
 
 ```{.r .cell-code}
 library(lme4)
+library(brms)
 
-run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2) {
+# 0. Pre-compile brms model (saves C++ compilation time in loop)
+# We fit on dummy data once
+dat_dummy <- tibble(y = rnorm(10), condition = factor(rep(c("A", "B"), 5)), subject = factor(1:10), item = factor(rep(1:2, 5)))
+brm_template <- brm(
+  y ~ condition + (1|subject) + (1|item),
+  data = dat_dummy,
+  chains = 1, iter = 2000, warmup = 1000,
+  prior = set_prior("normal(0, 1)", class = "b", coef = "conditionB"), # Proper prior for BF
+  save_pars = save_pars(all = TRUE),
+  silent = 2, refresh = 0,
+  backend = "cmdstanr" # Faster if available, falls back to rstan
+)
+
+run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = NULL) {
   results <- tibble()
   
   for (i in 1:n_sim) {
@@ -833,6 +847,7 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2) {
     
     stopped_p <- FALSE
     stopped_bf10 <- FALSE
+    stopped_bf10_brms <- FALSE
     
     for (n in check_points) {
       # Subset data (first n subjects)
@@ -855,15 +870,33 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2) {
       bf10 <- exp((bic0 - bic1) / 2)
       if(is.na(bf10)) bf10 <- 0 # Fail safe
       
+      # 3. Bayesian: brms (MCMC)
+      # Savage-Dickey Density Ratio (H1: b != 0 vs H0: b = 0)
+      # We fit H1 (m_brms) and check density at 0
+      # Use tryCatch to prevent crash on MCMC error
+      bf10_brms <- 0
+      if (!is.null(brm_model) && !stopped_bf10_brms) {
+        try({
+          m_brms <- update(brm_model, newdata = curr_dat, iter = 2000, warmup = 1000, refresh = 0)
+          h <- hypothesis(m_brms, "conditionB = 0")
+          bf01_brms <- h$hypothesis$Evid.Ratio
+          bf10_brms <- 1 / bf01_brms
+        }, silent = TRUE)
+      } else if (stopped_bf10_brms) {
+         bf10_brms <- 11 # Keep it stopped
+      }
+
       # Decisions
       if (!stopped_p && p_val < 0.05) stopped_p <- TRUE
       if (!stopped_bf10 && bf10 > 10) stopped_bf10 <- TRUE
+      if (!stopped_bf10_brms && !is.na(bf10_brms) && bf10_brms > 10) stopped_bf10_brms <- TRUE
       
       results <- bind_rows(results, tibble(
         sim_id = i,
         check_n = n,
         decision_p = stopped_p,
-        decision_bf10 = stopped_bf10
+        decision_bf10 = stopped_bf10,
+        decision_bf10_brms = stopped_bf10_brms
       ))
     }
   }
@@ -874,15 +907,15 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2) {
 set.seed(999)
 
 # 1. LOW NOISE (SD = 0.2)
-sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2) %>%
+sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template) %>%
   mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
-sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2) %>%
+sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.2, brm_model = brm_template) %>%
   mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.15)")
 
 # 2. HIGH NOISE (SD = 0.8)
-sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8) %>%
+sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template) %>%
   mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
-sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8) %>%
+sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.15, noise_sd = 0.8, brm_model = brm_template) %>%
   mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.15)")
 
 # Combine & Summarize
@@ -891,8 +924,10 @@ lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
 lmm_summary_all <- lmm_data_all %>%
   group_by(Noise, Scenario, check_n) %>%
   summarise(
+
     prop_p = mean(decision_p, na.rm=TRUE),
     prop_bf10 = mean(decision_bf10, na.rm=TRUE),
+    prop_bf10_brms = mean(decision_bf10_brms, na.rm=TRUE),
     .groups = "drop"
   ) %>%
   pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
@@ -911,8 +946,8 @@ plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {
       x = "Sample Size (Subjects)", 
       y = "Cumulative Rate"
     ) +
-    scale_color_manual(values = c("prop_p" = "#E74C3C", "prop_bf10" = "#2ECC71"), 
-                       labels = c("Bayes Factor (> 10)", "P-Value (< .05)")) +
+    scale_color_manual(values = c("prop_p" = "#E74C3C", "prop_bf10" = "#2ECC71", "prop_bf10_brms" = "#9B59B6"), 
+                       labels = c("BF > 10 (BIC)", "BF > 10 (brms)", "P-Value (< .05)")) +
     scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
     theme(legend.position = "none")
 }
