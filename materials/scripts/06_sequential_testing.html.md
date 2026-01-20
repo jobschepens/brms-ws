@@ -1,5 +1,5 @@
 ---
-title: "Sequential Testing: ROPE vs Bayes Factor vs LOO"
+title: "6: Sequential Testing: ROPE vs Bayes Factor vs LOO"
 subtitle: "Understanding Divergences in Bayesian Decision Making"
 date: today
 author: "Job Schepens"
@@ -38,7 +38,7 @@ execute:
 
 # Introduction
 
-In this specific example, we will simulate a scenario where we collect data sequentially ($N=20, 50, 100$) and track how three different Bayesian decision metrics behave:
+In this example, we will simulate a scenario where we collect data sequentially ($N=1, ...., 100$) and track how three different Bayesian decision metrics behave:
 
 1.  **ROPE (Region of Practical Equivalence)**: Does the effect magnitude matter?
 2.  **Bayes Factor (via Savage-Dickey)**: Is the null hypothesis ($H_0: \beta=0$) less likely than the alternative?
@@ -59,6 +59,7 @@ library(emmeans)
 library(marginaleffects)
 library(patchwork)
 library(tidybayes)
+library(BayesFactor)
 
 theme_set(theme_minimal(base_size = 14))
 ```
@@ -69,7 +70,8 @@ theme_set(theme_minimal(base_size = 14))
 
 ## Data Generation
 
-We generate data where there is a **small but real effect** ($d \approx 0.2$). This is the "danger zone" where decision criteria often disagree.
+We generate data where there is a **real effect** (raw effect 0.12, approx $d \approx 0.45$ ($d = 0.12/0.27$)). This is a "medium" effect size. 
+$$ SD_{total} = \sqrt{0.20^2 + 0.15^2 + 0.10^2} \approx 0.27 $$ 
 
 
 ::: {.cell}
@@ -298,14 +300,42 @@ results_df %>%
 
 Table: Comparison of Decision Metrics by Sample Size and Prior Sensitivity
 
-|  N|Prior  |Estimate_CI       |         BF10| ROPE_Prob| LOO_Gain|
-|--:|:------|:-----------------|------------:|---------:|--------:|
-| 10|Wide   |0.17 [0.08, 0.25] | 1.003400e+01|     0.000|    1.318|
-| 10|Narrow |0.14 [0.05, 0.22] | 2.778000e+01|     0.000|    1.596|
-| 20|Wide   |0.13 [0.05, 0.20] | 5.132000e+00|     0.000|    1.282|
-| 20|Narrow |0.11 [0.04, 0.19] | 3.622400e+01|     0.026|    0.893|
-| 50|Wide   |0.13 [0.10, 0.16] | 7.450869e+92|     0.000|   13.583|
-| 50|Narrow |0.12 [0.10, 0.15] | 4.183176e+15|     0.000|   13.620|
+|   N|Prior  |Estimate_CI        |         BF10| ROPE_Prob| LOO_Gain|
+|---:|:------|:------------------|------------:|---------:|--------:|
+|   1|Wide   |0.15 [-0.58, 0.85] | 4.030000e-01|     0.104|    0.076|
+|   1|Narrow |0.04 [-0.15, 0.22] | 1.017000e+00|     0.387|    0.236|
+|   2|Wide   |0.13 [-0.28, 0.52] | 2.720000e-01|     0.151|    0.620|
+|   2|Narrow |0.06 [-0.11, 0.20] | 1.195000e+00|     0.337|    0.750|
+|   3|Wide   |0.13 [-0.58, 0.44] | 6.250000e-01|     0.075|    0.622|
+|   3|Narrow |0.09 [-0.10, 0.23] | 1.667000e+00|     0.248|    0.438|
+|   4|Wide   |0.18 [-0.01, 0.35] | 9.490000e-01|     0.040|    0.033|
+|   4|Narrow |0.11 [-0.05, 0.24] | 2.805000e+00|     0.145|    0.017|
+|   5|Wide   |0.15 [-0.01, 0.30] | 6.530000e-01|     0.054|    0.319|
+|   5|Narrow |0.10 [-0.06, 0.21] | 2.303000e+00|     0.191|    0.904|
+|   6|Wide   |0.13 [-0.01, 0.28] | 5.600000e-01|     0.083|   -0.018|
+|   6|Narrow |0.10 [-0.02, 0.20] | 2.872000e+00|     0.160|    0.354|
+|   7|Wide   |0.12 [-0.00, 0.24] | 5.040000e-01|     0.087|    0.739|
+|   7|Narrow |0.09 [-0.02, 0.19] | 2.444000e+00|     0.185|    0.457|
+|   8|Wide   |0.13 [0.02, 0.23]  | 8.170000e-01|     0.043|    0.779|
+|   8|Narrow |0.10 [-0.00, 0.19] | 3.818000e+00|     0.111|    0.946|
+|   9|Wide   |0.12 [0.03, 0.21]  | 1.187000e+00|     0.037|    0.926|
+|   9|Narrow |0.10 [0.01, 0.18]  | 5.508000e+00|     0.103|    0.447|
+|  10|Wide   |0.13 [0.05, 0.22]  | 3.236000e+00|     0.007|    0.847|
+|  10|Narrow |0.11 [0.02, 0.19]  | 1.012300e+01|     0.056|    0.857|
+|  15|Wide   |0.13 [0.07, 0.19]  | 2.394000e+01|     0.000|    2.735|
+|  15|Narrow |0.12 [0.06, 0.18]  | 8.004300e+01|     0.000|    2.657|
+|  20|Wide   |0.12 [0.08, 0.17]  | 2.040489e+15|     0.000|    5.582|
+|  20|Narrow |0.12 [0.07, 0.16]  | 2.093883e+17|     0.000|    5.193|
+|  25|Wide   |0.12 [0.08, 0.16]  | 9.728796e+07|     0.000|    5.943|
+|  25|Narrow |0.12 [0.08, 0.16]  |          Inf|     0.000|    5.885|
+|  30|Wide   |0.11 [0.07, 0.15]  |          Inf|     0.000|    5.335|
+|  30|Narrow |0.11 [0.07, 0.15]  | 1.081383e+16|     0.000|    4.994|
+|  40|Wide   |0.11 [0.07, 0.14]  | 2.675363e+17|     0.000|    4.863|
+|  40|Narrow |0.11 [0.07, 0.14]  | 6.526253e+18|     0.000|    4.884|
+|  50|Wide   |0.10 [0.07, 0.13]  |          Inf|     0.000|    4.907|
+|  50|Narrow |0.10 [0.07, 0.13]  | 1.511938e+20|     0.000|    5.163|
+| 100|Wide   |0.13 [0.10, 0.15]  | 6.898743e+17|     0.000|   15.687|
+| 100|Narrow |0.12 [0.10, 0.15]  |          Inf|     0.000|   15.463|
 
 
 :::
@@ -745,6 +775,26 @@ sim_summary <- sim_data %>%
 
 ## Visualization: Error vs. Power
 
+**How to Read this Plot:**
+
+This visualization demonstrates the fundamental trade-off in sequential testing:
+
+*   **X-Axis (Sample Size)**: Represents the progress of the experiment as we add more subjects and "peek" at the data (every 5 subjects).
+*   **Y-Axis (Cumulative Rate)**: The percentage of experiments that stopped early because they found a "significant" result.
+
+**The Panels:**
+
+1.  **Left Column (False Positive Rate)**:
+    *   **Scenario**: **H0 is True** (No real effect). Ideally, these lines should be flat at 0% (or max 5%).
+    *   **Result**: The Red Line (**P-value**) climbs steadily. This is **P-Hacking**: by looking repeatedly, we inevitably find "lucky" noise and call it an effect. The Green/Purple Lines (**Bayes**) stay flat, showing they are robust to this error.
+
+2.  **Right Column (Power)**:
+    *   **Scenario**: **H1 is True** (Real effect exists). Ideally, these lines should go to 100% quickly.
+    *   **Result**: The Red Line rises fastest—P-values are "trigger happy" and detect effects quickly. The Bayesian lines rise more slowly (the curve). This is the cost of safety: to be sure it's not a false alarm, Bayes Factors require **more data** to reach the evidential threshold ($BF > 10$).
+
+**Conclusion**: P-values offer high power but dangerous false positives when peeking. Bayes Factors offer safety against false positives but require larger samples to reach strict thresholds.
+
+
 
 ::: {.cell}
 
@@ -773,11 +823,11 @@ p_h1 <- sim_summary %>%
   labs(
     title = "Power (True Positive Rate)",
     subtitle = "H1 is True: How correctly do we detect it?",
-    x = "Sample Size (N)",
+    x = "Sample Size (N) - Checking every 5",
     y = "Cumulative Power"
   )
 
-p_h0 / p_h1 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+p_h0 + p_h1 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 ```
 
 ::: {.cell-output-display}
@@ -813,6 +863,7 @@ brm_template <- brm(
   chains = 1, iter = 2000, warmup = 1000,
   prior = set_prior("normal(0, 1)", class = "b", coef = "conditionB"), # Proper prior for BF
   save_pars = save_pars(all = TRUE),
+  sample_prior = "yes", # Needed for Savage-Dickey Ratio
   silent = 2, refresh = 0,
   backend = "cmdstanr" # Faster if available, falls back to rstan
 )
@@ -970,8 +1021,3 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
 :::
 
 
-**Key Takeaways:**
-
-1.  **P-Hacking (Left Panel)**: If you check p-values repeatedly (the red line), your false positive rate rises well above 5% (approaching 20-30% over time). You are biased towards finding a result just by chance.
-2.  **Bayesian Control (Left Panel)**: The Bayes Factor (blue/green lines) controls this error naturally. It requires *more* evidence to cross a threshold (like 10) and doesn't inflate false positives as aggressively, even with repeated checking.
-3.  **Power (Right Panel)**: The trade-off is that stricter Bayesian thresholds (BF > 10) require more data to detect a real effect (lower immediate power) compared to the trigger-happy p-value.

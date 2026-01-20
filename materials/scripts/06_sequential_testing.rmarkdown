@@ -776,7 +776,7 @@ This is computationally expensive, so we run fewer simulations ($Sims=20$) but u
 
 ```{r}
 #| label: lmm-stopping-sim
-#| cache: false
+#| cache: true
 #| message: false
 #| warning: false
 
@@ -792,6 +792,7 @@ brm_template <- brm(
   chains = 1, iter = 2000, warmup = 1000,
   prior = set_prior("normal(0, 1)", class = "b", coef = "conditionB"), # Proper prior for BF
   save_pars = save_pars(all = TRUE),
+  sample_prior = "yes", # Needed for Savage-Dickey Ratio
   silent = 2, refresh = 0,
   backend = "cmdstanr" # Faster if available, falls back to rstan
 )
