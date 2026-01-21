@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Job Schepens">
-<meta name="dcterms.date" content="2026-01-20">
+<meta name="dcterms.date" content="2026-01-21">
 
 <title>6: Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)</title>
 <style>
@@ -68,18 +68,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="quarto:offset" content="./">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-2441e7b16002a404fdf3664b2bffa0bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-a5b34c7368fd572c905fe0d2719eb707.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-2441e7b16002a404fdf3664b2bffa0bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-e87c9e8c45ecd29038ad154ff3f33c57.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a60f2ed0341f347feceb1fefe1ef1e89.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-e87c9e8c45ecd29038ad154ff3f33c57.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -122,7 +123,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -323,7 +324,6 @@ window.Quarto = {
   <li><a href="#visualization-zoomed-n-10" id="toc-visualization-zoomed-n-10" class="nav-link" data-scroll-target="#visualization-zoomed-n-10"><span class="header-section-number">1.5</span> Visualization (Zoomed: N &gt;= 10)</a></li>
   <li><a href="#visualization-uncertainty-n-10" id="toc-visualization-uncertainty-n-10" class="nav-link" data-scroll-target="#visualization-uncertainty-n-10"><span class="header-section-number">1.6</span> Visualization (Uncertainty: N &gt;= 10)</a></li>
   </ul></li>
-  <li><a href="#part-3-long-run-operating-characteristics-error-vs-power" id="toc-part-3-long-run-operating-characteristics-error-vs-power" class="nav-link" data-scroll-target="#part-3-long-run-operating-characteristics-error-vs-power"><span class="header-section-number">2</span> Part 3: Long-Run Operating Characteristics (Error vs Power)</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="06_sequential_testing_cont.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
     </div>
@@ -351,7 +351,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 20, 2026</p>
+      <p class="date">January 21, 2026</p>
     </div>
   </div>
   
@@ -366,7 +366,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(posterior)</span>
@@ -376,7 +376,7 @@ window.Quarto = {
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <section id="part-2-continuous-predictor-simulation" class="level1" data-number="1">
@@ -388,7 +388,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">999</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">999</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>generate_data_cont <span class="ot">&lt;-</span> <span class="cf">function</span>(n_subj) {</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  n_item <span class="ot">&lt;-</span> <span class="dv">10</span></span>
@@ -414,7 +414,7 @@ window.Quarto = {
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> log_rt</span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(subject, item, trial_x, y)</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -424,7 +424,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same extended sample sizes</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same extended sample sizes</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sample_sizes_cont <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="fu">seq</span>(<span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">5</span>), <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">100</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>results_list_cont <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -537,7 +537,7 @@ window.Quarto = {
 <span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list_cont)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results_list_cont)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -546,7 +546,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="sc">%&gt;%</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>results_df_cont <span class="sc">%&gt;%</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="sc">-</span>N,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"Metric"</span>, <span class="st">"Prior"</span>),</span>
@@ -558,7 +558,7 @@ window.Quarto = {
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Estimate_CI =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f [%.2f, %.2f]"</span>, Est, Low, High)) <span class="sc">%&gt;%</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, Prior, Estimate_CI, BF10, <span class="at">ROPE_Prob =</span> ROPE_in_prob, <span class="at">LOO_Gain =</span> LOO_gain) <span class="sc">%&gt;%</span></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(N, <span class="fu">desc</span>(Prior)) <span class="sc">%&gt;%</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Continuous Predictor: Decision Metrics"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Continuous Predictor: Decision Metrics"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -856,7 +856,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First, ensure all columns are properly numeric by unnesting and converting</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First, ensure all columns are properly numeric by unnesting and converting</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>results_clean <span class="ot">&lt;-</span> results_df_cont <span class="sc">%&gt;%</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> {</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="fu">is.list</span>(.x)) {</span>
@@ -904,7 +904,7 @@ window.Quarto = {
 <span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LOO Gain"</span>)</span>
 <span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>(p_est_c <span class="sc">+</span> p_bf_c <span class="sc">+</span> p_rope_c <span class="sc">+</span> p_loo_c) <span class="sc">+</span> </span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -921,7 +921,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>results_clean_zoom <span class="ot">&lt;-</span> results_clean <span class="sc">%&gt;%</span> <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>results_clean_zoom <span class="ot">&lt;-</span> results_clean <span class="sc">%&gt;%</span> <span class="fu">filter</span>(N <span class="sc">&gt;=</span> <span class="dv">10</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Estimates</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>p_est_cz <span class="ot">&lt;-</span> results_clean_zoom <span class="sc">%&gt;%</span></span>
@@ -958,7 +958,7 @@ window.Quarto = {
 <span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"LOO Gain"</span>)</span>
 <span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>(p_est_cz <span class="sc">+</span> p_bf_cz <span class="sc">+</span> p_rope_cz <span class="sc">+</span> p_loo_cz) <span class="sc">+</span> </span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -975,7 +975,7 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create specific LOO data frame with SE</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create specific LOO data frame with SE</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>plot_loo_unc_c <span class="ot">&lt;-</span> results_clean_zoom <span class="sc">%&gt;%</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(N, LOO_gain_Wide, LOO_se_Wide, LOO_gain_Narrow, LOO_se_Narrow) <span class="sc">%&gt;%</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
@@ -999,7 +999,7 @@ window.Quarto = {
 <span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Predictive Gain (LOO)"</span>, <span class="at">subtitle =</span> <span class="st">"Mean +/- 2 SE"</span>, <span class="at">y =</span> <span class="st">"Delta elpd"</span>)</span>
 <span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>(p_est_cz <span class="sc">+</span> p_bf_cz <span class="sc">+</span> p_rope_cz <span class="sc">+</span> p_loo_unc_c) <span class="sc">+</span> </span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1009,164 +1009,264 @@ window.Quarto = {
 </div>
 </div>
 </div>
-</section>
-</section>
-<section id="part-3-long-run-operating-characteristics-error-vs-power" class="level1" data-number="2">
-<h1 data-number="2"><span class="header-section-number">2</span> Part 3: Long-Run Operating Characteristics (Error vs Power)</h1>
-<p>We now run a larger simulation (multiple iterations) to see the long-run False Positive Rate and Power for the continuous predictor case, comparing Standard P-values against Bayes Factors.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>run_cont_simulation <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">cache_prefix =</span> <span class="st">"sim_cont"</span>) {</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Ensure cache dir exists</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="st">"results_cont"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sim) {</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># File-based cache for THIS simulation iteration</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    cache_file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"results_cont/"</span>, cache_prefix, <span class="st">"_iter"</span>, i, <span class="st">".rds"</span>)</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(cache_file)) {</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>      results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results, <span class="fu">readRDS</span>(cache_file))</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>      <span class="cf">next</span> </span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Generate full dataset for this iteration</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Max N = 100</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    dat_full <span class="ot">&lt;-</span> <span class="fu">generate_data_cont</span>(<span class="at">n_subj =</span> <span class="dv">100</span>) <span class="co"># Uses default params unless overridden? No, need args.</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Refactor generate_data_cont slightly to accept args or assume structure</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Since existing generate_data_cont is fixed, we might need a local version or modify it? </span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Let's rely on modifying generate_data_cont slightly OR create a local one for safety.</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Local generator for this simulation section to avoid breaking Part 2:</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    gen_local <span class="ot">&lt;-</span> <span class="cf">function</span>(N, eff, err) {</span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>       <span class="fu">expand_grid</span>(<span class="at">subject=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>N), <span class="at">item=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">x=</span><span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="at">l=</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>       <span class="fu">mutate</span>(<span class="at">y =</span> <span class="dv">6</span> <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">1</span>,<span class="dv">0</span>,.<span class="dv">15</span>)[subject] <span class="sc">+</span> eff<span class="sc">*</span>x <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">n</span>(),<span class="dv">0</span>,err))</span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    dat_full <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">subject=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>), <span class="at">item=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">trial_x=</span><span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="at">length.out=</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subj_int =</span> <span class="fu">rnorm</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="fl">0.15</span>)) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">y =</span> <span class="dv">6</span> <span class="sc">+</span> subj_int <span class="sc">+</span> true_effect<span class="sc">*</span>trial_x <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="dv">0</span>, noise_sd))</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sequential Checks</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    check_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">20</span>, <span class="dv">100</span>, <span class="at">by =</span> <span class="dv">10</span>) <span class="co"># Check every 10 obs</span></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    stopped_p <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    stopped_bf10 <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    iter_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (n <span class="cf">in</span> check_points) {</span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>      curr_dat <span class="ot">&lt;-</span> dat_full <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">as.numeric</span>(subject) <span class="sc">&lt;=</span> n)</span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Optimization: Skip derivative calculation (only needed for SEs, not point est/likelihood)</span></span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>      ctrl <span class="ot">&lt;-</span> <span class="fu">lmerControl</span>(<span class="at">calc.derivs =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>      <span class="co"># A. Fast Frequentist + BIC Approx</span></span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>      m1 <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">lmer</span>(y <span class="sc">~</span> trial_x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x<span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item), </span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> curr_dat, <span class="at">REML=</span><span class="cn">FALSE</span>, <span class="at">control =</span> ctrl))</span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>      m0 <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">lmer</span>(y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x<span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item), </span>
-<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> curr_dat, <span class="at">REML=</span><span class="cn">FALSE</span>, <span class="at">control =</span> ctrl))</span>
-<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Optimization: Calculate Stats directly from LogLik (faster than anova/BIC)</span></span>
-<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>      ll1 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(m1))</span>
-<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>      ll0 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(m0))</span>
-<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>      df1 <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">logLik</span>(m1), <span class="st">"df"</span>)</span>
-<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>      df0 <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">logLik</span>(m0), <span class="st">"df"</span>)</span>
-<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>      <span class="co"># LRT P-value</span></span>
-<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>      chisq_val <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (ll1 <span class="sc">-</span> ll0)</span>
-<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>      p_val <span class="ot">&lt;-</span> <span class="fu">pchisq</span>(chisq_val, <span class="at">df =</span> df1 <span class="sc">-</span> df0, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span>(<span class="fu">is.na</span>(p_val)) p_val <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>      <span class="co"># BIC Bayes Factor</span></span>
-<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>      <span class="co"># BIC = k*ln(n) - 2*ln(L)</span></span>
-<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>      <span class="co"># BF10 = exp( (BIC0 - BIC1) / 2 )</span></span>
-<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>      n_obs <span class="ot">&lt;-</span> <span class="fu">nrow</span>(curr_dat)</span>
-<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>      bic1 <span class="ot">&lt;-</span> df1 <span class="sc">*</span> <span class="fu">log</span>(n_obs) <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ll1</span>
-<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>      bic0 <span class="ot">&lt;-</span> df0 <span class="sc">*</span> <span class="fu">log</span>(n_obs) <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ll0</span>
-<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>      bf10 <span class="ot">&lt;-</span> <span class="fu">exp</span>((bic0 <span class="sc">-</span> bic1) <span class="sc">/</span> <span class="dv">2</span>)</span>
-<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Decisions</span></span>
-<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span>stopped_p <span class="sc">&amp;&amp;</span> p_val <span class="sc">&lt;</span> <span class="fl">0.05</span>) stopped_p <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span>stopped_bf10 <span class="sc">&amp;&amp;</span> bf10 <span class="sc">&gt;</span> <span class="dv">10</span>) stopped_bf10 <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>      iter_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(iter_results, <span class="fu">tibble</span>(</span>
-<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>        <span class="at">sim_id =</span> i,</span>
-<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>        <span class="at">check_n =</span> n,</span>
-<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>        <span class="at">decision_p =</span> stopped_p,</span>
-<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>        <span class="at">decision_bf10 =</span> stopped_bf10</span>
-<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>      ))</span>
-<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(iter_results, cache_file)</span>
-<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results, iter_results)</span>
-<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results)</span>
-<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a><span class="co"># Run 4 Simulation Conditions</span></span>
-<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Low Noise H0</span></span>
-<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>sim_cont_low_h0 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">cache_prefix =</span> <span class="st">"low_h0"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
-<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Low Noise H1</span></span>
-<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>sim_cont_low_h1 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.05</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">cache_prefix =</span> <span class="st">"low_h1"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect=0.05)"</span>)</span>
-<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. High Noise H0</span></span>
-<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>sim_cont_high_h0 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">cache_prefix =</span> <span class="st">"high_h0"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
-<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. High Noise H1</span></span>
-<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>sim_cont_high_h1 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.05</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">cache_prefix =</span> <span class="st">"high_h1"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect=0.05)"</span>)</span>
-<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine</span></span>
-<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>cont_data_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)</span>
-<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>cont_summary <span class="ot">&lt;-</span> cont_data_all <span class="sc">%&gt;%</span></span>
-<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Noise, Scenario, check_n) <span class="sc">%&gt;%</span></span>
-<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_p =</span> <span class="fu">mean</span>(decision_p),</span>
-<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>    <span class="at">prop_bf10 =</span> <span class="fu">mean</span>(decision_bf10),</span>
-<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>)</span>
-<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a><span class="co"># 4-Panel Plot</span></span>
-<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"Low Noise (SD=0.2)"</span>, Scenario <span class="sc">==</span> <span class="st">"H0 (No Effect)"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">1</span>) <span class="sc">+</span> </span>
-<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"False Positives (Low Noise)"</span>, <span class="at">x=</span><span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
-<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"Low Noise (SD=0.2)"</span>, Scenario <span class="sc">==</span> <span class="st">"H1 (Effect=0.05)"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">1</span>) <span class="sc">+</span> </span>
-<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Power (Low Noise)"</span>, <span class="at">x=</span><span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
-<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"High Noise (SD=0.8)"</span>, Scenario <span class="sc">==</span> <span class="st">"H0 (No Effect)"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">1</span>) <span class="sc">+</span> </span>
-<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"False Positives (High Noise)"</span>, <span class="at">x=</span><span class="st">"N"</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
-<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"High Noise (SD=0.8)"</span>, Scenario <span class="sc">==</span> <span class="st">"H1 (Effect=0.05)"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span> <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">1</span>) <span class="sc">+</span> </span>
-<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Power (High Noise)"</span>, <span class="at">x=</span><span class="st">"N"</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
-<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">+</span> p2) <span class="sc">/</span> (p3 <span class="sc">+</span> p4) <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"prop_p"</span><span class="ot">=</span><span class="st">"#E74C3C"</span>, <span class="st">"prop_bf10"</span><span class="ot">=</span><span class="st">"#2ECC71"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure cache directory exists</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"cache"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>results_cont_path <span class="ot">&lt;-</span> <span class="st">"cache/sim_cont_results.rds"</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">"models/cache_fits"</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Pre-compile a template model (Standard/Wide Prior) once to save C++ time</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># We use sample_prior="yes" for Savage-Dickey BF</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">"models/brm_template_cont.rds"</span>)) {</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Minimal data for template</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  tmp_dat <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">subject=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>), <span class="at">item=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>), <span class="at">trial_x=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>), <span class="at">y=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>))</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  prior_h1 <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">6</span>, <span class="fl">0.5</span>), <span class="at">class =</span> Intercept),</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">0</span>, <span class="fl">1.0</span>), <span class="at">class =</span> b, <span class="at">coef =</span> <span class="st">"trial_x"</span>), <span class="co"># Wide H1</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sd),</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">prior</span>(<span class="fu">exponential</span>(<span class="dv">2</span>), <span class="at">class =</span> sigma)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  brm_template <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    y <span class="sc">~</span> trial_x <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item),</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> tmp_dat,</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior =</span> prior_h1,</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">sample_prior =</span> <span class="st">"yes"</span>,</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">iter =</span> <span class="dv">2000</span>,</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="st">"models/brm_template_cont"</span>,</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>, <span class="at">seed =</span> <span class="dv">123</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  brm_template <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"models/brm_template_cont.rds"</span>)</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>run_cont_simulation <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">cache_prefix =</span> <span class="st">"sim_cont"</span>, <span class="at">brm_model =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Ensure cache dir exists</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="st">"results_cont"</span>, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_sim) {</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># File-based cache for THIS simulation iteration</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    cache_file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"results_cont/"</span>, cache_prefix, <span class="st">"_iter"</span>, i, <span class="st">".rds"</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Load partial progress if exists</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>    iter_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(cache_file)) {</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>      iter_results <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(cache_file)</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Determine pending checks</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If file exists but is incomplete, we resume.</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>    done_n <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">0</span>)</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(iter_results) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>      done_n <span class="ot">&lt;-</span> <span class="fu">unique</span>(iter_results<span class="sc">$</span>check_n)</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>    check_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">15</span>, <span class="dv">60</span>, <span class="at">by =</span> <span class="dv">5</span>)</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>    points_to_run <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(check_points, done_n)</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(points_to_run) <span class="sc">==</span> <span class="dv">0</span>) {</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Already complete for this iteration</span></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>      results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results, iter_results)</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>      <span class="cf">next</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Generate Data (Fixed Seed/State for Reproducibility across resumes?)</span></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generating full dataset 100% freshly might drift if set.seed isn't managed per iter.</span></span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ideally we save the dataset too? Or imply robust reproducibility via seed?</span></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>    <span class="co"># For now, we regenerate. Note: if reusing partial results, we MUST ensure the dataset </span></span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>    <span class="co"># for the NEW steps is identical to the OLD steps.</span></span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Quick Fix: Set seed based on iteration ID to guarantee consistency.</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(<span class="dv">999</span> <span class="sc">+</span> i) </span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>    n_param <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>    dat_full <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">subject=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span>n_param), <span class="at">item=</span><span class="fu">factor</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">trial_x=</span><span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="at">length.out=</span><span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(subject) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">subj_int =</span> <span class="fu">rnorm</span>(<span class="dv">1</span>,<span class="dv">0</span>,<span class="fl">0.15</span>)) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">y =</span> <span class="dv">6</span> <span class="sc">+</span> subj_int <span class="sc">+</span> true_effect<span class="sc">*</span>trial_x <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="dv">0</span>, noise_sd))</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Initialize stopping flags based on PREVIOUS partial results if strictly sequential</span></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If we stopped at N=30, we must carry that state.</span></span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>    stopped_p <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>    stopped_bf10 <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>    stopped_bf10_brms <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="fu">nrow</span>(iter_results) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>        stopped_p <span class="ot">&lt;-</span> <span class="fu">any</span>(iter_results<span class="sc">$</span>decision_p)</span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>        stopped_bf10 <span class="ot">&lt;-</span> <span class="fu">any</span>(iter_results<span class="sc">$</span>decision_bf10)</span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(<span class="st">"decision_bf10_brms"</span> <span class="sc">%in%</span> <span class="fu">names</span>(iter_results)) {</span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>          stopped_bf10_brms <span class="ot">&lt;-</span> <span class="fu">any</span>(iter_results<span class="sc">$</span>decision_bf10_brms, <span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>    points_to_run <span class="ot">&lt;-</span> <span class="fu">sort</span>(points_to_run)</span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (n <span class="cf">in</span> points_to_run) {</span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>      curr_dat <span class="ot">&lt;-</span> dat_full <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">as.numeric</span>(subject) <span class="sc">&lt;=</span> n)</span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>      <span class="co"># A. Fast Frequentist + BIC Approx</span></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>      ctrl <span class="ot">&lt;-</span> <span class="fu">lmerControl</span>(<span class="at">calc.derivs =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>      m1 <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">lmer</span>(y <span class="sc">~</span> trial_x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x<span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item), </span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> curr_dat, <span class="at">REML=</span><span class="cn">FALSE</span>, <span class="at">control =</span> ctrl))</span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>      m0 <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">lmer</span>(y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> trial_x<span class="sc">|</span>subject) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>item), </span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>                                <span class="at">data =</span> curr_dat, <span class="at">REML=</span><span class="cn">FALSE</span>, <span class="at">control =</span> ctrl))</span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Stats from LogLik</span></span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>      ll1 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(m1))</span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>      ll0 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">logLik</span>(m0))</span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>      df1 <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">logLik</span>(m1), <span class="st">"df"</span>)</span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>      df0 <span class="ot">&lt;-</span> <span class="fu">attr</span>(<span class="fu">logLik</span>(m0), <span class="st">"df"</span>)</span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>      chisq_val <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (ll1 <span class="sc">-</span> ll0)</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>      p_val <span class="ot">&lt;-</span> <span class="fu">pchisq</span>(chisq_val, <span class="at">df =</span> df1 <span class="sc">-</span> df0, <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span>(<span class="fu">is.na</span>(p_val)) p_val <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>      n_obs <span class="ot">&lt;-</span> <span class="fu">nrow</span>(curr_dat)</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>      bic1 <span class="ot">&lt;-</span> df1 <span class="sc">*</span> <span class="fu">log</span>(n_obs) <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ll1</span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>      bic0 <span class="ot">&lt;-</span> df0 <span class="sc">*</span> <span class="fu">log</span>(n_obs) <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> ll0</span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>      bf10 <span class="ot">&lt;-</span> <span class="fu">exp</span>((bic0 <span class="sc">-</span> bic1) <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>      <span class="co"># B. brms (Full Bayesian)</span></span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>      bf10_brms <span class="ot">&lt;-</span> <span class="cn">NA</span> <span class="co"># Default if fails</span></span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(brm_model)) {</span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Optimize: Store brms models to disk?</span></span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>        <span class="co"># User requested saving models. We can do it!</span></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a>        model_file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"models/cache_fits/"</span>, cache_prefix, <span class="st">"_iter"</span>, i, <span class="st">"_N"</span>, n)</span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Check if model exists? brms has 'file' arg, but update() logic is manual.</span></span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>        <span class="co"># We'll use update() with 'file' argument if possible, or save manually.</span></span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a>        <span class="co"># update() with file= writes the updated model to file.</span></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a>        <span class="co"># </span><span class="al">NOTE</span><span class="co">: update() with 'file' might assume the file contains the model to update FROM, </span></span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>        <span class="co"># or the location to save TO? brms::update usually just takes the object. </span></span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Actually brms::update returns a NEW object. If we want caching, we use 'file'.</span></span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a>        m_brms <span class="ot">&lt;-</span> <span class="fu">update</span>(brm_model, <span class="at">newdata =</span> curr_dat, </span>
+<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a>                         <span class="at">chains =</span> <span class="dv">2</span>, <span class="at">iter =</span> <span class="dv">2000</span>, </span>
+<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a>                         <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>,</span>
+<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a>                         <span class="at">file =</span> model_file) <span class="co"># Persist model!</span></span>
+<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Test trial_x = 0</span></span>
+<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a>        h_res <span class="ot">&lt;-</span> <span class="fu">try</span>(<span class="fu">hypothesis</span>(m_brms, <span class="st">"trial_x = 0"</span>), <span class="at">silent =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (<span class="sc">!</span><span class="fu">inherits</span>(h_res, <span class="st">"try-error"</span>)) {</span>
+<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a>             bf10_brms <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> h_res<span class="sc">$</span>hypothesis<span class="sc">$</span>Evid.Ratio</span>
+<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Decisions</span></span>
+<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span>stopped_p <span class="sc">&amp;&amp;</span> p_val <span class="sc">&lt;</span> <span class="fl">0.05</span>) stopped_p <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span>stopped_bf10 <span class="sc">&amp;&amp;</span> bf10 <span class="sc">&gt;</span> <span class="dv">10</span>) stopped_bf10 <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span>stopped_bf10_brms <span class="sc">&amp;&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(bf10_brms) <span class="sc">&amp;&amp;</span> bf10_brms <span class="sc">&gt;</span> <span class="dv">10</span>) stopped_bf10_brms <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a>      new_row <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>        <span class="at">sim_id =</span> i,</span>
+<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a>        <span class="at">check_n =</span> n,</span>
+<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a>        <span class="at">decision_p =</span> stopped_p,</span>
+<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>        <span class="at">decision_bf10 =</span> stopped_bf10,</span>
+<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a>        <span class="at">decision_bf10_brms =</span> stopped_bf10_brms</span>
+<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a>      iter_results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(iter_results, new_row)</span>
+<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Save IMMEDIATELY after each step</span></span>
+<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(iter_results, cache_file)</span>
+<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a>    results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results, iter_results)</span>
+<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results)</span>
+<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(results_cont_path)) {</span>
+<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>  cont_summary <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(results_cont_path)</span>
+<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Run 4 Simulation Conditions with brms template</span></span>
+<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a>  <span class="co"># We reuse the same template for all since the model FORMULA is the same (H1 model)</span></span>
+<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a>  <span class="co"># and we just update data.</span></span>
+<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a>  sim_cont_low_h0 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, </span>
+<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">cache_prefix =</span> <span class="st">"low_h0_brms"</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
+<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
+<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a>  sim_cont_low_h1 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.05</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, </span>
+<span id="cb8-183"><a href="#cb8-183" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">cache_prefix =</span> <span class="st">"low_h1_brms"</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
+<span id="cb8-184"><a href="#cb8-184" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect=0.05)"</span>)</span>
+<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-186"><a href="#cb8-186" aria-hidden="true" tabindex="-1"></a>  sim_cont_high_h0 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, </span>
+<span id="cb8-187"><a href="#cb8-187" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">cache_prefix =</span> <span class="st">"high_h0_brms"</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
+<span id="cb8-188"><a href="#cb8-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
+<span id="cb8-189"><a href="#cb8-189" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-190"><a href="#cb8-190" aria-hidden="true" tabindex="-1"></a>  sim_cont_high_h1 <span class="ot">&lt;-</span> <span class="fu">run_cont_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.05</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, </span>
+<span id="cb8-191"><a href="#cb8-191" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">cache_prefix =</span> <span class="st">"high_h1_brms"</span>, <span class="at">brm_model =</span> brm_template) <span class="sc">%&gt;%</span></span>
+<span id="cb8-192"><a href="#cb8-192" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect=0.05)"</span>)</span>
+<span id="cb8-193"><a href="#cb8-193" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-194"><a href="#cb8-194" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine</span></span>
+<span id="cb8-195"><a href="#cb8-195" aria-hidden="true" tabindex="-1"></a>  cont_data_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)</span>
+<span id="cb8-196"><a href="#cb8-196" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-197"><a href="#cb8-197" aria-hidden="true" tabindex="-1"></a>  cont_summary <span class="ot">&lt;-</span> cont_data_all <span class="sc">%&gt;%</span></span>
+<span id="cb8-198"><a href="#cb8-198" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Noise, Scenario, check_n) <span class="sc">%&gt;%</span></span>
+<span id="cb8-199"><a href="#cb8-199" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb8-200"><a href="#cb8-200" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_p =</span> <span class="fu">mean</span>(decision_p),</span>
+<span id="cb8-201"><a href="#cb8-201" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10 =</span> <span class="fu">mean</span>(decision_bf10),</span>
+<span id="cb8-202"><a href="#cb8-202" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10_brms =</span> <span class="fu">mean</span>(decision_bf10_brms),</span>
+<span id="cb8-203"><a href="#cb8-203" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb8-204"><a href="#cb8-204" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-205"><a href="#cb8-205" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>)</span>
+<span id="cb8-206"><a href="#cb8-206" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-207"><a href="#cb8-207" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(cont_summary, results_cont_path)</span>
+<span id="cb8-208"><a href="#cb8-208" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">exists</span>(<span class="st">"cont_summary"</span>)) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file.exists</span>(<span class="st">"cache/sim_cont_results.rds"</span>)) {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    cont_summary <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"cache/sim_cont_results.rds"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">"Continuous simulation results not found. Run previous chunk."</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 4-Panel Plot Helper</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plot_panel <span class="ot">&lt;-</span> <span class="cf">function</span>(data, title) {</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span> </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title=</span>title, <span class="at">x=</span><span class="cn">NULL</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">"none"</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"Low Noise (SD=0.2)"</span>, Scenario <span class="sc">==</span> <span class="st">"H0 (No Effect)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_panel</span>(<span class="st">"False Positives (Low Noise)"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"Low Noise (SD=0.2)"</span>, Scenario <span class="sc">==</span> <span class="st">"H1 (Effect=0.05)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_panel</span>(<span class="st">"Power (Low Noise)"</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"High Noise (SD=0.8)"</span>, Scenario <span class="sc">==</span> <span class="st">"H0 (No Effect)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_panel</span>(<span class="st">"False Positives (High Noise)"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"N"</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> cont_summary <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Noise <span class="sc">==</span> <span class="st">"High Noise (SD=0.8)"</span>, Scenario <span class="sc">==</span> <span class="st">"H1 (Effect=0.05)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_panel</span>(<span class="st">"Power (High Noise)"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"N"</span>)</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">+</span> p2) <span class="sc">/</span> (p3 <span class="sc">+</span> p4) <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> </span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"prop_p"</span><span class="ot">=</span><span class="st">"#E74C3C"</span>, <span class="st">"prop_bf10"</span><span class="ot">=</span><span class="st">"#2ECC71"</span>, <span class="st">"prop_bf10_brms"</span><span class="ot">=</span><span class="st">"#9B59B6"</span>),</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"prop_p"</span><span class="ot">=</span><span class="st">"P-Value &lt; .05"</span>, <span class="st">"prop_bf10"</span><span class="ot">=</span><span class="st">"BIC BF &gt; 10"</span>, <span class="st">"prop_bf10_brms"</span><span class="ot">=</span><span class="st">"brms BF &gt; 10"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="06_sequential_testing_cont_files/figure-html/sim-loop-error-cont-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_sequential_testing_cont_files/figure-html/lmm-cont-plot-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -1234,13 +1334,14 @@ window.Quarto = {
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy

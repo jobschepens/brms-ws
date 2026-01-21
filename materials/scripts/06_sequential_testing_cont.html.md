@@ -454,17 +454,42 @@ p_loo_unc_c <- ggplot(plot_loo_unc_c, aes(x = factor(N), y = gain, color = Prior
 :::
 
 
-# Part 3: Long-Run Operating Characteristics (Error vs Power)
-
-We now run a larger simulation (multiple iterations) to see the long-run False Positive Rate and Power for the continuous predictor case, comparing Standard P-values against Bayes Factors.
-
 
 ::: {.cell}
 
 ```{.r .cell-code}
+# Ensure cache directory exists
 library(lme4)
+library(brms)
+dir.create("cache", showWarnings = FALSE)
+results_cont_path <- "cache/sim_cont_results.rds"
+dir.create("models/cache_fits", recursive = TRUE, showWarnings = FALSE)
 
-run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cache_prefix = "sim_cont") {
+# Pre-compile a template model (Standard/Wide Prior) once to save C++ time
+# We use sample_prior="yes" for Savage-Dickey BF
+if (!file.exists("models/brm_template_cont.rds")) {
+  # Minimal data for template
+  tmp_dat <- tibble(subject=factor(1:2), item=factor(1:2), trial_x=c(-1,1), y=c(0,0))
+  prior_h1 <- c(
+    prior(normal(6, 0.5), class = Intercept),
+    prior(normal(0, 1.0), class = b, coef = "trial_x"), # Wide H1
+    prior(exponential(2), class = sd),
+    prior(exponential(2), class = sigma)
+  )
+  brm_template <- brm(
+    y ~ trial_x + (1|subject) + (1|item),
+    data = tmp_dat,
+    prior = prior_h1,
+    sample_prior = "yes",
+    chains = 2, iter = 2000,
+    file = "models/brm_template_cont",
+    silent = 2, refresh = 0, seed = 123
+  )
+} else {
+  brm_template <- readRDS("models/brm_template_cont.rds")
+}
+
+run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cache_prefix = "sim_cont", brm_model = NULL) {
   
   # Ensure cache dir exists
   dir.create("results_cont", showWarnings = FALSE)
@@ -475,136 +500,214 @@ run_cont_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, cac
     # File-based cache for THIS simulation iteration
     cache_file <- paste0("results_cont/", cache_prefix, "_iter", i, ".rds")
     
+    # 1. Load partial progress if exists
+    iter_results <- tibble()
     if (file.exists(cache_file)) {
-      results <- bind_rows(results, readRDS(cache_file))
-      next 
+      iter_results <- readRDS(cache_file)
     }
     
-    # 1. Generate full dataset for this iteration
-    # Max N = 100
-    dat_full <- generate_data_cont(n_subj = 100) # Uses default params unless overridden? No, need args.
-    # Refactor generate_data_cont slightly to accept args or assume structure
-    # Since existing generate_data_cont is fixed, we might need a local version or modify it? 
-    # Let's rely on modifying generate_data_cont slightly OR create a local one for safety.
-    # Local generator for this simulation section to avoid breaking Part 2:
-    
-    gen_local <- function(N, eff, err) {
-       expand_grid(subject=factor(1:N), item=factor(1:10), x=seq(-1,1,l=10)) %>%
-       mutate(y = 6 + rnorm(1,0,.15)[subject] + eff*x + rnorm(n(),0,err))
+    # 2. Determine pending checks
+    # If file exists but is incomplete, we resume.
+    done_n <- numeric(0)
+    if (nrow(iter_results) > 0) {
+      done_n <- unique(iter_results$check_n)
     }
     
-    dat_full <- expand_grid(subject=factor(1:100), item=factor(1:10), trial_x=seq(-1,1,length.out=10)) %>%
+    check_points <- seq(15, 60, by = 5)
+    points_to_run <- setdiff(check_points, done_n)
+    
+    if (length(points_to_run) == 0) {
+      # Already complete for this iteration
+      results <- bind_rows(results, iter_results)
+      next
+    }
+    
+    # 3. Generate Data (Fixed Seed/State for Reproducibility across resumes?)
+    # Generating full dataset 100% freshly might drift if set.seed isn't managed per iter.
+    # ideally we save the dataset too? Or imply robust reproducibility via seed?
+    # For now, we regenerate. Note: if reusing partial results, we MUST ensure the dataset 
+    # for the NEW steps is identical to the OLD steps.
+    # Quick Fix: Set seed based on iteration ID to guarantee consistency.
+    set.seed(999 + i) 
+    
+    n_param <- 100
+    dat_full <- expand_grid(subject=factor(1:n_param), item=factor(1:10), trial_x=seq(-1,1,length.out=10)) %>%
       group_by(subject) %>% mutate(subj_int = rnorm(1,0,0.15)) %>% ungroup() %>%
       mutate(y = 6 + subj_int + true_effect*trial_x + rnorm(n(), 0, noise_sd))
     
-    # Sequential Checks
-    check_points <- seq(20, 100, by = 10) # Check every 10 obs
-    
+    # Initialize stopping flags based on PREVIOUS partial results if strictly sequential
+    # If we stopped at N=30, we must carry that state.
     stopped_p <- FALSE
     stopped_bf10 <- FALSE
+    stopped_bf10_brms <- FALSE
     
-    iter_results <- tibble()
+    if(nrow(iter_results) > 0) {
+        stopped_p <- any(iter_results$decision_p)
+        stopped_bf10 <- any(iter_results$decision_bf10)
+        if("decision_bf10_brms" %in% names(iter_results)) {
+          stopped_bf10_brms <- any(iter_results$decision_bf10_brms, na.rm=TRUE)
+        }
+    }
     
-    for (n in check_points) {
+    points_to_run <- sort(points_to_run)
+    
+    for (n in points_to_run) {
       curr_dat <- dat_full %>% filter(as.numeric(subject) <= n)
       
-      # Optimization: Skip derivative calculation (only needed for SEs, not point est/likelihood)
+      # A. Fast Frequentist + BIC Approx
       ctrl <- lmerControl(calc.derivs = FALSE)
       
-      # A. Fast Frequentist + BIC Approx
       m1 <- suppressMessages(lmer(y ~ trial_x + (1 + trial_x|subject) + (1|item), 
                                 data = curr_dat, REML=FALSE, control = ctrl))
       m0 <- suppressMessages(lmer(y ~ 1 + (1 + trial_x|subject) + (1|item), 
                                 data = curr_dat, REML=FALSE, control = ctrl))
       
-      # Optimization: Calculate Stats directly from LogLik (faster than anova/BIC)
+      # Stats from LogLik
       ll1 <- as.numeric(logLik(m1))
       ll0 <- as.numeric(logLik(m0))
       df1 <- attr(logLik(m1), "df")
       df0 <- attr(logLik(m0), "df")
       
-      # LRT P-value
       chisq_val <- 2 * (ll1 - ll0)
       p_val <- pchisq(chisq_val, df = df1 - df0, lower.tail = FALSE)
       if(is.na(p_val)) p_val <- 1
       
-      # BIC Bayes Factor
-      # BIC = k*ln(n) - 2*ln(L)
-      # BF10 = exp( (BIC0 - BIC1) / 2 )
       n_obs <- nrow(curr_dat)
       bic1 <- df1 * log(n_obs) - 2 * ll1
       bic0 <- df0 * log(n_obs) - 2 * ll0
       bf10 <- exp((bic0 - bic1) / 2)
       
+      # B. brms (Full Bayesian)
+      bf10_brms <- NA # Default if fails
+      if (!is.null(brm_model)) {
+        
+        # Optimize: Store brms models to disk?
+        # User requested saving models. We can do it!
+        model_file <- paste0("models/cache_fits/", cache_prefix, "_iter", i, "_N", n)
+        
+        # Check if model exists? brms has 'file' arg, but update() logic is manual.
+        # We'll use update() with 'file' argument if possible, or save manually.
+        # update() with file= writes the updated model to file.
+        
+        # NOTE: update() with 'file' might assume the file contains the model to update FROM, 
+        # or the location to save TO? brms::update usually just takes the object. 
+        # Actually brms::update returns a NEW object. If we want caching, we use 'file'.
+        
+        m_brms <- update(brm_model, newdata = curr_dat, 
+                         chains = 2, iter = 2000, 
+                         silent = 2, refresh = 0,
+                         file = model_file) # Persist model!
+        
+        # Test trial_x = 0
+        h_res <- try(hypothesis(m_brms, "trial_x = 0"), silent = TRUE)
+        if (!inherits(h_res, "try-error")) {
+             bf10_brms <- 1 / h_res$hypothesis$Evid.Ratio
+        }
+      }
+      
       # Decisions
       if (!stopped_p && p_val < 0.05) stopped_p <- TRUE
       if (!stopped_bf10 && bf10 > 10) stopped_bf10 <- TRUE
+      if (!stopped_bf10_brms && !is.na(bf10_brms) && bf10_brms > 10) stopped_bf10_brms <- TRUE
       
-      iter_results <- bind_rows(iter_results, tibble(
+      new_row <- tibble(
         sim_id = i,
         check_n = n,
         decision_p = stopped_p,
-        decision_bf10 = stopped_bf10
-      ))
+        decision_bf10 = stopped_bf10,
+        decision_bf10_brms = stopped_bf10_brms
+      )
+      
+      iter_results <- bind_rows(iter_results, new_row)
+      
+      # Save IMMEDIATELY after each step
+      saveRDS(iter_results, cache_file)
     }
     
-    saveRDS(iter_results, cache_file)
     results <- bind_rows(results, iter_results)
   }
   return(results)
 }
 
-# Run 4 Simulation Conditions
-# 1. Low Noise H0
-sim_cont_low_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, cache_prefix = "low_h0") %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+if (file.exists(results_cont_path)) {
+  cont_summary <- readRDS(results_cont_path)
+} else {
+  # Run 4 Simulation Conditions with brms template
+  # We reuse the same template for all since the model FORMULA is the same (H1 model)
+  # and we just update data.
+  sim_cont_low_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, 
+                                         cache_prefix = "low_h0_brms", brm_model = brm_template) %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
+  
+  sim_cont_low_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.2, 
+                                         cache_prefix = "low_h1_brms", brm_model = brm_template) %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect=0.05)")
+  
+  sim_cont_high_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, 
+                                          cache_prefix = "high_h0_brms", brm_model = brm_template) %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
+  
+  sim_cont_high_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.8, 
+                                          cache_prefix = "high_h1_brms", brm_model = brm_template) %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect=0.05)")
+  
+  # Combine
+  cont_data_all <- bind_rows(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)
+  
+  cont_summary <- cont_data_all %>%
+    group_by(Noise, Scenario, check_n) %>%
+    summarise(
+      prop_p = mean(decision_p),
+      prop_bf10 = mean(decision_bf10),
+      prop_bf10_brms = mean(decision_bf10_brms),
+      .groups = "drop"
+    ) %>%
+    pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+  
+  saveRDS(cont_summary, results_cont_path)
+}
+```
+:::
 
-# 2. Low Noise H1
-sim_cont_low_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.2, cache_prefix = "low_h1") %>%
-  mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect=0.05)")
 
-# 3. High Noise H0
-sim_cont_high_h0 <- run_cont_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, cache_prefix = "high_h0") %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
 
-# 4. High Noise H1
-sim_cont_high_h1 <- run_cont_simulation(n_sim = 20, true_effect = 0.05, noise_sd = 0.8, cache_prefix = "high_h1") %>%
-  mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect=0.05)")
+::: {.cell}
 
-# Combine
-cont_data_all <- bind_rows(sim_cont_low_h0, sim_cont_low_h1, sim_cont_high_h0, sim_cont_high_h1)
+```{.r .cell-code}
+if (!exists("cont_summary")) {
+  if (file.exists("cache/sim_cont_results.rds")) {
+    cont_summary <- readRDS("cache/sim_cont_results.rds")
+  } else {
+    stop("Continuous simulation results not found. Run previous chunk.")
+  }
+}
 
-cont_summary <- cont_data_all %>%
-  group_by(Noise, Scenario, check_n) %>%
-  summarise(
-    prop_p = mean(decision_p),
-    prop_bf10 = mean(decision_bf10),
-    .groups = "drop"
-  ) %>%
-  pivot_longer(cols = starts_with("prop"), names_to = "Method", values_to = "Rate")
+# 4-Panel Plot Helper
+plot_panel <- function(data, title) {
+  ggplot(data, aes(x = check_n, y = Rate, color = Method)) + 
+    geom_line(size=1) + ylim(0,1) + 
+    labs(title=title, x=NULL) + theme(legend.position="none")
+}
 
-# 4-Panel Plot
 p1 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H0 (No Effect)") %>%
-  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
-  labs(title="False Positives (Low Noise)", x=NULL) + theme(legend.position="none")
+  plot_panel("False Positives (Low Noise)")
 
 p2 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H1 (Effect=0.05)") %>%
-  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
-  labs(title="Power (Low Noise)", x=NULL) + theme(legend.position="none")
+  plot_panel("Power (Low Noise)")
 
 p3 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H0 (No Effect)") %>%
-  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
-  labs(title="False Positives (High Noise)", x="N") + theme(legend.position="none")
+  plot_panel("False Positives (High Noise)") + labs(x="N")
 
 p4 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H1 (Effect=0.05)") %>%
-  ggplot(aes(x = check_n, y = Rate, color = Method)) + geom_line(size=1) + ylim(0,1) + 
-  labs(title="Power (High Noise)", x="N") + theme(legend.position="none")
+  plot_panel("Power (High Noise)") + labs(x="N")
 
-(p1 + p2) / (p3 + p4) + plot_layout(guides = "collect") & scale_color_manual(values = c("prop_p"="#E74C3C", "prop_bf10"="#2ECC71"))
+(p1 + p2) / (p3 + p4) + plot_layout(guides = "collect") & 
+  scale_color_manual(values = c("prop_p"="#E74C3C", "prop_bf10"="#2ECC71", "prop_bf10_brms"="#9B59B6"),
+                     labels = c("prop_p"="P-Value < .05", "prop_bf10"="BIC BF > 10", "prop_bf10_brms"="brms BF > 10"))
 ```
 
 ::: {.cell-output-display}
-![](06_sequential_testing_cont_files/figure-html/sim-loop-error-cont-1.png){width=672}
+![](06_sequential_testing_cont_files/figure-html/lmm-cont-plot-1.png){width=960}
 :::
 :::
 

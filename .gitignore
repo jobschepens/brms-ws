@@ -79,3 +79,4 @@ __pycache__/
 # But ignore any temporary model files
 *.rds.tmp
 materials/scripts/models/
+materials/scripts/results_cont/
