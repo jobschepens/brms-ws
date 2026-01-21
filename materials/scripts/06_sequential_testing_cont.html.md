@@ -670,6 +670,8 @@ if (file.exists(results_cont_path)) {
 :::
 
 
+## Simulation Results Visualization
+
 
 ::: {.cell}
 
@@ -684,9 +686,12 @@ if (!exists("cont_summary")) {
 
 # 4-Panel Plot Helper
 plot_panel <- function(data, title) {
-  ggplot(data, aes(x = check_n, y = Rate, color = Method)) + 
-    geom_line(size=1) + ylim(0,1) + 
-    labs(title=title, x=NULL) + theme(legend.position="none")
+  ggplot(data, aes(x = check_n, y = Rate, color = Method, group = Method)) + 
+    # Use position dodge to avoid overlap
+    geom_line(size = 1.2, position = position_dodge(width = 1.5), alpha = 0.8) + 
+    geom_point(size = 3, position = position_dodge(width = 1.5), alpha = 0.8) +
+    ylim(0, 1) + 
+    labs(title = title, x = NULL) 
 }
 
 p1 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H0 (No Effect)") %>%
@@ -696,18 +701,77 @@ p2 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H1 (Ef
   plot_panel("Power (Low Noise)")
 
 p3 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H0 (No Effect)") %>%
-  plot_panel("False Positives (High Noise)") + labs(x="N")
+  plot_panel("False Positives (High Noise)") + labs(x="Sample Size (N)")
 
 p4 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H1 (Effect=0.05)") %>%
-  plot_panel("Power (High Noise)") + labs(x="N")
+  plot_panel("Power (High Noise)") + labs(x="Sample Size (N)")
 
-(p1 + p2) / (p3 + p4) + plot_layout(guides = "collect") & 
+(p1 + p2) / (p3 + p4) + 
+  plot_layout(guides = "collect") & 
   scale_color_manual(values = c("prop_p"="#E74C3C", "prop_bf10"="#2ECC71", "prop_bf10_brms"="#9B59B6"),
-                     labels = c("prop_p"="P-Value < .05", "prop_bf10"="BIC BF > 10", "prop_bf10_brms"="brms BF > 10"))
+                     labels = c("prop_p"="P-Value < .05", "prop_bf10"="BIC BF > 10", "prop_bf10_brms"="brms BF > 10")) &
+  theme(legend.position = "bottom")
 ```
 
 ::: {.cell-output-display}
-![](06_sequential_testing_cont_files/figure-html/lmm-cont-plot-1.png){width=960}
+![](06_sequential_testing_cont_files/figure-html/lmm-cont-plot-1.png){width=1152}
+:::
+:::
+
+
+## Simulation Results Table
+
+
+::: {.cell}
+::: {.cell-output-display}
+
+
+Table: Sequential Testing Results: Continuous Predictor Simulation
+
+|Noise               |Scenario         | check_n|P-Value (<.05) |Bayes Factor (BIC) > 10 |Bayes Factor (brms) > 10 |
+|:-------------------|:----------------|-------:|:--------------|:-----------------------|:------------------------|
+|High Noise (SD=0.8) |H0 (No Effect)   |      15|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      20|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      25|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      30|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      35|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      40|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      45|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      50|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      55|15.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)   |      60|15.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      15|40.0%          |5.0%                    |10.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      20|55.0%          |5.0%                    |10.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      25|60.0%          |5.0%                    |10.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      30|60.0%          |10.0%                   |15.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      35|70.0%          |10.0%                   |15.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      40|75.0%          |10.0%                   |20.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      45|75.0%          |10.0%                   |20.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      50|75.0%          |10.0%                   |30.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      55|75.0%          |20.0%                   |35.0%                    |
+|High Noise (SD=0.8) |H1 (Effect=0.05) |      60|75.0%          |25.0%                   |45.0%                    |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      15|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      20|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      25|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      30|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      35|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      40|5.0%           |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      45|10.0%          |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      50|10.0%          |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      55|15.0%          |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)   |      60|15.0%          |0.0%                    |0.0%                     |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      15|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      20|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      25|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      30|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      35|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      40|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      45|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      50|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      55|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect=0.05) |      60|100.0%         |100.0%                  |100.0%                   |
+
+
 :::
 :::
 

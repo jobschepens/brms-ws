@@ -905,20 +905,27 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
   results <- tibble()
   
   for (i in 1:n_sim) {
+    # Set seed per iteration for reproducibility
+    set.seed(999 + i)
+    
     # Data Generation Parameters
     n_param <- 80 # Max subjects
     n_item <- 20
     
     # 1. Generate FULL dataset once (to ensure consistent Subject/Item effects)
+    # Use group_by approach to ensure one effect per subject/item
     dat_full <- expand_grid(
       subject = factor(1:n_param),
       item = factor(1:n_item),
       condition = factor(c("A", "B"))
     ) %>%
+      group_by(subject) %>%
+      mutate(subj_int = rnorm(1, 0, 0.15)) %>%
+      ungroup() %>%
+      group_by(item) %>%
+      mutate(item_int = rnorm(1, 0, 0.1)) %>%
+      ungroup() %>%
       mutate(
-        # Random Effects
-        subj_int = rep(rnorm(n_param, 0, 0.15), each = n_item * 2),
-        item_int = rep(rnorm(n_item, 0, 0.1), times = n_param * 2), # approx
         # Noise
         err = rnorm(n(), 0, noise_sd),
         # Effect
@@ -1076,6 +1083,63 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
 
 ::: {.cell-output-display}
 ![](06_sequential_testing_files/figure-html/lmm-stopping-plot-1.png){width=960}
+:::
+:::
+
+
+## Simulation Results Table
+
+
+::: {.cell}
+::: {.cell-output-display}
+
+
+Table: Sequential Testing Results: Binary Condition Simulation
+
+|Noise               |Scenario           | check_n|P-Value (<.05) |Bayes Factor (BIC) > 10 |Bayes Factor (brms) > 10 |
+|:-------------------|:------------------|-------:|:--------------|:-----------------------|:------------------------|
+|High Noise (SD=0.8) |H0 (No Effect)     |      15|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      20|5.0%           |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      25|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      30|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      35|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      40|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      45|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      50|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      55|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H0 (No Effect)     |      60|10.0%          |0.0%                    |0.0%                     |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      15|75.0%          |20.0%                   |20.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      20|90.0%          |30.0%                   |35.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      25|95.0%          |35.0%                   |40.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      30|95.0%          |45.0%                   |50.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      35|95.0%          |55.0%                   |65.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      40|95.0%          |65.0%                   |85.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      45|95.0%          |75.0%                   |85.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      50|95.0%          |75.0%                   |85.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      55|95.0%          |85.0%                   |85.0%                    |
+|High Noise (SD=0.8) |H1 (Effect d=0.15) |      60|100.0%         |90.0%                   |85.0%                    |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      15|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      20|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      25|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      30|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      35|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      40|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      45|20.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      50|25.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      55|25.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H0 (No Effect)     |      60|25.0%          |0.0%                    |5.0%                     |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      15|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      20|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      25|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      30|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      35|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      40|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      45|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      50|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      55|100.0%         |100.0%                  |100.0%                   |
+|Low Noise (SD=0.2)  |H1 (Effect d=0.15) |      60|100.0%         |100.0%                  |100.0%                   |
+
+
 :::
 :::
 

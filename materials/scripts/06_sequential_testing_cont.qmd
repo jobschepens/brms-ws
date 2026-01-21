@@ -603,10 +603,12 @@ if (file.exists(results_cont_path)) {
 }
 ```
 
+## Simulation Results Visualization
+
 ```{r}
 #| label: lmm-cont-plot
-#| fig.width: 10
-#| fig.height: 8
+#| fig.width: 12
+#| fig.height: 10
 
 if (!exists("cont_summary")) {
   if (file.exists("cache/sim_cont_results.rds")) {
@@ -618,9 +620,12 @@ if (!exists("cont_summary")) {
 
 # 4-Panel Plot Helper
 plot_panel <- function(data, title) {
-  ggplot(data, aes(x = check_n, y = Rate, color = Method)) + 
-    geom_line(size=1) + ylim(0,1) + 
-    labs(title=title, x=NULL) + theme(legend.position="none")
+  ggplot(data, aes(x = check_n, y = Rate, color = Method, group = Method)) + 
+    # Use position dodge to avoid overlap
+    geom_line(size = 1.2, position = position_dodge(width = 1.5), alpha = 0.8) + 
+    geom_point(size = 3, position = position_dodge(width = 1.5), alpha = 0.8) +
+    ylim(0, 1) + 
+    labs(title = title, x = NULL) 
 }
 
 p1 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H0 (No Effect)") %>%
@@ -630,12 +635,31 @@ p2 <- cont_summary %>% filter(Noise == "Low Noise (SD=0.2)", Scenario == "H1 (Ef
   plot_panel("Power (Low Noise)")
 
 p3 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H0 (No Effect)") %>%
-  plot_panel("False Positives (High Noise)") + labs(x="N")
+  plot_panel("False Positives (High Noise)") + labs(x="Sample Size (N)")
 
 p4 <- cont_summary %>% filter(Noise == "High Noise (SD=0.8)", Scenario == "H1 (Effect=0.05)") %>%
-  plot_panel("Power (High Noise)") + labs(x="N")
+  plot_panel("Power (High Noise)") + labs(x="Sample Size (N)")
 
-(p1 + p2) / (p3 + p4) + plot_layout(guides = "collect") & 
+(p1 + p2) / (p3 + p4) + 
+  plot_layout(guides = "collect") & 
   scale_color_manual(values = c("prop_p"="#E74C3C", "prop_bf10"="#2ECC71", "prop_bf10_brms"="#9B59B6"),
-                     labels = c("prop_p"="P-Value < .05", "prop_bf10"="BIC BF > 10", "prop_bf10_brms"="brms BF > 10"))
+                     labels = c("prop_p"="P-Value < .05", "prop_bf10"="BIC BF > 10", "prop_bf10_brms"="brms BF > 10")) &
+  theme(legend.position = "bottom")
+```
+
+## Simulation Results Table
+
+```{r}
+#| label: results-table-cont-sim
+#| echo: false
+
+cont_summary %>%
+  pivot_wider(names_from = Method, values_from = Rate) %>%
+  mutate(across(starts_with("prop"), ~ sprintf("%.1f%%", .x * 100))) %>%
+  rename(
+    `P-Value (<.05)` = prop_p,
+    `Bayes Factor (BIC) > 10` = prop_bf10,
+    `Bayes Factor (brms) > 10` = prop_bf10_brms
+  ) %>%
+  knitr::kable(caption = "Sequential Testing Results: Continuous Predictor Simulation")
 ```

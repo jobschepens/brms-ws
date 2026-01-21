@@ -834,20 +834,27 @@ run_lmm_simulation <- function(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_
   results <- tibble()
   
   for (i in 1:n_sim) {
+    # Set seed per iteration for reproducibility
+    set.seed(999 + i)
+    
     # Data Generation Parameters
     n_param <- 80 # Max subjects
     n_item <- 20
     
     # 1. Generate FULL dataset once (to ensure consistent Subject/Item effects)
+    # Use group_by approach to ensure one effect per subject/item
     dat_full <- expand_grid(
       subject = factor(1:n_param),
       item = factor(1:n_item),
       condition = factor(c("A", "B"))
     ) %>%
+      group_by(subject) %>%
+      mutate(subj_int = rnorm(1, 0, 0.15)) %>%
+      ungroup() %>%
+      group_by(item) %>%
+      mutate(item_int = rnorm(1, 0, 0.1)) %>%
+      ungroup() %>%
       mutate(
-        # Random Effects
-        subj_int = rep(rnorm(n_param, 0, 0.15), each = n_item * 2),
-        item_int = rep(rnorm(n_item, 0, 0.1), times = n_param * 2), # approx
         # Noise
         err = rnorm(n(), 0, noise_sd),
         # Effect
@@ -1000,5 +1007,22 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
 (p1 + p2) / (p3 + p4) + 
   plot_layout(guides = "collect") & 
   theme(legend.position = "bottom")
+```
+
+## Simulation Results Table
+
+```{r}
+#| label: results-table-sim-1
+#| echo: false
+
+lmm_summary_all %>%
+  pivot_wider(names_from = Method, values_from = Rate) %>%
+  mutate(across(starts_with("prop"), ~ sprintf("%.1f%%", .x * 100))) %>%
+  rename(
+    `P-Value (<.05)` = prop_p,
+    `Bayes Factor (BIC) > 10` = prop_bf10,
+    `Bayes Factor (brms) > 10` = prop_bf10_brms
+  ) %>%
+  knitr::kable(caption = "Sequential Testing Results: Binary Condition Simulation")
 ```
 
