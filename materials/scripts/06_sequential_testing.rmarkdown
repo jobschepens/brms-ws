@@ -1027,3 +1027,4 @@ lmm_summary_all %>%
   knitr::kable(caption = "Sequential Testing Results: Binary Condition Simulation")
 ```
 
+
