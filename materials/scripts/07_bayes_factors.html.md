@@ -55,19 +55,14 @@ This is where **Bayes Factors** come in.
 | Approach | Question | Output | Focus |
 |----------|----------|--------|-------|
 | **ROPE** (Module 06) | "Is the effect meaningful?" | Accept/Reject/Undecided | Practical significance |
-| **emmeans** (Module 06) | "What are all pairwise differences?" | All comparisons, EMMs | Factorial designs |
-| **marginaleffects** (Module 06) | "What's the effect at X?" | Predictions, contrasts | Flexible estimation |
 | **Bayes Factor** (Module 07) | "Which hypothesis is better?" | Evidence ratio (e.g., 10:1) | Hypothesis comparison |
 
 **Key insight**: These are complementary, not competing!
 
 - Use ROPE when you care about **practical significance**
-- Use emmeans/marginaleffects for **effect estimation** in complex designs
 - Use Bayes Factors when comparing **competing hypotheses/theories**
 
-## Preview: Our Tools
-
-Today we'll learn:
+## Today
 
 1. **`hypothesis()` function**: Compute Bayes Factors for parameter constraints
    - Uses Savage-Dickey density ratio method
@@ -135,17 +130,19 @@ These three approaches address different aspects of model evaluation:
 - Use **ROPE** for decision-making when **practical significance** matters
 - Use **all three together** for a complete analysis!
 
+::: {.callout-note collapse="true"}
 ## The Mathematical Relationship: Can These Approaches Be "Reverse Engineered"?
 
 Recent research has explored the mathematical relationships between **Bayes Factors, HDI-ROPE, and frequentist equivalence tests (TOST)**.
 
-**Important note**: LOO is NOT part of this discussion because it addresses a fundamentally different question:
+**Note**: LOO is NOT part of this discussion because it addresses a fundamentally different question:
+
 - **LOO**: Predictive accuracy (out-of-sample performance)
 - **BF/ROPE/TOST**: Evidence for hypotheses (in-sample inference about parameters)
 
 These are complementary, not competing. The "reverse engineering" debate concerns only methods testing the same hypothesis (equivalence/existence) using different frameworks.
 
-### Key Finding from Campbell & Gustafson (2022)
+### Campbell & Gustafson (2022)
 
 **"The Bayes Factor, HDI-ROPE, and Frequentist Equivalence Tests Can All Be Reverse Engineered"**
 
@@ -161,7 +158,7 @@ Campbell and Gustafson (2022) redid the simulation study of Linde et al. (2021) 
 
 4. **Empirical comparison is futile**: "Trying to use empirical performance to argue for one approach over another seems like tilting at windmills."
 
-### Key Finding from Linde et al. (2023)
+### Linde et al. (2023)
 
 **"Decisions about Equivalence: A Comparison of TOST, HDI-ROPE, and the Bayes Factor"**
 
@@ -182,7 +179,7 @@ Linde et al. (2023) conducted an extensive simulation comparing operating charac
 
 ### Practical Implications for Your Analysis
 
-**What this means for you:**
+**What this means:**
 
 1. **Don't agonize over method choice (for equivalence testing)**: If calibrated properly, BF and ROPE give similar conclusions. Choose based on your philosophical stance and audience.
 
@@ -200,11 +197,6 @@ Linde et al. (2023) conducted an extensive simulation comparing operating charac
    - **Decision-focused** → Use ROPE for accept/reject framework
    - **Mixed audience** → Report both
 
-5. **Don't forget LOO!** While BF/ROPE address "evidence for effect," LOO addresses "predictive accuracy":
-   - Use **LOO** when comparing different model structures (e.g., random slopes vs. intercepts)
-   - Use **BF/ROPE** when testing specific hypotheses (e.g., is effect = 0?)
-   - **Both together**: Complete picture of model quality
-
 **Example of integrated reporting:**
 
 > "We compared models using both LOO (predictive accuracy) and Bayes Factors (evidence). The random slopes model showed better predictive performance (ΔELPD = 12.3, SE = 4.2) and strong evidence for the complexity effect (BF₁₀ = 24.5). The 95% HDI [0.08, 0.15] fell entirely outside our ROPE of ±0.03, indicating the effect is predictively useful, evidentially supported, and practically meaningful."
@@ -214,6 +206,7 @@ This gives:
 - **Evidence strength** (BF = 24.5)
 - **Practical significance** (HDI outside ROPE)
 - **Effect size** (HDI: [0.08, 0.15])
+:::
 
 # The Savage-Dickey Density Ratio Method (brms's hypothesis())
 
@@ -493,9 +486,12 @@ Star: *
 
 - **Estimate**: Complex sentences are 0.12 log-units slower
 - **95% CI**: [-0.13, -0.10] (doesn't include 0)
-- **Evid.Ratio**: 0.00 means BF₀₁ = 0.00, so BF₁₀ = 1/0.00 = 33159141258179512336201547776
-- **Conclusion**: Data are **33159141258179512336201547776 times more likely** under H₁ (effect exists) than H₀ (no effect)
-- This is **very strong evidence** for a complexity effect
+- **Evid.Ratio ($BF_{01}$)**: The output `Evid.Ratio` for a point null test ("= 0") represents the **Bayes Factor for the Null**.
+  - Value: 0.0000
+  - **What "0.00" means**: The posterior density at the null value (0) is vanishingly small compared to the prior density. The model is effectively certain the effect is not 0.
+- **Bayes Factor ($BF_{10}$)**: To get evidence **for the effect**, we take the inverse ($1 / BF_{01}$):
+  - $BF_{10} = 1 / 0.00000 \approx 3.32e+28$
+- **Conclusion**: The data provide **decisive evidence** for a complexity effect ($H_1$) over the null hypothesis ($H_0$).
 
 ### Directional Test
 
@@ -1603,6 +1599,27 @@ the effect was both statistically credible and practically meaningful.
 Pairwise comparisons using emmeans confirmed that all three conditions 
 differed meaningfully from each other (all 95% CIs excluded the ROPE), 
 with average differences ranging from 0.08 to 0.15 log-units.
+```
+
+```markdown
+### Reading Time Analysis [2, Negligible Effects]
+
+Native speakers showed numerically slightly lower reading times than L2 speakers, 
+but this difference was negligible ($\beta = -0.01$, 95\% CI: [-0.03, 0.00]). 
+
+There was substantial evidence **against** an effect of Group (BF$_{01}$ = 7.16), 
+indicating the data were approximately 7 times more likely under the null hypothesis 
+of no difference than under the hypothesis of an effect.
+
+Using a ROPE of $\pm 0.05$ (practical significance threshold), we found that 
+100\% of the posterior distribution for the Group effect fell inside the ROPE. 
+Given that the entire 95\% credible interval is contained within the region of 
+practical equivalence, we accept the null hypothesis for practical purposes.
+
+Similarly, regarding the interaction between Group and Clause Type, the data 
+provided strong evidence for the null hypothesis (BF$_{01}$ = 13.4). The estimated 
+interaction effect was -0.01, and 100\% of the posterior distribution fell within the ROPE, 
+confirming that native and L2 speakers were influenced by clause type in a practically equivalent manner.
 ```
 
 ## Common Pitfalls to Avoid
