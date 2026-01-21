@@ -932,20 +932,20 @@ if (file.exists(results_path)) {
   lmm_summary_all <- readRDS(results_path)
 } else {
   # Run Simulations (4 Conditions)
-  # Reduced effect size to 0.10 for better differentiation between methods
+  # Reduced effect size to 0.06 for better differentiation between methods
   set.seed(999)
   
   # 1. LOW NOISE (SD = 0.2)
-  sim_low_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h0") %>%
+  sim_low_h0 <- run_lmm_simulation(n_sim = 50, true_effect = 0, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h0") %>%
     mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H0 (No Effect)")
-  sim_low_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.10, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h1") %>%
-    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.10)")
+  sim_low_h1 <- run_lmm_simulation(n_sim = 50, true_effect = 0.06, noise_sd = 0.2, brm_model = brm_template, sim_prefix="low_h1") %>%
+    mutate(Noise = "Low Noise (SD=0.2)", Scenario = "H1 (Effect d=0.06)")
   
   # 2. HIGH NOISE (SD = 0.8)
-  sim_high_h0 <- run_lmm_simulation(n_sim = 20, true_effect = 0, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h0") %>%
+  sim_high_h0 <- run_lmm_simulation(n_sim = 50, true_effect = 0, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h0") %>%
     mutate(Noise = "High Noise (SD=0.8)", Scenario = "H0 (No Effect)")
-  sim_high_h1 <- run_lmm_simulation(n_sim = 20, true_effect = 0.10, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h1") %>%
-    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.10)")
+  sim_high_h1 <- run_lmm_simulation(n_sim = 50, true_effect = 0.06, noise_sd = 0.8, brm_model = brm_template, sim_prefix="high_h1") %>%
+    mutate(Noise = "High Noise (SD=0.8)", Scenario = "H1 (Effect d=0.06)")
   
   # Combine & Summarize
   lmm_data_all <- bind_rows(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)
@@ -966,6 +966,7 @@ if (file.exists(results_path)) {
 
 ```{r}
 #| label: lmm-stopping-plot
+#| cache: false
 #| fig.width: 10
 #| fig.height: 8
 
@@ -982,10 +983,10 @@ if (!exists("lmm_summary_all")) {
 plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {
   data %>%
     filter(Noise == noise_filter, Scenario == scenario_filter) %>%
-    ggplot(aes(x = check_n, y = Rate, color = Method)) +
+    ggplot(aes(x = check_n, y = Rate, color = Method, group = Method)) +
     geom_hline(yintercept = 0.05, linetype = "dashed", color = "gray50") +
-    geom_line(size = 1.2) +
-    geom_point(size = 3) +
+    geom_line(size = 1.2, position = position_dodge(width = 1)) +
+    geom_point(size = 3, position = position_dodge(width = 1)) +
     labs(
       title = title_text,
       subtitle = paste(noise_filter),
@@ -1000,9 +1001,9 @@ plot_sim_panel <- function(data, noise_filter, scenario_filter, title_text) {
 
 # Create 4 Panels
 p1 <- plot_sim_panel(lmm_summary_all, "Low Noise (SD=0.2)", "H0 (No Effect)", "False Positives (H0)")
-p2 <- plot_sim_panel(lmm_summary_all, "Low Noise (SD=0.2)", "H1 (Effect d=0.15)", "Power (H1)")
+p2 <- plot_sim_panel(lmm_summary_all, "Low Noise (SD=0.2)", "H1 (Effect d=0.06)", "Power (H1)")
 p3 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H0 (No Effect)", "False Positives (H0)")
-p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)", "Power (H1)")
+p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.06)", "Power (H1)")
 
 # Assemble 2x2 Grid
 (p1 + p2) / (p3 + p4) + 
@@ -1015,6 +1016,7 @@ p4 <- plot_sim_panel(lmm_summary_all, "High Noise (SD=0.8)", "H1 (Effect d=0.15)
 ```{r}
 #| label: results-table-sim-1
 #| echo: false
+#| cache: false
 
 lmm_summary_all %>%
   pivot_wider(names_from = Method, values_from = Rate) %>%
