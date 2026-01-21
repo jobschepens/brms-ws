@@ -110,21 +110,23 @@ View the rendered tutorials directly in your browser:
   - Estimated marginal means for factorial designs
   - Flexible predictions and comparisons
   - Integration of practical significance testing
+- [**06_sequential_testing.html**](https://jobschepens.github.io/brms-ws/06_sequential_testing.html) — Sequential Testing: ROPE vs Bayes Factor vs LOO
+- [**06_sequential_testing_cont.html**](https://jobschepens.github.io/brms-ws/06_sequential_testing_cont.html) — Sequential Testing: ROPE vs Bayes Factor vs LOO (Continuous)
 
-<!-- #### Module 7: Bayes Factors and Hypothesis Testing -->
-<!-- - [**07_bayes_factors.html**](https://jobschepens.github.io/brms-ws/07_bayes_factors.html) — Hypothesis Testing with Bayes Factors -->
-<!--   - Savage-Dickey density ratio method -->
-<!--   - Bridge sampling for model comparison -->
-<!--   - Evidence quantification and interpretation -->
-<!--   - Comparison with ROPE approach -->
+#### Module 7: Bayes Factors and Hypothesis Testing
+- [**07_bayes_factors.html**](https://jobschepens.github.io/brms-ws/07_bayes_factors.html) — Hypothesis Testing with Bayes Factors
+  - Savage-Dickey density ratio method
+  - Bridge sampling for model comparison
+  - Evidence quantification and interpretation
+  - Comparison with ROPE approach
 
-<!-- #### Module 8: Convergence Diagnostics -->
-<!-- - [**08_convergence.html**](https://jobschepens.github.io/brms-ws/08_convergence.html) — MCMC Convergence Diagnostics -->
-<!--   - Trace plots and visual inspection -->
-<!--   - R-hat and effective sample size (ESS) -->
-<!--   - Autocorrelation analysis -->
-<!--   - Troubleshooting convergence issues -->
-<!--   - Iteration doubling tests -->
+#### Module 8: Convergence Diagnostics [Under Construction]
+- [**08_convergence.html**](https://jobschepens.github.io/brms-ws/08_convergence.html) — MCMC Convergence Diagnostics
+  - Trace plots and visual inspection
+  - R-hat and effective sample size (ESS)
+  - Autocorrelation analysis
+  - Troubleshooting convergence issues
+  - Iteration doubling tests
 
 ### Workshop Notebooks
 
