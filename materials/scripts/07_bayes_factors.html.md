@@ -489,6 +489,8 @@ Star: *
 - **Evid.Ratio ($BF_{01}$)**: The output `Evid.Ratio` for a point null test ("= 0") represents the **Bayes Factor for the Null**.
   - Value: 0.0000
   - **What "0.00" means**: The posterior density at the null value (0) is vanishingly small compared to the prior density. The model is effectively certain the effect is not 0.
+- **Post.Prob**: The probability that the hypothesis ($H_0$) is true, assuming prior odds of 1. A value of `0.00` confirms $H_0$ is extremely unlikely.
+- **Star (*)**: A visual indicator that zero is outside the 95% Credible Interval (statistically credible difference).
 - **Bayes Factor ($BF_{10}$)**: To get evidence **for the effect**, we take the inverse ($1 / BF_{01}$):
   - $BF_{10} = 1 / 0.00000 \approx 3.32e+28$
 - **Conclusion**: The data provide **decisive evidence** for a complexity effect ($H_1$) over the null hypothesis ($H_0$).
@@ -523,6 +525,13 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 :::
 :::
 
+
+**Interpretation:**
+
+- **Estimate**: 0.12 (log-units)
+- **Post.Prob**: 1.00 (1.00) means we are 100% certain the effect is negative ($< 0$).
+- **Evid.Ratio ($BF_{10}$)**: For directional tests, the ratio is usually $P(H_1)/P(H_0)$. Infinite evidence here confirms the direction is robust.
+- **Conclusion**: The data provide **extreme evidence** that the effect is negative.
 
 **Why directional tests?**
 
@@ -627,11 +636,19 @@ groupNative |     40.97 %
 :::
 
 
+**Interpretation:**
+
+- **Estimate**: Native speakers are 0.25 log-odds (ns) different.
+- **Evid.Ratio ($BF_{01}$)**: 1.16 (1.16).
+  - This means the Null Hypothesis ($H_0$: No difference) is **1.16 times more likely** than the Alternative.
+- **Bayes Factor ($BF_{10}$)**: $1 / 1.16 = 0.86$.
+- **Conclusion**: We have **anecdotal evidence for the Null** (or "No Evidence"). The data are ambiguous; we cannot distinguish between the groups.
+
 **Integrated interpretation:**
 
-- **Bayes Factor**: Quantifies evidence for difference
-- **ROPE**: Checks if difference is meaningful
-- **Both together**: Complete picture
+- **Bayes Factor**: Quantifies evidence for difference (Ambiguous/Null preference: $BF_{01} = 1.16$)
+- **ROPE**: Checks if difference is meaningful (41% inside ROPE → Undecided)
+- **Both together**: We don't have enough data to claim a difference, nor enough to claim they are practically equivalent. **Collect more data.**
 
 ## Example 3: Complex Contrasts
 
@@ -774,6 +791,20 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 :::
 
 
+**Interpretation (Interaction):**
+
+- **Hypothesis**: `groupNative:conditionB = 0`
+- **Evid.Ratio ($BF_{01}$)**: `0.57`.
+- **Bayes Factor ($BF_{10}$)**: $1 / 0.57 = 1.75$.
+- **Conclusion**: **Anecdotal/Weak evidence** for the interaction ($BF_{10} = 1.75$). We suspect an interaction, but the evidence is not strong (< 3).
+
+**Interpretation (Custom Hypothesis):**
+
+- **Hypothesis**: `groupNative:conditionB = 2 * conditionB`
+- **Evid.Ratio ($BF_{01}$)**: `0.02`.
+- **Bayes Factor ($BF_{10}$)**: $1 / 0.02 = 50$.
+- **Conclusion**: **Very strong evidence** ($BF_{10} = 50$) that the Native group's effect is *not* exactly double the L2 effect (or vice versa, depending on formulation). The specific constraint is rejected.
+
 **Advanced hypothesis testing:**
 
 - Test interaction terms directly
@@ -803,6 +834,22 @@ hypothesis(model_with_prior, "b = 0")  # Works!
 **Performance note:** This adds minimal computational cost (~5% overhead).
 
 # Interpreting Bayes Factors
+
+::: {.callout-tip}
+## How to Read the Subscripts
+
+The subscripts tell you the **direction** of the comparison:
+
+- **$BF_{10}$** ("1 over 0"): Evidence for **$H_1$** (Alternative) vs. $H_0$ (Null).
+  - $BF_{10} = 10$ means data are 10x more likely under $H_1$.
+- **$BF_{01}$** ("0 over 1"): Evidence for **$H_0$** (Null) vs. $H_1$ (Alternative).
+  - $BF_{01} = 10$ means data are 10x more likely under $H_0$.
+
+**They are reciprocals!**
+$$BF_{10} = \frac{1}{BF_{01}}$$
+
+If $BF_{01} = 5$ (strong evidence for Null), then $BF_{10} = 1/5 = 0.2$ (weak evidence for Alternative).
+:::
 
 ## Bayes Factor Scales
 
@@ -1160,13 +1207,16 @@ Estimated Bayes factor in favor of x1 over x2: 0.50648
 
 **Interpretation:**
 
-```
-Estimated Bayes factor in favor of ml_rs over ml_ri: 3.45
-```
 
-- BF = 3.45 → Moderate evidence for random slopes model
-- Random slopes provide better explanation of data
-- But: Also check LOO (Module 05) for predictive accuracy!
+::: {.cell}
+
+:::
+
+
+- **Bayes Factor ($BF_{RS, RI}$)**: 0.51
+- **Conclusion**: The data provide evidence **in favor of the random intercepts (RI) model** by a factor of 1.97.
+  - Since we simulated data *without* random slopes (Example 1 data), the Bayes Factor correctly penalizes the extra complexity of the RS model.
+  - This demonstrates the **Occam's Razor** property of Bayes Factors: simpler models are preferred unless the data demand complexity.
 
 ## Critical Detail: `save_pars = save_pars(all = TRUE)`
 
@@ -1288,10 +1338,35 @@ print(bf_table)
 
 **2. Check convergence:**
 
-```r
+
+::: {.cell}
+
+```{.r .cell-code}
 # Bridge sampling has its own convergence diagnostic
-print(ml_ri)  # Look for "relative mean-squared error" (should be small)
+print(ml_ri)  # Shows estimate & iterations
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Bridge sampling estimate of the log marginal likelihood: 262.7853
+Estimate obtained in 7 iteration(s) via method "normal".
+```
+
+
+:::
+
+```{.r .cell-code}
+# For error percentage: error_measures(ml_ri)
+```
+:::
+
+
+**Interpretation:**
+
+- **Log Marginal Likelihood**: The model's "evidence score" (e.g., `262.78`). Higher (less negative/more positive) is better.
+- **Iterations**: "Estimate obtained in 7 iteration(s)". A small number of iterations (e.g., < 10) indicates the warp-3 bridge sampler converged quickly and stably.
+
 
 **3. Combine with LOO:**
 
@@ -1339,13 +1414,13 @@ plot(hypothesis(model, "x = 0"))
 
 ## Decision Matrix
 
-| Bayes Factor | ROPE Result (Module 06) | Interpretation |
-|--------------|-------------------------|----------------|
-| BF₁₀ > 10 | Outside ROPE | **Strong evidence for meaningful effect** ✅ |
-| BF₁₀ > 10 | Inside ROPE | Effect exists but too small to matter ⚠️ |
-| BF₁₀ 1-10 | Outside ROPE | Meaningful effect but moderate evidence |
-| BF₀₁ > 10 | Inside ROPE | **Strong evidence effect is negligible** ✅ |
-| BF ≈ 1 | Overlaps ROPE | **Undecided - collect more data** 📊 |
+| Bayes Factor | ROPE Result (Module 06) | Interpretation | Example Scenario |
+|--------------|-------------------------|----------------|------------------|
+| BF₁₀ > 10 | Outside ROPE | **Strong evidence for meaningful effect** ✅ | Large, robust treatment effect |
+| BF₁₀ > 10 | Inside ROPE | **Effect exists but too small to matter** ⚠️ | Tiny but real difference |
+| BF₁₀ 1-10 | Outside ROPE | **Meaningful effect but moderate evidence** | Visible but noisy data |
+| BF₀₁ > 10 | Inside ROPE | **Strong evidence effect is negligible** ✅ | Two groups are identical |
+| BF ≈ 1 | Overlaps ROPE | **Undecided - collect more data** 📊 | Too much measurement noise |
 
 **How to use this table:**
 
@@ -1730,24 +1805,40 @@ Unlike frequentist p-values, Bayes Factors do **not** suffer from multiple testi
 # You can check BF as data accumulate
 # Example: Collect data in batches
 
-data_batch1 <- data[1:500, ]
-data_batch2 <- data[1:1000, ]
-data_batch3 <- data[1:1500, ]
+# (Hypothetical code - commented out for speed)
+# data_batch1 <- data[1:500, ]
+# data_batch2 <- data[1:1000, ]
+# data_batch3 <- data[1:1500, ]
 
-model_batch1 <- brm(..., data = data_batch1)
-model_batch2 <- brm(..., data = data_batch2)
-model_batch3 <- brm(..., data = data_batch3)
+# model_batch1 <- brm(..., data = data_batch1)
+# model_batch2 <- brm(..., data = data_batch2)
+# model_batch3 <- brm(..., data = data_batch3)
 
-bf_batch1 <- hypothesis(model_batch1, "x = 0")$hypothesis$Evid.Ratio
-bf_batch2 <- hypothesis(model_batch2, "x = 0")$hypothesis$Evid.Ratio
-bf_batch3 <- hypothesis(model_batch3, "x = 0")$hypothesis$Evid.Ratio
+# bf_batch1 <- hypothesis(model_batch1, "x = 0")$hypothesis$Evid.Ratio
+# bf_batch2 <- ...
+
+# --- Simulation for Visualization ---
+# Let's visualize what this looks like with example data:
+batches <- c(500, 1000, 1500)
+bfs_10  <- c(2.5, 8.1, 25.4) # Simulated Bayes Factors (evidence accumulating)
 
 # Plot BF evolution
-plot(c(500, 1000, 1500), 1/c(bf_batch1, bf_batch2, bf_batch3),
-     type = "b", log = "y",
-     xlab = "Sample Size", ylab = "BF₁₀")
+plot(batches, bfs_10,
+     type = "b", log = "y", pch = 19, col = "blue", lwd = 2,
+     xlab = "Sample Size", ylab = "BF₁₀ (Log Scale)",
+     main = "Accumulating Evidence with Sample Size",
+     ylim = c(0.1, 100))
+
+# Decision thresholds
 abline(h = c(1/3, 1, 3, 10), lty = 2, col = "gray")
+text(500, 11, "Strong Evidence", pos = 3, cex = 0.8, col = "gray40")
+text(500, 3.2, "Moderate Evidence", pos = 3, cex = 0.8, col = "gray40")
+text(500, 1.1, "No Evidence", pos = 3, cex = 0.8, col = "gray40")
 ```
+
+::: {.cell-output-display}
+![](07_bayes_factors_files/figure-html/sequential-testing-example-1.png){width=672}
+:::
 :::
 
 
@@ -1765,16 +1856,19 @@ abline(h = c(1/3, 1, 3, 10), lty = 2, col = "gray")
 ```{.r .cell-code}
 # Test multiple competing theories simultaneously
 
-# Theory 1: No effect (β = 0)
+# Theory 1: No effect (β = 0) (The Null Model)
 # Theory 2: Small positive effect (β = 0.05)
 # Theory 3: Large positive effect (β = 0.15)
 
-# Use hypothesis() with specific values
-h_theory2 <- hypothesis(model, "x = 0.05")
-h_theory3 <- hypothesis(model, "x = 0.15")
+# 1. Get BF for each theory against the Null (Theory 1)
+bf_t2_vs_null <- hypothesis(model, "x = 0.05")$hypothesis$Evid.Ratio
+bf_t3_vs_null <- hypothesis(model, "x = 0.15")$hypothesis$Evid.Ratio
 
-# Compute Bayes Factors between theories
-# (requires custom calculation combining multiple tests)
+# 2. Compare Theory 2 vs. Theory 3 (Transitivity)
+# BF_23 = BF_20 / BF_30
+bf_t2_vs_t3 <- bf_t2_vs_null / bf_t3_vs_null
+
+cat("Evidence for Theory 2 (Small) vs Theory 3 (Large):", bf_t2_vs_t3, "\n")
 ```
 :::
 
