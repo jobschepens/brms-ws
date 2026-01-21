@@ -1665,35 +1665,36 @@ window.Quarto = {
 <span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>  lmm_summary_all <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(results_path)</span>
 <span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
 <span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Run Simulations (4 Conditions)</span></span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">999</span>)</span>
-<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. LOW NOISE (SD = 0.2)</span></span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>  sim_low_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"low_h0"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
-<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>  sim_low_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.15</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"low_h1"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.15)"</span>)</span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2. HIGH NOISE (SD = 0.8)</span></span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>  sim_high_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"high_h0"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>  sim_high_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">20</span>, <span class="at">true_effect =</span> <span class="fl">0.15</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"high_h1"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.15)"</span>)</span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine &amp; Summarize</span></span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  lmm_data_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)</span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>  lmm_summary_all <span class="ot">&lt;-</span> lmm_data_all <span class="sc">%&gt;%</span></span>
-<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Noise, Scenario, check_n) <span class="sc">%&gt;%</span></span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_p =</span> <span class="fu">mean</span>(decision_p, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10 =</span> <span class="fu">mean</span>(decision_bf10, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10_brms =</span> <span class="fu">mean</span>(decision_bf10_brms, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>)</span>
-<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(lmm_summary_all, results_path)</span>
-<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Reduced effect size to 0.06 for better differentiation between methods</span></span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">999</span>)</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. LOW NOISE (SD = 0.2)</span></span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>  sim_low_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">50</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"low_h0"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  sim_low_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">50</span>, <span class="at">true_effect =</span> <span class="fl">0.06</span>, <span class="at">noise_sd =</span> <span class="fl">0.2</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"low_h1"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"Low Noise (SD=0.2)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.06)"</span>)</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2. HIGH NOISE (SD = 0.8)</span></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a>  sim_high_h0 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">50</span>, <span class="at">true_effect =</span> <span class="dv">0</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"high_h0"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H0 (No Effect)"</span>)</span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>  sim_high_h1 <span class="ot">&lt;-</span> <span class="fu">run_lmm_simulation</span>(<span class="at">n_sim =</span> <span class="dv">50</span>, <span class="at">true_effect =</span> <span class="fl">0.06</span>, <span class="at">noise_sd =</span> <span class="fl">0.8</span>, <span class="at">brm_model =</span> brm_template, <span class="at">sim_prefix=</span><span class="st">"high_h1"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Noise =</span> <span class="st">"High Noise (SD=0.8)"</span>, <span class="at">Scenario =</span> <span class="st">"H1 (Effect d=0.06)"</span>)</span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine &amp; Summarize</span></span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>  lmm_data_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(sim_low_h0, sim_low_h1, sim_high_h0, sim_high_h1)</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>  lmm_summary_all <span class="ot">&lt;-</span> lmm_data_all <span class="sc">%&gt;%</span></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Noise, Scenario, check_n) <span class="sc">%&gt;%</span></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_p =</span> <span class="fu">mean</span>(decision_p, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10 =</span> <span class="fu">mean</span>(decision_bf10, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>      <span class="at">prop_bf10_brms =</span> <span class="fu">mean</span>(decision_bf10_brms, <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"prop"</span>), <span class="at">names_to =</span> <span class="st">"Method"</span>, <span class="at">values_to =</span> <span class="st">"Rate"</span>)</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(lmm_summary_all, results_path)</span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
@@ -1712,10 +1713,10 @@ window.Quarto = {
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>plot_sim_panel <span class="ot">&lt;-</span> <span class="cf">function</span>(data, noise_filter, scenario_filter, title_text) {</span>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Noise <span class="sc">==</span> noise_filter, Scenario <span class="sc">==</span> scenario_filter) <span class="sc">%&gt;%</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method)) <span class="sc">+</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> check_n, <span class="at">y =</span> Rate, <span class="at">color =</span> Method, <span class="at">group =</span> Method)) <span class="sc">+</span></span>
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.2</span>, <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>, <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> title_text,</span>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="fu">paste</span>(noise_filter),</span>
@@ -1730,9 +1731,9 @@ window.Quarto = {
 <span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Create 4 Panels</span></span>
 <span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"Low Noise (SD=0.2)"</span>, <span class="st">"H0 (No Effect)"</span>, <span class="st">"False Positives (H0)"</span>)</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"Low Noise (SD=0.2)"</span>, <span class="st">"H1 (Effect d=0.15)"</span>, <span class="st">"Power (H1)"</span>)</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"Low Noise (SD=0.2)"</span>, <span class="st">"H1 (Effect d=0.06)"</span>, <span class="st">"Power (H1)"</span>)</span>
 <span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"High Noise (SD=0.8)"</span>, <span class="st">"H0 (No Effect)"</span>, <span class="st">"False Positives (H0)"</span>)</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"High Noise (SD=0.8)"</span>, <span class="st">"H1 (Effect d=0.15)"</span>, <span class="st">"Power (H1)"</span>)</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> <span class="fu">plot_sim_panel</span>(lmm_summary_all, <span class="st">"High Noise (SD=0.8)"</span>, <span class="st">"H1 (Effect d=0.06)"</span>, <span class="st">"Power (H1)"</span>)</span>
 <span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Assemble 2x2 Grid</span></span>
 <span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>(p1 <span class="sc">+</span> p2) <span class="sc">/</span> (p3 <span class="sc">+</span> p4) <span class="sc">+</span> </span>
@@ -1777,277 +1778,277 @@ window.Quarto = {
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">15</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">6.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">20</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">8.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">25</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">30</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">35</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">40</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">45</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">50</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">55</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
 <td style="text-align: left;">H0 (No Effect)</td>
 <td style="text-align: right;">60</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">2.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">15</td>
+<td style="text-align: left;">16.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">10.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">22.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">16.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">28.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">20.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">36.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">28.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: left;">42.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">32.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">54.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">34.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: left;">58.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">36.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">62.0%</td>
+<td style="text-align: left;">8.0%</td>
+<td style="text-align: left;">40.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: left;">62.0%</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">44.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">High Noise (SD=0.8)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: left;">62.0%</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">48.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">6.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: left;">8.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: left;">10.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H0 (No Effect)</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: left;">12.0%</td>
+<td style="text-align: left;">2.0%</td>
+<td style="text-align: left;">0.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">94.0%</td>
 <td style="text-align: left;">70.0%</td>
-<td style="text-align: left;">25.0%</td>
-<td style="text-align: left;">25.0%</td>
+<td style="text-align: left;">74.0%</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">Low Noise (SD=0.2)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">20</td>
-<td style="text-align: left;">85.0%</td>
-<td style="text-align: left;">35.0%</td>
-<td style="text-align: left;">35.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: left;">90.0%</td>
-<td style="text-align: left;">35.0%</td>
-<td style="text-align: left;">45.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: left;">90.0%</td>
-<td style="text-align: left;">65.0%</td>
-<td style="text-align: left;">65.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">70.0%</td>
-<td style="text-align: left;">75.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">75.0%</td>
-<td style="text-align: left;">80.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">75.0%</td>
-<td style="text-align: left;">80.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">85.0%</td>
-<td style="text-align: left;">90.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">90.0%</td>
-<td style="text-align: left;">95.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">High Noise (SD=0.8)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">95.0%</td>
-<td style="text-align: left;">100.0%</td>
+<td style="text-align: left;">98.0%</td>
+<td style="text-align: left;">84.0%</td>
+<td style="text-align: left;">88.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">15</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">40</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">45</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">50</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">55</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H0 (No Effect)</td>
-<td style="text-align: right;">60</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-<td style="text-align: left;">0.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">15</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">25</td>
 <td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
+<td style="text-align: left;">90.0%</td>
+<td style="text-align: left;">90.0%</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">30</td>
 <td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
-<td style="text-align: left;">100.0%</td>
+<td style="text-align: left;">98.0%</td>
+<td style="text-align: left;">98.0%</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">35</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
@@ -2055,7 +2056,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">40</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
@@ -2063,7 +2064,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">45</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
@@ -2071,7 +2072,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">50</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
@@ -2079,7 +2080,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">55</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
@@ -2087,7 +2088,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Low Noise (SD=0.2)</td>
-<td style="text-align: left;">H1 (Effect d=0.15)</td>
+<td style="text-align: left;">H1 (Effect d=0.06)</td>
 <td style="text-align: right;">60</td>
 <td style="text-align: left;">100.0%</td>
 <td style="text-align: left;">100.0%</td>
