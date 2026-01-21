@@ -577,6 +577,7 @@ In simple terms, **the intention of the experimenter does not change the evidenc
 
 ### 2. Assumptions & Validity
 While robust, optional stopping with Bayes Factors is not magic. It relies on:
+
 1.  **Likelihood Validity**: Your model (distribution, noise) must reasonably approximate the data-generating process.
     *   **Garbage In, Garbage Out**: The Bayes Factor measures how much *better* one model predicts the data than another. If both models are fundamentally wrong (e.g., assuming a Normal distribution for data that is actually Log-Normal or has heavy outliers), the "evidence" is meaningless.
     *   **Outlier Sensitivity**: If your likelihood does not account for outliers (e.g., using a pure Gaussian likelihood), a single extreme data point can dominate the likelihood calculation. The BF might sway wildly based on which model accidentally "captures" that outlier better, rather than reflecting the true effect.
@@ -585,7 +586,9 @@ While robust, optional stopping with Bayes Factors is not magic. It relies on:
 3.  **Finite Horizons**: In theory, if you sample *forever*, a Bayes Factor can transiently cross a threshold (e.g., $BF > 3$) even if $H_0$ is true, though the probability of this is much lower than for p-values.
 
 ### 3. Practical Rules for Psycholinguistics
+
 For real experiments, **"continuous monitoring" is valid**—meaning you can check your Bayes Factor after every subject without "breaking" the stats.
+
 *   **Why?** Because the Bayes Factor at $N=50$ answers: *"Given the data I represent right now, what are the relative odds?"* It doesn't care if you also looked at $N=49$.
 *   **Contrast**: If you check a p-value at $N=50$, you are technically asking: *"What is the probability of this data occurring given that I planned to stop at N=50?"*. If you peeked at $N=49$, you weren't planning to stop at 50 ( you were planning to stop at 49 OR 50), so the p-value calculation is wrong.
 

@@ -1592,12 +1592,32 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 
 
 
+
+### Visualizing Joint Posteriors
+
+The code below uses `tidybayes::spread_draws()` to extract the posterior samples for our two key parameters. 
+
+**What `spread_draws` does:** 
+
+It extracts the MCMC draws for specific variables from the model object and puts them into a "tidy" data frame. 
+- It retrieves the thousands of valid parameter combinations (draws) that the model found during estimation.
+- Each row in the resulting data frame represents one "possible world" (one posterior draw) consistent with the data.
+- **Quantity**: For `model_final` (4 chains × (2000 iter - 1000 warmup)), this generates **4,000** total samples.
+
+**Why plot the Joint Distribution?**
+
+Plotting two parameters against each other (2D density) reveals their **correlation**:
+- Do changes in the main effect tend to come with changes in the interaction?
+- Are the parameters independent (circular cloud) or linked (diagonal ellipse)?
+- This helps verify if our estimates are "trade-offs" of each other.
+
+
 ::: {.cell}
 
 ```{.r .cell-code}
-# Analysis 4: Visualize results
 library(tidybayes)
 library(ggplot2)
+
 
 model_final %>%
   spread_draws(b_groupNative, `b_groupNative:clause_typeSubject`) %>%
@@ -1614,17 +1634,12 @@ model_final %>%
 ```
 
 ::: {.cell-output-display}
-![](07_bayes_factors_files/figure-html/visualize-joint-distribution-1.png){width=768}
+![](07_bayes_factors_files/figure-html/visualize-joint-posterior-1.png){width=672}
 :::
 :::
 
 
-**Integrated interpretation:**
 
-1. **Effect size**: Report posterior mean + 95% CI
-2. **Practical significance**: Is 95% HDI outside ROPE?
-3. **Evidence strength**: What's the Bayes Factor?
-4. **Conclusion**: Combine all three pieces
 
 # Reporting Bayes Factors in Papers
 
