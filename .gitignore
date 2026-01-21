@@ -78,3 +78,4 @@ __pycache__/
 # Keep the fitted models (they're valuable!)
 # But ignore any temporary model files
 *.rds.tmp
+materials/scripts/models/

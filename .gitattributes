@@ -1,2 +1,0 @@
-materials/scripts/models/*.rds filter=lfs diff=lfs merge=lfs -text
-materials/scripts/models/*.RData filter=lfs diff=lfs merge=lfs -text
