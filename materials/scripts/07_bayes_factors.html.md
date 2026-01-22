@@ -352,7 +352,7 @@ data <- expand_grid(
 ) %>%
   mutate(
     subject_intercept = rep(rnorm(n_subjects, 0, 0.15), each = n_items * 2),
-    item_intercept = rep(rnorm(n_items, 0, 0.10), times = n_subjects * 2),
+    item_intercept = rep(rnorm(n_items, 0, 0.10), each = 2, times = n_subjects),
     complexity_effect = ifelse(complexity == "Complex", 0.08, 0),
     log_rt = 6.0 + subject_intercept + item_intercept + complexity_effect + rnorm(n(), 0, 0.20)
   )
@@ -377,6 +377,24 @@ model_complexity <- brm(
   file = "models/07_complexity_model"
 )
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 18.7 seconds.
+Chain 2 finished in 17.6 seconds.
+Chain 3 finished in 18.0 seconds.
+Chain 4 finished in 18.3 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 18.1 seconds.
+Total execution time: 71.1 seconds.
+```
+
+
+:::
 :::
 
 
@@ -398,7 +416,7 @@ print(h_test)
 ```
 Hypothesis Tests for class b:
               Hypothesis Estimate Est.Error CI.Lower CI.Upper Evid.Ratio
-1 (complexitySimple) = 0    -0.12      0.01    -0.13     -0.1          0
+1 (complexitySimple) = 0    -0.08      0.01     -0.1    -0.07          0
   Post.Prob Star
 1         0    *
 ---
@@ -429,7 +447,7 @@ Hypothesis: (complexitySimple) = 0
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Estimate: -0.12 
+Estimate: -0.08 
 ```
 
 
@@ -438,7 +456,7 @@ Estimate: -0.12
 ::: {.cell-output .cell-output-stdout}
 
 ```
-CI.Lower: -0.13 
+CI.Lower: -0.10 
 ```
 
 
@@ -447,7 +465,7 @@ CI.Lower: -0.13
 ::: {.cell-output .cell-output-stdout}
 
 ```
-CI.Upper: -0.10 
+CI.Upper: -0.07 
 ```
 
 
@@ -484,15 +502,15 @@ Star: *
 
 **Interpretation:**
 
-- **Estimate**: Complex sentences are 0.12 log-units slower
-- **95% CI**: [-0.13, -0.10] (doesn't include 0)
+- **Estimate**: Complex sentences are 0.08 log-units slower
+- **95% CI**: [-0.10, -0.07] (doesn't include 0)
 - **Evid.Ratio ($BF_{01}$)**: The output `Evid.Ratio` for a point null test ("= 0") represents the **Bayes Factor for the Null**.
   - Value: 0.0000
   - **What "0.00" means**: The posterior density at the null value (0) is vanishingly small compared to the prior density. The model is effectively certain the effect is not 0.
 - **Post.Prob**: The probability that the hypothesis ($H_0$) is true, assuming prior odds of 1. A value of `0.00` confirms $H_0$ is extremely unlikely.
 - **Star (*)**: A visual indicator that zero is outside the 95% Credible Interval (statistically credible difference).
 - **Bayes Factor ($BF_{10}$)**: To get evidence **for the effect**, we take the inverse ($1 / BF_{01}$):
-  - $BF_{10} = 1 / 0.00000 \approx 3.32e+28$
+  - $BF_{10} = 1 / 0.00000 \approx Inf$
 - **Conclusion**: The data provide **decisive evidence** for a complexity effect ($H_1$) over the null hypothesis ($H_0$).
 
 ### Directional Test
@@ -511,7 +529,7 @@ print(h_directional)
 ```
 Hypothesis Tests for class b:
               Hypothesis Estimate Est.Error CI.Lower CI.Upper Evid.Ratio
-1 (complexitySimple) < 0    -0.12      0.01    -0.13     -0.1        Inf
+1 (complexitySimple) < 0    -0.08      0.01     -0.1    -0.07        Inf
   Post.Prob Star
 1         1    *
 ---
@@ -528,7 +546,7 @@ Posterior probabilities of point hypotheses assume equal prior probabilities.
 
 **Interpretation:**
 
-- **Estimate**: 0.12 (log-units)
+- **Estimate**: 0.08 (log-units)
 - **Post.Prob**: 1.00 (1.00) means we are 100% certain the effect is negative ($< 0$).
 - **Evid.Ratio ($BF_{10}$)**: For directional tests, the ratio is usually $P(H_1)/P(H_0)$. Infinite evidence here confirms the direction is robust.
 - **Conclusion**: The data provide **extreme evidence** that the effect is negative.
@@ -583,7 +601,27 @@ model_groups <- brm(
   refresh = 0,
   file = "models/07_groups_model"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 5.6 seconds.
+Chain 2 finished in 5.4 seconds.
+Chain 3 finished in 5.6 seconds.
+Chain 4 finished in 5.8 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 5.6 seconds.
+Total execution time: 21.3 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Test: Are groups different?
 h_group_diff <- hypothesis(model_groups, "groupNative = 0")
 print(h_group_diff)
@@ -693,6 +731,24 @@ model_interaction <- brm(
   file = "models/07_interaction_model"
 )
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 0.9 seconds.
+Chain 2 finished in 0.8 seconds.
+Chain 3 finished in 0.8 seconds.
+Chain 4 finished in 0.9 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 0.8 seconds.
+Total execution time: 3.1 seconds.
+```
+
+
+:::
 :::
 
 
@@ -741,7 +797,7 @@ Hypothesis Tests for class b:
                 Hypothesis Estimate Est.Error CI.Lower CI.Upper Evid.Ratio
 1 (groupNative:cond... = 0    -0.38      0.11     -0.6    -0.16       0.02
   Post.Prob Star
-1      0.02    *
+1      0.01    *
 ---
 'CI': 90%-CI for one-sided and 95%-CI for two-sided hypotheses.
 '*': For one-sided hypotheses, the posterior probability exceeds 95%;
@@ -996,7 +1052,27 @@ model_vague <- brm(
   refresh = 0,
   file = "models/07_vague_prior"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 3.2 seconds.
+Chain 2 finished in 3.6 seconds.
+Chain 3 finished in 3.3 seconds.
+Chain 4 finished in 3.5 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 3.4 seconds.
+Total execution time: 12.5 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 model_informative <- brm(
   log_rt ~ complexity + (1 | subject),
   data = data,
@@ -1010,7 +1086,27 @@ model_informative <- brm(
   refresh = 0,
   file = "models/07_informative_prior"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 4.7 seconds.
+Chain 2 finished in 3.2 seconds.
+Chain 3 finished in 3.9 seconds.
+Chain 4 finished in 3.7 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 3.9 seconds.
+Total execution time: 13.7 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Compare Bayes Factors
 h_vague <- hypothesis(model_vague, "complexitySimple = 0")
 h_informative <- hypothesis(model_informative, "complexitySimple = 0")
@@ -1021,7 +1117,7 @@ cat("Vague prior BF₁₀:", 1/h_vague$hypothesis$Evid.Ratio, "\n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Vague prior BF₁₀: 1.48571e+31 
+Vague prior BF₁₀: Inf 
 ```
 
 
@@ -1034,7 +1130,7 @@ cat("Informative prior BF₁₀:", 1/h_informative$hypothesis$Evid.Ratio, "\n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Informative prior BF₁₀: 1.881926e+28 
+Informative prior BF₁₀: Inf 
 ```
 
 
@@ -1123,7 +1219,27 @@ model_ri <- brm(
   refresh = 0,
   file = "models/07_ri_model"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 12.0 seconds.
+Chain 2 finished in 14.8 seconds.
+Chain 3 finished in 12.6 seconds.
+Chain 4 finished in 12.5 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 13.0 seconds.
+Total execution time: 48.9 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Model 2: Random slopes + intercepts
 model_rs <- brm(
   log_rt ~ complexity + (1 + complexity | subject) + (1 | item),
@@ -1144,7 +1260,27 @@ model_rs <- brm(
   refresh = 0,
   file = "models/07_rs_model"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 29.7 seconds.
+Chain 2 finished in 28.6 seconds.
+Chain 3 finished in 29.4 seconds.
+Chain 4 finished in 29.9 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 29.4 seconds.
+Total execution time: 110.5 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Compute marginal likelihoods (this takes time!)
 # Cache results to avoid recomputation
 if (!file.exists("models/07_ml_ri.rds")) {
@@ -1161,7 +1297,16 @@ if (!file.exists("models/07_ml_ri.rds")) {
 ::: {.cell-output .cell-output-stdout}
 
 ```
-✓ Loaded cached marginal likelihood for RI model
+Computing marginal likelihood for RI model (may take 2-5 min)...
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+✓ Saved to models/07_ml_ri.rds
 ```
 
 
@@ -1182,7 +1327,16 @@ if (!file.exists("models/07_ml_rs.rds")) {
 ::: {.cell-output .cell-output-stdout}
 
 ```
-✓ Loaded cached marginal likelihood for RS model
+Computing marginal likelihood for RS model (may take 2-5 min)...
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stdout}
+
+```
+✓ Saved to models/07_ml_rs.rds
 ```
 
 
@@ -1197,7 +1351,7 @@ print(bf_models)
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Estimated Bayes factor in favor of x1 over x2: 0.50648
+Estimated Bayes factor in favor of x1 over x2: 0.60798
 ```
 
 
@@ -1213,8 +1367,8 @@ Estimated Bayes factor in favor of x1 over x2: 0.50648
 :::
 
 
-- **Bayes Factor ($BF_{RS, RI}$)**: 0.51
-- **Conclusion**: The data provide evidence **in favor of the random intercepts (RI) model** by a factor of 1.97.
+- **Bayes Factor ($BF_{RS, RI}$)**: 0.61
+- **Conclusion**: The data provide evidence **in favor of the random intercepts (RI) model** by a factor of 1.64.
   - Since we simulated data *without* random slopes (Example 1 data), the Bayes Factor correctly penalizes the extra complexity of the RS model.
   - This demonstrates the **Occam's Razor** property of Bayes Factors: simpler models are preferred unless the data demand complexity.
 
@@ -1260,7 +1414,27 @@ model_null <- brm(
   refresh = 0,
   file = "models/07_null_model"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 13.2 seconds.
+Chain 2 finished in 12.8 seconds.
+Chain 3 finished in 12.5 seconds.
+Chain 4 finished in 13.0 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 12.9 seconds.
+Total execution time: 50.1 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Compute all marginal likelihoods (with caching)
 if (!file.exists("models/07_ml_null.rds")) {
   cat("Computing marginal likelihood for null model...\n")
@@ -1269,7 +1443,18 @@ if (!file.exists("models/07_ml_null.rds")) {
 } else {
   ml_null <- readRDS("models/07_ml_null.rds")
 }
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Computing marginal likelihood for null model...
+```
+
+
+:::
+
+```{.r .cell-code}
 if (!file.exists("models/07_ml_ri.rds")) {
   cat("Computing marginal likelihood for RI model...\n")
   ml_ri <- bridge_sampler(model_ri, silent = TRUE)
@@ -1319,9 +1504,9 @@ print(bf_table)
 
 ```
   Comparison           BF                       Evidence
-1 RI vs Null 1.315199e+38          For complexity effect
-2 RS vs Null 6.661226e+37 For complexity + random slopes
-3   RS vs RI 5.064805e-01       For adding random slopes
+1 RI vs Null 3.496676e+22          For complexity effect
+2 RS vs Null 2.125912e+22 For complexity + random slopes
+3   RS vs RI 6.079806e-01       For adding random slopes
 ```
 
 
@@ -1349,8 +1534,8 @@ print(ml_ri)  # Shows estimate & iterations
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Bridge sampling estimate of the log marginal likelihood: 262.7853
-Estimate obtained in 7 iteration(s) via method "normal".
+Bridge sampling estimate of the log marginal likelihood: 379.2052
+Estimate obtained in 6 iteration(s) via method "normal".
 ```
 
 
@@ -1477,7 +1662,27 @@ model_final <- brm(
   refresh = 0,
   file = "models/07_final_model"
 )
+```
 
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 18.5 seconds.
+Chain 2 finished in 16.5 seconds.
+Chain 3 finished in 18.3 seconds.
+Chain 4 finished in 19.1 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 18.1 seconds.
+Total execution time: 67.2 seconds.
+```
+
+
+:::
+
+```{.r .cell-code}
 # Analysis 1: Is there any group difference?
 h_main_effect <- hypothesis(model_final, "groupNative = 0")
 cat("\n=== Main Effect Test ===\n")
@@ -1759,6 +1964,24 @@ model_informed <- brm(
   file = "models/07_informed_model"
 )
 ```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Running MCMC with 4 sequential chains...
+
+Chain 1 finished in 19.3 seconds.
+Chain 2 finished in 19.2 seconds.
+Chain 3 finished in 18.7 seconds.
+Chain 4 finished in 21.4 seconds.
+
+All 4 chains finished successfully.
+Mean chain execution time: 19.6 seconds.
+Total execution time: 75.0 seconds.
+```
+
+
+:::
 :::
 
 
@@ -1776,7 +1999,7 @@ cat("Informed prior BF₁₀:", 1/h_informed$hypothesis$Evid.Ratio, "\n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Informed prior BF₁₀: 1.057572e+23 
+Informed prior BF₁₀: 1.268422e+16 
 ```
 
 
@@ -1789,7 +2012,7 @@ cat("Default prior BF₁₀:", 1/h_default$hypothesis$Evid.Ratio, "\n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-Default prior BF₁₀: 3.315914e+28 
+Default prior BF₁₀: Inf 
 ```
 
 

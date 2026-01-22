@@ -344,7 +344,7 @@ data <- expand_grid(
 ) %>%
   mutate(
     subject_intercept = rep(rnorm(n_subjects, 0, 0.15), each = n_items * 2),
-    item_intercept = rep(rnorm(n_items, 0, 0.10), times = n_subjects * 2),
+    item_intercept = rep(rnorm(n_items, 0, 0.10), each = 2, times = n_subjects),
     complexity_effect = ifelse(complexity == "Complex", 0.08, 0),
     log_rt = 6.0 + subject_intercept + item_intercept + complexity_effect + rnorm(n(), 0, 0.20)
   )
