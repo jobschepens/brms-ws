@@ -167,5 +167,11 @@ For detailed instructions on how to pull and run the image, please see the **[Do
 
 ---
 
+## 🤖 AI Transparency
+
+This project used AI-assisted development exploratively. For details on our approach and a list of interaction logs, see **[AI Transparency](./prompts/AI_TRANSPARENCY.md)**.
+
+---
+
 
 Happy Bayesian modeling! 🎓
