@@ -41,8 +41,9 @@ services:
       - ./materials:/home/rstudio/workshop/materials
       
       # Persist analysis results outside container
-      # Ensures your work isn't lost when container is removed
       - ./results:/home/rstudio/workshop/results
+      # Mount collaborator package workspace
+      - ../temp/vicom/collaborator_package_26_2:/home/rstudio/workshop/collaborator_package_26_2
       
       # Optional: Mount additional data or scripts
       # - ./data:/home/rstudio/workshop/data:ro  # :ro = read-only

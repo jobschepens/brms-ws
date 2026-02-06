@@ -40,9 +40,14 @@ on:
       - 'install.R'                           # R package dependencies
       - 'docker-compose.yml'                  # Compose configuration
       - '.github/workflows/docker-build.yml'  # This workflow file
+      - '.github/scripts/verify-packages.R'   # Package verification script
   
   # Allow manual trigger from Actions tab
   workflow_dispatch:
+
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-push:
@@ -126,8 +131,17 @@ jobs:
           # Supply chain security features
           provenance: true                              # Generate provenance attestation
           sbom: true                                    # Generate Software Bill of Materials
+
+      # Step 7: Verify all declared R packages in published image
+      # Parses install.R and checks every package passed to install.packages(...)
+      - name: Verify all declared R packages
+        run: |
+          IMAGE_REF="ghcr.io/${{ github.repository_owner }}/brms-workshop@${{ steps.build.outputs.digest }}"
+          docker pull "$IMAGE_REF"
+          docker run --rm -v "${{ github.workspace }}:/workspace" "$IMAGE_REF" \
+            Rscript /workspace/.github/scripts/verify-packages.R
       
-      # Step 7: Generate workflow summary with image details and usage instructions
+      # Step 8: Generate workflow summary with image details and usage instructions
       # Appears in the Actions run summary page
       - name: Generate build summary
         run: |

@@ -184,17 +184,23 @@ install.packages(c(
   "projpred",       # Projection predictive inference
   "shinystan",      # Interactive posterior analysis
   "bayestestR",     # ROPE analysis and Bayesian hypothesis testing
+  "broom.mixed",    # Tidy summaries for mixed models and Bayesian fits
   "emmeans",        # Estimated marginal means for factorial designs
   "marginaleffects",# Flexible predictions and comparisons for any model
   "HDInterval",     # HDI calculations for ROPE analysis
+  "ggeffects",      # Adjusted predictions and marginal effects
   "see",            # Visualization for easystats packages (bayestestR plots)
   "parameters",     # Extract and format model parameters (easystats)
   "performance",    # Model diagnostics and fit indices (easystats)
   "effectsize",     # Compute standardized effects (easystats)
+  "effsize",        # Classical effect size calculations
+  "lmerTest",       # p-values and tests for lme4 models
+  "rstatix",        # Pipe-friendly wrappers for common statistical tests
+  "pwr",            # Power analysis utilities
   "modelbased",     # Model diagnostic summaries and predictions (easystats)
   "BayesFactor",    # Bayes Factor analysis
   "collapse"        # Required by marginaleffects for brms models
-), quiet = TRUE)
+), quiet = TRUE, dependencies = TRUE)
 
 # ------ DATA MANIPULATION & VISUALIZATION ------
 cat("Installing data & visualization tools...\n")
@@ -212,8 +218,9 @@ install.packages(c(
   "knitr",          # Dynamic reports
   "rmarkdown",      # R Markdown documents
   "bookdown",       # Books/reports with cross-references
-  "DT"              # Interactive data tables
-), quiet = TRUE)
+  "DT",             # Interactive data tables
+  "kableExtra"      # Enhanced HTML/PDF table styling
+), quiet = TRUE, dependencies = TRUE)
 
 # ------ DEVELOPMENT TOOLS ------
 cat("Installing development tools...\n")
@@ -236,9 +243,10 @@ cat("\n=== Installation Complete ===\n")
 cat("Packages installed:\n")
 cat("✓ BRMS, cmdstanr, CmdStan\n")
 cat("✓ Bayesian tools: bayesplot, tidybayes, loo, projpred, shinystan\n")
-cat("✓ ROPE & comparisons: bayestestR, emmeans, marginaleffects, HDInterval\n")
-cat("✓ easystats: see, parameters, performance, effectsize, modelbased\n")
+cat("✓ ROPE & comparisons: bayestestR, broom.mixed, emmeans, marginaleffects, ggeffects, HDInterval\n")
+cat("✓ easystats/classical: see, parameters, performance, effectsize, effsize, modelbased, rstatix, pwr\n")
+cat("✓ Mixed models: lmerTest\n")
 cat("✓ Data tools: tidyverse, ggplot2, dplyr, tidyr, scales\n")
-cat("✓ Reporting: knitr, rmarkdown, bookdown, DT\n")
+cat("✓ Reporting: knitr, rmarkdown, bookdown, DT, kableExtra\n")
 cat("✓ Dev tools: devtools, roxygen2, testthat\n")
 cat("✓ Viz: patchwork, ggridges, viridis\n")
