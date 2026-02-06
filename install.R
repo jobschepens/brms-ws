@@ -17,8 +17,8 @@ cat("Using mirror:", selected_mirror, "\n")
 # Suppress warnings for cleaner output
 options(warn = -1)
 
-# Install packages in parallel when possible
-options(Ncpus = parallel::detectCores())
+# Install packages in parallel
+options(Ncpus = min(4, parallel::detectCores()))
 
 # Set download timeout to 5 minutes (for large packages like cmdstanr dependencies)
 # Default 60s is too short for packages with heavy C++ code
@@ -44,7 +44,7 @@ tryCatch({
                    repos = c("https://stan-dev.r-universe.dev", 
                             "https://cloud.r-project.org"),
                    quiet = TRUE, 
-                   dependencies = TRUE)
+                   dependencies = NA)
   cat("✓ cmdstanr installed successfully\n")
 }, error = function(e) {
   cat("ERROR: Failed to install cmdstanr:", e$message, "\n")
@@ -53,7 +53,7 @@ tryCatch({
                    repos = c("https://stan-dev.r-universe.dev", 
                             "https://cloud.r-project.org"),
                    quiet = FALSE, 
-                   dependencies = TRUE)
+                   dependencies = NA)
 })
 
 # Pre-install heavy C++ dependencies to avoid timeout issues during brms install
@@ -82,7 +82,7 @@ for (pkg in heavy_packages) {
     cat(sprintf("  WARNING: Error installing %s: %s\n", pkg, e$message))
     cat("  Attempting retry with dependencies...\n")
     tryCatch({
-      install.packages(pkg, quiet = FALSE, dependencies = TRUE)
+      install.packages(pkg, quiet = FALSE, dependencies = NA)
     }, error = function(e2) {
       cat(sprintf("  ERROR: Failed to install %s after retry\n", pkg))
       # Don't quit - let brms installation try to handle it
@@ -97,12 +97,12 @@ cat("Progress indicators may appear frozen - this is normal during compilation\n
 # Note: brms has many dependencies, but with heavy packages pre-installed,
 # the remaining deps should install much faster
 tryCatch({
-  install.packages("brms", quiet = TRUE, dependencies = TRUE)
+  install.packages("brms", quiet = TRUE, dependencies = NA)
   cat("✓ brms installed successfully\n")
 }, error = function(e) {
   cat("ERROR: Failed to install brms:", e$message, "\n")
   cat("Attempting retry with verbose output...\n")
-  install.packages("brms", quiet = FALSE, dependencies = TRUE)
+  install.packages("brms", quiet = FALSE, dependencies = NA)
 })
 
 # Install CmdStan (the Stan compiler backend)
@@ -200,7 +200,7 @@ install.packages(c(
   "modelbased",     # Model diagnostic summaries and predictions (easystats)
   "BayesFactor",    # Bayes Factor analysis
   "collapse"        # Required by marginaleffects for brms models
-), quiet = TRUE, dependencies = TRUE)
+), quiet = TRUE, dependencies = NA)
 
 # ------ DATA MANIPULATION & VISUALIZATION ------
 cat("Installing data & visualization tools...\n")
@@ -220,7 +220,7 @@ install.packages(c(
   "bookdown",       # Books/reports with cross-references
   "DT",             # Interactive data tables
   "kableExtra"      # Enhanced HTML/PDF table styling
-), quiet = TRUE, dependencies = TRUE)
+), quiet = TRUE, dependencies = NA)
 
 # ------ DEVELOPMENT TOOLS ------
 cat("Installing development tools...\n")
