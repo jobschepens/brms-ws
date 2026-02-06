@@ -74,6 +74,40 @@ RUN R --no-save --no-restore -f install.R \
 # By copying last, we avoid invalidating expensive package installation cache
 COPY --chown=rstudio:rstudio materials/ ./materials/
 
+# Install shell/locale tooling in late layers so shell-only changes do not invalidate heavy R install cache
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    zsh \
+    locales \
+    git \
+    nano \
+    ripgrep \
+    jq \
+    tree \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Minimal shell dotfiles for container usage
+# Keep this focused on workshop usability (no pyenv/nvm/rbenv setup)
+COPY --chown=rstudio:rstudio docker/dotfiles/zshrc /home/rstudio/.zshrc
+COPY --chown=rstudio:rstudio docker/dotfiles/aliases /home/rstudio/.aliases
+
+# Configure UTF-8 locale to match shell settings and avoid locale warnings
+RUN sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
+
+# Container-safe editor defaults for git commit/rebase flows in terminal
+ENV EDITOR=nano \
+    VISUAL=nano \
+    GIT_EDITOR=nano
+RUN git config --system core.editor "nano"
+
+# Install Oh-My-Zsh and selected plugins expected by interactive shell usage
+RUN git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git /home/rstudio/.oh-my-zsh \
+    && git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git /home/rstudio/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
+    && git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /home/rstudio/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+
 # Create .Rprofile to automatically configure CmdStan path
 # Uses heredoc syntax (<<'EOF') for cleaner multi-line content
 # This runs every time R starts, ensuring cmdstanr knows where CmdStan is installed
@@ -114,8 +148,11 @@ EOF
 # - chmod 755: Directories are readable and executable
 # - chmod 644: Files are readable but not executable
 RUN chown -R rstudio:rstudio /home/rstudio \
+    && usermod -s /usr/bin/zsh rstudio \
     && chmod 755 /home/rstudio \
     && chmod 644 /home/rstudio/.Rprofile \
+    && chmod 644 /home/rstudio/.zshrc \
+    && chmod 644 /home/rstudio/.aliases \
     && chmod -R 755 /home/rstudio/workshop \
     && find /home/rstudio/workshop -type f -exec chmod 644 {} \;
 

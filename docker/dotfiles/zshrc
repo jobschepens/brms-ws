@@ -1,0 +1,14 @@
+# Container zsh config: optimized for interactive workshop work
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="robbyrussell"
+plugins=(git gitfast history-substring-search zsh-syntax-highlighting zsh-autosuggestions)
+ZSH_DISABLE_COMPFIX=true
+
+if [[ -f "${ZSH}/oh-my-zsh.sh" ]]; then
+  source "${ZSH}/oh-my-zsh.sh"
+fi
+
+export PATH="./bin:./node_modules/.bin:${PATH}:/usr/local/sbin"
+
+# Load local aliases when present
+[[ -f "$HOME/.aliases" ]] && source "$HOME/.aliases"

@@ -1,0 +1,3 @@
+# Basic aliases from personal dotfiles that are safe in this container
+alias myip="curl https://ipinfo.io/json"
+alias serve='ruby -run -e httpd . -p 8000'
