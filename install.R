@@ -40,19 +40,19 @@ cat("Installing core BRMS packages...\n")
 cat("Installing cmdstanr from Stan repository...\n")
 cat("This may take 2-5 minutes (installing dependencies)...\n")
 tryCatch({
-  install.packages("cmdstanr", 
-                   repos = c("https://stan-dev.r-universe.dev", 
+  install.packages("cmdstanr",
+                   repos = c("https://stan-dev.r-universe.dev",
                             "https://cloud.r-project.org"),
-                   quiet = TRUE, 
+                   quiet = TRUE,
                    dependencies = NA)
   cat("✓ cmdstanr installed successfully\n")
 }, error = function(e) {
   cat("ERROR: Failed to install cmdstanr:", e$message, "\n")
   cat("Attempting retry with verbose output...\n")
-  install.packages("cmdstanr", 
-                   repos = c("https://stan-dev.r-universe.dev", 
+  install.packages("cmdstanr",
+                   repos = c("https://stan-dev.r-universe.dev",
                             "https://cloud.r-project.org"),
-                   quiet = FALSE, 
+                   quiet = FALSE,
                    dependencies = NA)
 })
 
@@ -71,7 +71,7 @@ for (pkg in heavy_packages) {
     cat(sprintf("  ✓ %s already installed\n", pkg))
     next
   }
-  
+
   cat(sprintf("  Installing %s...\n", pkg))
   tryCatch({
     # Don't include dependencies for these - they have minimal deps
@@ -129,7 +129,7 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
     cat("Continuing anyway - may work if toolchain is actually available\n")
     TRUE  # Continue anyway - the check function is overly conservative
   })
-  
+
   # Install CmdStan with explicit settings
   cat("Starting CmdStan installation (downloading and compiling)...\n")
   tryCatch({
@@ -152,7 +152,7 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
       quit(status = 1)
     })
   })
-  
+
   # Verify installation and set path
   installed_path <- tryCatch({
     cmdstanr::cmdstan_path()
@@ -161,7 +161,7 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
     quit(status = 1)
   })
   cat("✓ CmdStan installed successfully at:", installed_path, "\n")
-  
+
   # Test that it works
   cat("Testing CmdStan functionality...\n")
   tryCatch({
@@ -227,7 +227,8 @@ cat("Installing development tools...\n")
 install.packages(c(
   "devtools",       # Already in rocker/verse, but ensure latest
   "roxygen2",       # Documentation generation
-  "testthat"        # Unit testing
+  "testthat",       # Unit testing
+  "languageserver"  # R language server for IDE support
 ), quiet = TRUE)
 
 # ------ OPTIONAL: VISUALIZATION EXTENSIONS ------
@@ -248,5 +249,5 @@ cat("✓ easystats/classical: see, parameters, performance, effectsize, effsize,
 cat("✓ Mixed models: lmerTest\n")
 cat("✓ Data tools: tidyverse, ggplot2, dplyr, tidyr, scales\n")
 cat("✓ Reporting: knitr, rmarkdown, bookdown, DT, kableExtra\n")
-cat("✓ Dev tools: devtools, roxygen2, testthat\n")
+cat("✓ Dev tools: devtools, roxygen2, testthat, languageserver\n")
 cat("✓ Viz: patchwork, ggridges, viridis\n")
