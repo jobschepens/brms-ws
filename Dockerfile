@@ -118,7 +118,7 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
   tryCatch({
     # Try to get existing CmdStan path (if already configured)
     cmdstan_path <- tryCatch(cmdstanr::cmdstan_path(), error = function(e) NULL)
-    
+
     # If no path is set, search for CmdStan installation in ~/.cmdstan
     if (is.null(cmdstan_path)) {
       cmdstan_base <- file.path(Sys.getenv("HOME"), ".cmdstan")
@@ -175,8 +175,8 @@ LABEL org.opencontainers.image.title="BRMS Workshop" \
       org.opencontainers.image.description="R workshop environment with brms and CmdStan for Bayesian modeling" \
       org.opencontainers.image.version="4.5.2" \
       org.opencontainers.image.authors="jobschepens" \
-      org.opencontainers.image.url="https://github.com/jobschepens/brms-workshop" \
-      org.opencontainers.image.source="https://github.com/jobschepens/brms-workshop" \
+      org.opencontainers.image.url="https://github.com/jobschepens/brms-ws" \
+      org.opencontainers.image.source="https://github.com/jobschepens/brms-ws" \
       org.opencontainers.image.vendor="jobschepens" \
       org.opencontainers.image.licenses="MIT" \
       maintainer="jobschepens"
