@@ -21,11 +21,11 @@ services:
     #   context: .
     #   dockerfile: Dockerfile
     container_name: brms-workshop
-    
+
     # Network configuration
     ports:
       - "8787:8787"  # RStudio Server web interface
-    
+
     # RStudio Server configuration
     environment:
       - PASSWORD=workshop              # RStudio login password (change in production!)
@@ -33,31 +33,31 @@ services:
       - ROOT=true                      # Allow sudo access inside container
       # Optional: Set timezone (defaults to Etc/UTC)
       # - TZ=Europe/Brussels
-    
+
     # Volume mounts for persistent data
     volumes:
       # Mount workshop materials (for development/editing)
       # Changes in ./materials/ are immediately reflected in RStudio
       - ./materials:/home/rstudio/workshop/materials
-      
+
       # Persist analysis results outside container
       - ./results:/home/rstudio/workshop/results
       # Mount collaborator package workspace
-      - ../temp/vicom/collaborator_package_26_2:/home/rstudio/workshop/collaborator_package_26_2
-      
+      - ../vicom-4lang:/home/rstudio/workshop/vicom-4lang
+
       # Optional: Mount additional data or scripts
       # - ./data:/home/rstudio/workshop/data:ro  # :ro = read-only
-    
+
     # Container lifecycle policy
     restart: unless-stopped  # Auto-restart on failure, but not after manual stop
-    
+
     # Resource limits and reservations
     # Note: These are docker-compose style limits. For production/swarm, see deploy section below
     cpus: '8'           # Limit to 8 CPU cores (adjust based on your system)
     mem_limit: 12g      # Maximum RAM allocation
     mem_reservation: 4g # Guaranteed minimum RAM (soft limit)
     shm_size: 2g        # Shared memory for Stan compilation (important for parallel chains)
-    
+
     # Alternative: Use deploy section for more control (works with docker compose v3.8+)
     # Uncomment below and comment out cpus/mem_limit above to use
     # deploy:
@@ -68,7 +68,7 @@ services:
     #     reservations:
     #       cpus: '4'
     #       memory: 4G
-    
+
     # Health check to verify RStudio Server is responding
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8787/"]
@@ -76,13 +76,13 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s  # Allow time for CmdStan installation on first run
-    
+
     # Metadata labels for documentation and management
     labels:
       com.brms-workshop.description: "RStudio Server with brms and CmdStan"
       com.brms-workshop.version: "R-4.5.2"
       com.brms-workshop.service: "rstudio-server"
-    
+
     # Debugging options (uncomment when troubleshooting)
     # stdin_open: true   # Keep STDIN open
     # tty: true          # Allocate pseudo-TTY
