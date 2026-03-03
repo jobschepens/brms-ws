@@ -56,8 +56,8 @@ services:
     # Resource limits and reservations
     # Note: These are docker-compose style limits. For production/swarm, see deploy section below
     cpus: '8'           # Limit to 8 CPU cores (adjust based on your system)
-    mem_limit: 12g      # Maximum RAM allocation
-    mem_reservation: 4g # Guaranteed minimum RAM (soft limit)
+    mem_limit: 16g      # Maximum RAM allocation
+    mem_reservation: 6g # Guaranteed minimum RAM (soft limit)
     shm_size: 2g        # Shared memory for Stan compilation (important for parallel chains)
 
     # Alternative: Use deploy section for more control (works with docker compose v3.8+)
