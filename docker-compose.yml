@@ -44,6 +44,7 @@ services:
       - ./results:/home/rstudio/workshop/results
       # Mount collaborator package workspace
       - ../vicom-4lang:/home/rstudio/workshop/vicom-4lang
+      - ../temp/katja:/home/rstudio/workshop/temp/katja
 
       # Optional: Mount additional data or scripts
       # - ./data:/home/rstudio/workshop/data:ro  # :ro = read-only
