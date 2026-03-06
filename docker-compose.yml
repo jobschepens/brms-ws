@@ -45,6 +45,7 @@ services:
       # Mount collaborator package workspace
       - ../vicom-4lang:/home/rstudio/workshop/vicom-4lang
       - ../temp/katja:/home/rstudio/workshop/temp/katja
+      - ../samplesize:/home/rstudio/workshop/samplesize
 
 
       # Optional: Mount additional data or scripts
