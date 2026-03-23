@@ -46,6 +46,7 @@ services:
       - ../vicom-4lang:/home/rstudio/workshop/vicom-4lang
       - ../temp/katja:/home/rstudio/workshop/temp/katja
       - ../samplesize:/home/rstudio/workshop/samplesize
+      - ../cont:/home/rstudio/cont
 
 
       # Optional: Mount additional data or scripts
