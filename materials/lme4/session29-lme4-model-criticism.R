@@ -16,17 +16,25 @@ library(influence.ME)
 library(trouBBlme4SolveR)
 library(dfoptim)
 library(languageR)
+library(ordinal)
+library(emmeans)
 library(tidyverse)
 
 set.seed(12345)
 theme_set(theme_minimal(base_size = 12))
 
 # ------------------------------------------------------------------------------
-# Module 1: Design Relaxation, Crossed Effects & The Singularity Debate
+# Module 1: Continuous RT, Maximal Structure & The Need for Contrast Coding
 # ------------------------------------------------------------------------------
 data(lexdec)
 
-# Standardize continuous variables and use centered numeric coding
+# Contrast Coding Rationale:
+# In R, factors default to treatment (dummy) coding (0, 1). In mixed models:
+# 1. Lower-order effects become simple effects at baseline when interactions exist.
+# 2. Random slopes (1 + Factor | Group) tie intercept variance to baseline, inducing
+#    artificial correlation (rho = +/- 1.0) and boundary singular fits.
+# Centered sum coding (-0.5 / +0.5) centers the intercept at the grand mean,
+# decouples intercept and slope variance, and makes coefficients true main effects.
 lexdec <- lexdec %>%
   mutate(
     Freq_z   = as.numeric(scale(Frequency)),
@@ -44,6 +52,10 @@ m_maximal <- lmer(
 )
 cat("Is maximal model singular?", isSingular(m_maximal), "\n")
 print(VarCorr(m_maximal))
+
+# Automated singular fit resolution with trouBBlme4SolveR (Ben Bolker)
+m_resolved <- dwmw(m_maximal)
+cat("Is resolved model singular?", isSingular(m_resolved), "\n")
 
 # Parsimonious random-effects model (Bates et al., 2015)
 m_parsimonious <- lmer(
@@ -108,20 +120,65 @@ plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
      main = "Word-Level Cook's Distance (Items)")
 
 # ------------------------------------------------------------------------------
-# Module 4: Convergence Troubleshooting & Optimizer Debugging
+# Module 4: Ordinal & Likert Scale Modeling (sizeRatings)
+# ------------------------------------------------------------------------------
+data(sizeRatings)
+
+# 1. Naive Gaussian LMM (violates boundary and discrete scale assumptions)
+m_naive_likert <- lmer(Rating ~ Class + (1 | Word), data = sizeRatings)
+sim_naive <- simulateResiduals(m_naive_likert, n = 250, plot = FALSE)
+plot(sim_naive)
+
+# 2. Cumulative Link Mixed Model (Christensen, 2019)
+sizeRatings <- sizeRatings %>%
+  mutate(Rating_ord = factor(Rating, ordered = TRUE))
+
+m_clmm <- clmm(Rating_ord ~ Class + (1 | Word), data = sizeRatings)
+print(summary(m_clmm))
+
+# ------------------------------------------------------------------------------
+# Module 5: Post-Fitting Inference with emmeans & Contrast Coding Synthesis
+# ------------------------------------------------------------------------------
+# 5.1 Demonstrating Coding Invariance of emmeans
+# Fit model with default treatment coding vs centered sum coding
+m_treatment <- lmer(RT ~ Freq_z * NativeLanguage + (1 | Subject), data = lexdec)
+m_sum       <- lmer(RT ~ Freq_z * Native_num + (1 | Subject), data = lexdec)
+
+# Fixed effects tables differ (treatment = simple effects at baseline, sum = main effects):
+cat("\nFixed effects under Treatment Coding:\n")
+print(fixef(m_treatment))
+cat("\nFixed effects under Centered Sum Coding:\n")
+print(fixef(m_sum))
+
+# But emmeans evaluates over a balanced reference grid, yielding IDENTICAL marginal means:
+cat("\nemmeans from Treatment-Coded Model:\n")
+print(emmeans(m_treatment, ~ NativeLanguage))
+cat("\nemmeans from Sum-Coded Model:\n")
+print(emmeans(m_sum, ~ Native_num))
+
+# 5.2 Marginal Means and Contrasts Across Model Classes
+# LMM: Pairwise differences with Kenward-Roger degrees-of-freedom
+emm_native <- emmeans(m_parsimonious, ~ Native_num)
+print(emm_native)
+print(pairs(emm_native))
+
+# GLMM: Back-transformed response probabilities & Odds Ratios
+emm_dative <- emmeans(m_dative, ~ AnimacyOfRec, type = "response")
+print(emm_dative)
+print(pairs(emm_dative))
+
+# CLMM: Latent linear predictor contrasts
+emm_clmm <- emmeans(m_clmm, ~ Class)
+print(emm_clmm)
+print(pairs(emm_clmm))
+
+# ------------------------------------------------------------------------------
+# Module 6: Optimizer Benchmarking, Variance Partitioning & Reporting
 # ------------------------------------------------------------------------------
 # Benchmark across all optimizers
 all_fits <- allFit(m_parsimonious)
 print(summary(all_fits))
 
-# Automated singular fit resolution with trouBBlme4SolveR
-m_resolved <- dwmw(m_maximal)
-cat("Is resolved model singular?", isSingular(m_resolved), "\n")
-print(summary(m_resolved))
-
-# ------------------------------------------------------------------------------
-# Module 5: Model Comparison & Nakagawa R-Squared
-# ------------------------------------------------------------------------------
 # Likelihood Ratio Test under Maximum Likelihood (REML = FALSE)
 m_full_ml <- lmer(RT ~ Freq_z + Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
@@ -129,7 +186,7 @@ m_null_ml <- lmer(RT ~ Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
 print(anova(m_null_ml, m_full_ml))
 
-# Variance partitioning: Marginal vs Conditional R2
+# Variance partitioning: Marginal vs Conditional R2 (Nakagawa et al.)
 r2_val <- r2_nakagawa(m_resolved)
 print(r2_val)
 

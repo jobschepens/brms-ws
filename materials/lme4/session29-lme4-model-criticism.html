@@ -2382,7 +2382,7 @@ window.Quarto = {
   <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup"><span class="header-section-number">4</span> Environment Setup</a></li>
   <li><a href="#module-1-continuous-reaction-times-the-singularity-debate" id="toc-module-1-continuous-reaction-times-the-singularity-debate" class="nav-link" data-scroll-target="#module-1-continuous-reaction-times-the-singularity-debate"><span class="header-section-number">5</span> Module 1: Continuous Reaction Times &amp; The Singularity Debate</a>
   <ul class="collapse">
-  <li><a href="#preparing-linguistic-lexical-decision-data" id="toc-preparing-linguistic-lexical-decision-data" class="nav-link" data-scroll-target="#preparing-linguistic-lexical-decision-data"><span class="header-section-number">5.1</span> 1.1 Preparing Linguistic Lexical Decision Data</a></li>
+  <li><a href="#preparing-linguistic-lexical-decision-data-the-need-for-contrast-coding" id="toc-preparing-linguistic-lexical-decision-data-the-need-for-contrast-coding" class="nav-link" data-scroll-target="#preparing-linguistic-lexical-decision-data-the-need-for-contrast-coding"><span class="header-section-number">5.1</span> 1.1 Preparing Linguistic Lexical Decision Data &amp; The Need for Contrast Coding</a></li>
   <li><a href="#fitting-a-maximal-model-barr-et-al.-2013" id="toc-fitting-a-maximal-model-barr-et-al.-2013" class="nav-link" data-scroll-target="#fitting-a-maximal-model-barr-et-al.-2013"><span class="header-section-number">5.2</span> 1.2 Fitting a Maximal Model (Barr et al., 2013)</a></li>
   <li><a href="#inspecting-boundary-singularity" id="toc-inspecting-boundary-singularity" class="nav-link" data-scroll-target="#inspecting-boundary-singularity"><span class="header-section-number">5.3</span> 1.3 Inspecting Boundary Singularity</a></li>
   <li><a href="#automated-singularity-resolution-troubblme4solver" id="toc-automated-singularity-resolution-troubblme4solver" class="nav-link" data-scroll-target="#automated-singularity-resolution-troubblme4solver"><span class="header-section-number">5.4</span> 1.4 Automated Singularity Resolution (<code>trouBBlme4SolveR</code>)</a></li>
@@ -2406,10 +2406,12 @@ window.Quarto = {
   <li><a href="#demonstrating-the-flaw-gaussian-lmm-on-likert-data" id="toc-demonstrating-the-flaw-gaussian-lmm-on-likert-data" class="nav-link" data-scroll-target="#demonstrating-the-flaw-gaussian-lmm-on-likert-data"><span class="header-section-number">8.2</span> 4.2 Demonstrating the Flaw: Gaussian LMM on Likert Data</a></li>
   <li><a href="#the-principled-solution-cumulative-link-mixed-models-ordinalclmm" id="toc-the-principled-solution-cumulative-link-mixed-models-ordinalclmm" class="nav-link" data-scroll-target="#the-principled-solution-cumulative-link-mixed-models-ordinalclmm"><span class="header-section-number">8.3</span> 4.3 The Principled Solution: Cumulative Link Mixed Models (<code>ordinal::clmm</code>)</a></li>
   </ul></li>
-  <li><a href="#module-5-post-fitting-inference-with-emmeans" id="toc-module-5-post-fitting-inference-with-emmeans" class="nav-link" data-scroll-target="#module-5-post-fitting-inference-with-emmeans"><span class="header-section-number">9</span> Module 5: Post-Fitting Inference with emmeans</a>
+  <li><a href="#module-5-post-fitting-inference-with-emmeans-the-contrast-coding-synthesis" id="toc-module-5-post-fitting-inference-with-emmeans-the-contrast-coding-synthesis" class="nav-link" data-scroll-target="#module-5-post-fitting-inference-with-emmeans-the-contrast-coding-synthesis"><span class="header-section-number">9</span> Module 5: Post-Fitting Inference with emmeans &amp; The Contrast Coding Synthesis</a>
   <ul class="collapse">
   <li><a href="#estimating-marginal-means-contrasts" id="toc-estimating-marginal-means-contrasts" class="nav-link" data-scroll-target="#estimating-marginal-means-contrasts"><span class="header-section-number">9.1</span> 5.1 Estimating Marginal Means &amp; Contrasts</a></li>
-  <li><a href="#methodological-assumptions-of-emmeans" id="toc-methodological-assumptions-of-emmeans" class="nav-link" data-scroll-target="#methodological-assumptions-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Methodological Assumptions of emmeans</a></li>
+  <li><a href="#empirical-demonstration-coding-invariance-of-emmeans" id="toc-empirical-demonstration-coding-invariance-of-emmeans" class="nav-link" data-scroll-target="#empirical-demonstration-coding-invariance-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Empirical Demonstration: Coding Invariance of emmeans</a></li>
+  <li><a href="#methodological-assumptions-of-emmeans" id="toc-methodological-assumptions-of-emmeans" class="nav-link" data-scroll-target="#methodological-assumptions-of-emmeans"><span class="header-section-number">9.3</span> 5.3 Methodological Assumptions of emmeans</a></li>
+  <li><a href="#why-both-are-necessary-the-two-stage-principle" id="toc-why-both-are-necessary-the-two-stage-principle" class="nav-link" data-scroll-target="#why-both-are-necessary-the-two-stage-principle"><span class="header-section-number">9.4</span> 5.4 Why Both Are Necessary: The Two-Stage Principle</a></li>
   </ul></li>
   <li><a href="#module-6-optimizer-benchmarking-variance-partitioning-reporting" id="toc-module-6-optimizer-benchmarking-variance-partitioning-reporting" class="nav-link" data-scroll-target="#module-6-optimizer-benchmarking-variance-partitioning-reporting"><span class="header-section-number">10</span> Module 6: Optimizer Benchmarking, Variance Partitioning &amp; Reporting</a>
   <ul class="collapse">
@@ -2652,9 +2654,9 @@ window.Quarto = {
 </section>
 <section id="module-1-continuous-reaction-times-the-singularity-debate" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Module 1: Continuous Reaction Times &amp; The Singularity Debate</h1>
-<section id="preparing-linguistic-lexical-decision-data" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="preparing-linguistic-lexical-decision-data"><span class="header-section-number">5.1</span> 1.1 Preparing Linguistic Lexical Decision Data</h2>
-<p>We prepare <code>languageR::lexdec</code> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen, Feldman, and Schreuder 2006</a>)</span>, standardizing continuous predictors to optimize numerical conditioning and applying centered sum coding (-0.5 / +0.5) to categorical factors:</p>
+<section id="preparing-linguistic-lexical-decision-data-the-need-for-contrast-coding" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="preparing-linguistic-lexical-decision-data-the-need-for-contrast-coding"><span class="header-section-number">5.1</span> 1.1 Preparing Linguistic Lexical Decision Data &amp; The Need for Contrast Coding</h2>
+<p>We prepare <code>languageR::lexdec</code> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen, Feldman, and Schreuder 2006</a>)</span>, standardizing continuous predictors to optimize numerical conditioning and applying <strong>centered sum contrast coding</strong> (<span class="math inline">\(-0.5 / +0.5\)</span>) to categorical factors <span class="citation" data-cites="schad2020contrast">(<a href="#ref-schad2020contrast" role="doc-biblioref">Schad et al. 2020</a>)</span>:</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Toggle Code</summary>
@@ -2681,6 +2683,25 @@ $ Freq_z     &lt;dbl&gt; 0.085255426, -0.114461645, 0.193018975, -0.018605419, 2
 $ Length_z   &lt;dbl&gt; -1.56745815, -1.02907035, 0.04770525, -1.02907035, -1.56745…
 $ Native_num &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5,…
 $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5,…</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Why Contrast Coding is Essential Before Model Fitting
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In R, factors default to <strong>treatment (dummy) coding</strong> (<code>contr.treatment</code>), which maps the first alphabetical level to 0 and all other levels to 1. In mixed-effects modeling, this default creates three major hazards <span class="citation" data-cites="schad2020contrast">(<a href="#ref-schad2020contrast" role="doc-biblioref">Schad et al. 2020</a>)</span>:</p>
+<ol type="1">
+<li><strong>Misinterpretation of Main Effects</strong>: In models with interactions (<span class="math inline">\(A \times B\)</span>), the lower-order <span class="math inline">\(\beta\)</span> coefficients under treatment coding are <strong>not</strong> main effects; they are <em>simple effects</em> restricted specifically to the arbitrary baseline level of the other factor.</li>
+<li><strong>Artificial Random Slope Singularity</strong>: In <code>(1 + Condition | Subject)</code>, treatment coding forces the random intercept to represent variance <em>specifically at the baseline condition</em>. This induces severe collinearity between the random intercept and random slope, driving the estimated correlation parameter <span class="math inline">\(\rho\)</span> to boundary values of <span class="math inline">\(\pm 1.0\)</span> and triggering false singular fits.</li>
+<li><strong>Invalid Type III ANOVA Tables</strong>: Type III tests (<code>car::Anova(type = &quot;III&quot;)</code>) mathematically assume orthogonal contrasts (<code>contr.sum</code>). Under default treatment coding, Type III tests are statistically meaningless.</li>
+</ol>
+<p>Centered sum coding (<span class="math inline">\(-0.5 / +0.5\)</span>) centers the intercept at the unweighted grand mean across conditions, decouples random intercepts from random slopes, and ensures <span class="math inline">\(\beta\)</span> coefficients represent true main effects.</p>
 </div>
 </div>
 </section>
@@ -3192,8 +3213,8 @@ Threshold coefficients:
 <hr>
 </section>
 </section>
-<section id="module-5-post-fitting-inference-with-emmeans" class="level1" data-number="9">
-<h1 data-number="9"><span class="header-section-number">9</span> Module 5: Post-Fitting Inference with emmeans</h1>
+<section id="module-5-post-fitting-inference-with-emmeans-the-contrast-coding-synthesis" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Module 5: Post-Fitting Inference with emmeans &amp; The Contrast Coding Synthesis</h1>
 <section id="estimating-marginal-means-contrasts" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="estimating-marginal-means-contrasts"><span class="header-section-number">9.1</span> 5.1 Estimating Marginal Means &amp; Contrasts</h2>
 <p>The <code>emmeans</code> package <span class="citation" data-cites="lenth2016least">(<a href="#ref-lenth2016least" role="doc-biblioref">Lenth 2016</a>)</span> computes Estimated Marginal Means (least-squares means) by averaging predictions over a balanced reference grid:</p>
@@ -3276,8 +3297,86 @@ Confidence level used: 0.95 </code></pre>
 </div>
 </div>
 </section>
-<section id="methodological-assumptions-of-emmeans" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="methodological-assumptions-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Methodological Assumptions of emmeans</h2>
+<section id="empirical-demonstration-coding-invariance-of-emmeans" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="empirical-demonstration-coding-invariance-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Empirical Demonstration: Coding Invariance of emmeans</h2>
+<p>A profound property of <code>emmeans</code> is that it evaluates predictions over a balanced reference grid regardless of how factors were coded in the design matrix <span class="math inline">\(\mathbf{X}\)</span>.</p>
+<p>Let us compare two identical models fitted with default treatment coding vs. centered sum coding:</p>
+<div class="cell">
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Model with default treatment coding (English = 0, Other = 1)</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>m_treatment <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">*</span> NativeLanguage <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject), <span class="at">data =</span> lexdec)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Model with centered sum coding (-0.5 / +0.5)</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>m_sum <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">*</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject), <span class="at">data =</span> lexdec)</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># In the model tables, the lower-order coefficients differ completely:</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="co"># In m_treatment: &#39;NativeLanguageOther&#39; is a simple effect at Freq_z = 0</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="co"># In m_sum: &#39;Native_num&#39; is a true main effect averaged across Freq_z</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="fu">fixef</span>(m_treatment)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>               (Intercept)                     Freq_z 
+                6.31830923                -0.03965053 
+       NativeLanguageOther Freq_z:NativeLanguageOther 
+                0.15582119                -0.03502711 </code></pre>
+</div>
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fixef</span>(m_sum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>      (Intercept)            Freq_z        Native_num Freq_z:Native_num 
+       6.39621983       -0.05716408        0.15582119       -0.03502711 </code></pre>
+</div>
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Yet emmeans produces the EXACT SAME estimated marginal means:</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>emm_from_treat <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(m_treatment, <span class="sc">~</span> NativeLanguage)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>emm_from_sum   <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(m_sum, <span class="sc">~</span> Native_num)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">emmeans from Treatment-Coded Model:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+emmeans from Treatment-Coded Model:</code></pre>
+</div>
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(emm_from_treat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> NativeLanguage emmean     SE df lower.CL upper.CL
+ English          6.32 0.0396 19     6.24     6.40
+ Other            6.47 0.0458 19     6.38     6.57
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 </code></pre>
+</div>
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">emmeans from Sum-Coded Model:</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+emmeans from Sum-Coded Model:</code></pre>
+</div>
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(emm_from_sum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> Native_num emmean     SE df lower.CL upper.CL
+       -0.5   6.32 0.0396 19     6.24     6.40
+        0.5   6.47 0.0458 19     6.38     6.57
+
+Degrees-of-freedom method: kenward-roger 
+Confidence level used: 0.95 </code></pre>
+</div>
+</div>
+</section>
+<section id="methodological-assumptions-of-emmeans" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="methodological-assumptions-of-emmeans"><span class="header-section-number">9.3</span> 5.3 Methodological Assumptions of emmeans</h2>
 <p>When reporting marginal means, researchers must verify five underlying assumptions:</p>
 <ol type="1">
 <li><strong>Reference Grid Balancing</strong>: Continuous covariates are held constant at their grand mean (<span class="math inline">\(\bar{x}\)</span>), and factor cells are weighted equally. When covariates are correlated, the reference grid can evaluate combinations unobserved in actual data.</li>
@@ -3291,6 +3390,87 @@ Confidence level used: 0.95 </code></pre>
 <li><strong>Benjamini-Hochberg (FDR)</strong>: Large exploratory contrast families.</li>
 </ul></li>
 </ol>
+</section>
+<section id="why-both-are-necessary-the-two-stage-principle" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="why-both-are-necessary-the-two-stage-principle"><span class="header-section-number">9.4</span> 5.4 Why Both Are Necessary: The Two-Stage Principle</h2>
+<p>If <code>emmeans</code> produces the same marginal means regardless of factor coding, <strong>why do we still need contrast coding before fitting?</strong> Conversely, if we use sum contrast coding, <strong>why do we still need <code>emmeans</code>?</strong></p>
+<p>The answer lies in the distinction between <strong>model estimation</strong> (<em>a priori</em>) and <strong>hypothesis evaluation</strong> (<em>post hoc</em>):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Dimension / Objective</th>
+<th style="text-align: left;">Contrast Coding (Before Fitting)</th>
+<th style="text-align: left;"><code>emmeans</code> (After Fitting)</th>
+<th style="text-align: left;">Why Both Are Essential</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Operational Stage</strong></td>
+<td style="text-align: left;"><em>A priori</em>: Parameterizes the design matrix <span class="math inline">\(\mathbf{X}\)</span> during numerical optimization.</td>
+<td style="text-align: left;"><em>Post hoc</em>: Constructs reference grid predictions from estimated <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span> and <span class="math inline">\(\hat{\mathbf{\Sigma}}\)</span>.</td>
+<td style="text-align: left;">Neither tool can perform the other’s job: <code>emmeans</code> cannot refit the model; contrast coding cannot predict across balanced grids automatically.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Random Slope Stability</strong></td>
+<td style="text-align: left;"><strong>Crucial</strong>: Centered coding centers random intercepts at the grand mean, preventing artificial correlation collapse (<span class="math inline">\(\rho \approx \pm 1.0\)</span>) and singular fits.</td>
+<td style="text-align: left;"><strong>Cannot help</strong>: Operates only on the already-converged model. If uncentered coding triggered a singular fit, <code>emmeans</code> cannot repair the corrupted variance parameters.</td>
+<td style="text-align: left;">You <strong>must</strong> contrast-code before fitting to ensure the model converges to valid, non-singular variance estimates.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Coefficient Interpretation</strong></td>
+<td style="text-align: left;">Ensures lower-order <span class="math inline">\(\beta\)</span> terms in <code>summary()</code> represent true main effects rather than simple effects at an arbitrary baseline.</td>
+<td style="text-align: left;">Does not alter the <span class="math inline">\(\beta\)</span> regression table; only provides reconstructed marginal predictions.</td>
+<td style="text-align: left;">Researchers reading model tables require interpretable <span class="math inline">\(\beta\)</span> coefficients for regression reporting.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Type III ANOVA (<code>car::Anova</code>)</strong></td>
+<td style="text-align: left;"><strong>Strictly Required</strong>: Type III tests mathematically assume sum/orthogonal contrasts (<code>contr.sum</code>). Under treatment coding, Type III tests are statistically meaningless.</td>
+<td style="text-align: left;">Not applicable (evaluates specific linear contrasts rather than overall omnibus decomposition).</td>
+<td style="text-align: left;">If journal reviewers demand Type III Wald/LRT ANOVA tables, models must be fitted with sum contrasts.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Interaction Decomposition</strong></td>
+<td style="text-align: left;">Slicing interactions via contrast matrices requires tedious manual coding of custom linear combinations (<span class="math inline">\(\mathbf{c}^\top \boldsymbol{\beta}\)</span>) or repeatedly releveling baselines.</td>
+<td style="text-align: left;"><strong>Trivial</strong>: Syntax like <code>pairwise ~ FactorA \| FactorB</code> decomposes multi-way interactions into simple pairwise differences in a single line.</td>
+<td style="text-align: left;">You need <code>emmeans</code> to explore interactions cleanly without refitting the model multiple times.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Response Scale for GLMMs</strong></td>
+<td style="text-align: left;">Operates strictly on the link scale (log-odds <span class="math inline">\(\eta\)</span>). Back-transforming manually requires tedious delta-method calculations for SEs.</td>
+<td style="text-align: left;"><strong>Native</strong>: Converts log-odds to response probabilities (<span class="math inline">\(p \in [0, 1]\)</span>) and odds ratios with automatic multivariate delta-method standard errors.</td>
+<td style="text-align: left;">You need <code>emmeans</code> to translate abstract log-odds coefficients into meaningful probabilities for publication.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Multiplicity &amp; d.f. Corrections</strong></td>
+<td style="text-align: left;">Manual adjustment of <span class="math inline">\(p\)</span>-values and manual calculation of Satterthwaite/Kenward-Roger d.f.</td>
+<td style="text-align: left;">Automated integration with <code>lmerTest</code>/<code>pbkrtest</code> for Satterthwaite/Kenward-Roger d.f. and Tukey/FDR adjustments.</td>
+<td style="text-align: left;">You need <code>emmeans</code> to avoid anticonservative inferential tests.</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The Gold-Standard Two-Stage Workflow
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Stage 1 (Before Model Fitting):</strong> Apply centered sum contrast coding (<code>contr.sum</code> or <span class="math inline">\(-0.5 / +0.5\)</span>) to all categorical predictors. This stabilizes the random-effects covariance matrix against boundary singularities, aligns <span class="math inline">\(\beta\)</span> coefficients with main effects, and validates Type III ANOVA tables.</li>
+<li><strong>Stage 2 (After Model Fitting):</strong> Use <code>emmeans</code> to evaluate condition means across balanced reference grids, unpack complex interactions, compute response-scale probabilities and odds ratios, and apply Kenward-Roger d.f. approximations and Tukey multiplicity adjustments.</li>
+</ol>
+</div>
+</div>
 <hr>
 </section>
 </section>
@@ -3301,7 +3481,7 @@ Confidence level used: 0.95 </code></pre>
 <div class="cell">
 <details open class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>all_fits <span class="ot">&lt;-</span> <span class="fu">allFit</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>all_fits <span class="ot">&lt;-</span> <span class="fu">allFit</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>bobyqa : [OK]
@@ -3316,7 +3496,7 @@ nloptwrap.NLOPT_LN_BOBYQA : [OK]</code></pre>
 </div>
 <details open class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>$which.OK
@@ -3435,12 +3615,12 @@ attr(,&quot;class&quot;)
 <div class="cell">
 <details open class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Data: lexdec
@@ -3460,14 +3640,14 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 <div class="cell">
 <details open class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
 </div>
 <details open class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># R2 for Mixed Models
@@ -3548,6 +3728,9 @@ Nakagawa, Shinichi, and Holger Schielzeth. 2013. <span>“A General and Simple M
 </div>
 <div id="ref-nieuwenhuis2012influence" class="csl-entry" role="listitem">
 Nieuwenhuis, Rense, Manfred te Grotenhuis, and Ben Pelzer. 2012. <span>“<span class="nocase">influence.ME</span>: Tools for Detecting Influential Data in Mixed Effects Models.”</span> <em>The R Journal</em> 4 (2): 38–47. <a href="https://doi.org/10.32614/RJ-2012-011">https://doi.org/10.32614/RJ-2012-011</a>.
+</div>
+<div id="ref-schad2020contrast" class="csl-entry" role="listitem">
+Schad, Daniel J, Shravan Vasishth, Sven Hohenstein, and Reinhold Kliegl. 2020. <span>“How to Capitalize on a Priori Contrasts in Linear (Mixed) Models: A Tutorial.”</span> <em>Journal of Memory and Language</em> 110: 104038. <a href="https://doi.org/10.1016/j.jml.2019.104038">https://doi.org/10.1016/j.jml.2019.104038</a>.
 </div>
 <div id="ref-vasishth2018bayesian" class="csl-entry" role="listitem">
 Vasishth, Shravan, Bruno Nicenboim, Mary E Beckman, Fangfang Li, and Eun Jong Kong. 2018. <span>“Bayesian Data Analysis in the Phonetic Sciences: A Tutorial Introduction.”</span> <em>Journal of Phonetics</em> 71: 147–61. <a href="https://doi.org/10.1016/j.wocn.2018.07.008">https://doi.org/10.1016/j.wocn.2018.07.008</a>.

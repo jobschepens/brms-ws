@@ -23,23 +23,14 @@ execute:
 
 # Introduction: Model Criticism in Quantitative Linguistics
 
-Linear Mixed-Effects Models (LMMs) and Generalized Linear Mixed-Effects Models (GLMMs) fitted via `lme4` are the standard inferential framework across quantitative and experimental linguistics. They allow researchers to model hierarchically structured data, handle unbalanced designs, and account for simultaneous variation across participants and linguistic materials.
 Linear Mixed-Effects Models (LMMs) and Generalized Linear Mixed-Effects Models (GLMMs) fitted via `lme4` [@bates2015fitting] are the cornerstone of contemporary quantitative and experimental linguistics. They empower researchers to model hierarchically clustered data, handle unbalanced designs, and simultaneously account for variation across speakers and linguistic materials.
 
-However, default software summaries can be deceptive: a model that converges without explicit error messages may violate fundamental Gauss-Markov assumptions, suffer from unidentifiable random-effects geometry (singularity), or be driven by a few influential speakers or idiosyncratic stimuli.
 However, standard summary tables can easily mask fatal assumption violations. A model that converges without error may violate core Gauss-Markov assumptions, suffer from degenerate random-effects geometry (singularity), or be driven by a handful of influential participants or idiosyncratic stimulus items [@meteyard2020best].
 
 ::: {.callout-note}
-## Workshop Datasets: Linguistic Foundations for CRC 1252
-Instead of generic textbook examples like the `sleepstudy` (which lacks items and linguistic structure), this workshop uses two renowned linguistic datasets:
 ## Workshop Datasets: Authentic Linguistic Foundations for CRC 1252
 Rather than generic non-linguistic toy examples (such as the `sleepstudy`, which lacks item variation and linguistic structure), this workshop demonstrates all diagnostic workflows on three authentic linguistic datasets:
 
-1. **`languageR::lexdec` (Baayen et al., 2006)**: Reaction times ($N = 1,659$) in visual lexical decision. It features **crossed random factors** (21 `Subject`s crossed with 79 `Word`s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (`NativeLanguage`), and experimental progression (`Trial`).
-2. **`languageR::dative` (Bresnan, Cueni, Nikitina & Baayen, 2007)**: Syntactic choice in the English dative alternation ($N = 3,263$; double object NP vs. prepositional PP). It directly reflects **prominence hierarchies** central to CRC 1252:
-   - *Animacy Hierarchy*: Animate > Inanimate
-   - *Pronominality / Givenness*: Pronoun > Non-pronoun; Given > New
-   - *End-Weight Principle*: Short / Prominent elements precede Heavy / Non-prominent elements.
 1. **Continuous Reaction Time LMM (`languageR::lexdec`)** [@baayen2006morphological]: Visual lexical decision reaction times ($N = 1,659$) with **crossed random factors** (21 `Subject`s crossed with 79 `Word`s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (`NativeLanguage`), and experimental progression (`Trial`).
 2. **Discrete Syntactic Choice GLMM (`languageR::dative`)** [@bresnan2007predicting]: Dative alternation choices ($N = 3,263$; double object NP *give John the book* vs. prepositional PP *give the book to John*), directly testing **prominence hierarchies** central to CRC 1252 (Animacy, Pronominality, Givenness, End-Weight).
 3. **Ordinal Subjective Rating CLMM (`languageR::sizeRatings`)**: Semantic size ratings ($N = 3,078$) on a 7-point Likert scale across 38 subjects and 81 concrete nouns, demonstrating why naive Gaussian models fail on bounded ordinal responses.
@@ -135,38 +126,19 @@ theme_set(theme_minimal(base_size = 12))
 
 ---
 
-# Module 1: Design Relaxation, Structural Assumptions & The Singularity Debate
 # Module 1: Continuous Reaction Times & The Singularity Debate
 
-## 1.1 Relaxing ANOVA Assumptions & Crossed Random Effects
-## 1.1 Preparing Linguistic Lexical Decision Data
+## 1.1 Preparing Linguistic Lexical Decision Data & The Need for Contrast Coding
 
-Traditional Repeated-Measures ANOVA (RM-ANOVA) requires balanced cell counts and sphericity (equal variance of differences across all treatment pairs). In linguistic experiments, missing data and dropouts break balance, and stimulus properties vary continuously. Mixed models resolve these issues by estimating variance-covariance matrices directly.
-We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying centered sum coding (-0.5 / +0.5) to categorical factors:
-
-Furthermore, language experiments are uniquely characterized by **crossed random effects**. As Herbert Clark (1973) demonstrated in *"The Language-as-Fixed-Effect Fallacy"*, linguistic items (words, sentences, acoustic recordings) are not fixed properties of the universe; they are sampled from a lexical population. Failing to model crossed random effects for both subjects and items produces drastically anticonservative $p$-values and rampant Type I error.
-
-```r
-# Nested syntax (e.g., Students nested inside Classrooms):
-# (1 | School / Class)  <=>  (1 | School) + (1 | School:Class)
-
-# Crossed syntax (e.g., Participants crossed with Linguistic Items):
-# (1 | Subject) + (1 | Word)
-```
-
-## 1.2 Data Preparation & Contrast Coding
-
-We prepare `lexdec` with $z$-score standardized continuous variables and centered numeric contrast coding for binary factors.
+We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying **centered sum contrast coding** ($-0.5 / +0.5$) to categorical factors [@schad2020contrast]:
 
 ```{r prep-lexdec}
 data(lexdec)
 
-# Standardize continuous predictors (mean = 0, sd = 1)
 lexdec <- lexdec %>%
   mutate(
     Freq_z   = as.numeric(scale(Frequency)),
     Length_z = as.numeric(scale(Length)),
-    # Centered sum coding (-0.5 / +0.5) ensures intercept is the grand mean
     Native_num = ifelse(NativeLanguage == "Other", 0.5, -0.5),
     Sex_num    = ifelse(Sex == "M", 0.5, -0.5)
   )
@@ -174,23 +146,24 @@ lexdec <- lexdec %>%
 glimpse(select(lexdec, Subject, Word, RT, Trial, Freq_z, Length_z, Native_num, Sex_num))
 ```
 
-## 1.3 The Maximal vs. Parsimonious Model Debate
+::: {.callout-important}
+## Why Contrast Coding is Essential Before Model Fitting
+In R, factors default to **treatment (dummy) coding** (`contr.treatment`), which maps the first alphabetical level to 0 and all other levels to 1. In mixed-effects modeling, this default creates three major hazards [@schad2020contrast]:
+
+1. **Misinterpretation of Main Effects**: In models with interactions ($A \times B$), the lower-order $\beta$ coefficients under treatment coding are **not** main effects; they are *simple effects* restricted specifically to the arbitrary baseline level of the other factor.
+2. **Artificial Random Slope Singularity**: In `(1 + Condition | Subject)`, treatment coding forces the random intercept to represent variance *specifically at the baseline condition*. This induces severe collinearity between the random intercept and random slope, driving the estimated correlation parameter $\rho$ to boundary values of $\pm 1.0$ and triggering false singular fits.
+3. **Invalid Type III ANOVA Tables**: Type III tests (`car::Anova(type = "III")`) mathematically assume orthogonal contrasts (`contr.sum`). Under default treatment coding, Type III tests are statistically meaningless.
+
+Centered sum coding ($-0.5 / +0.5$) centers the intercept at the unweighted grand mean across conditions, decouples random intercepts from random slopes, and ensures $\beta$ coefficients represent true main effects.
+:::
+
 ## 1.2 Fitting a Maximal Model (Barr et al., 2013)
 
-A central debate in experimental linguistics concerns how complex the random-effects structure should be:
 According to @barr2013random, any factor varying within a grouping unit must have a corresponding random slope:
 - Within `Subject`: `Freq_z`, `Length_z`
 - Within `Word`: `Native_num`, `Sex_num`
 
-* **Barr, Levy, Scheepers, & Tily (2013)** (*"Keep it maximal"*): Argued that models must include random intercepts and random slopes for all within-unit design factors. Omitting random slopes when effects vary across subjects or items inflates Type I errors well above nominal $\alpha = 0.05$.
-* **Bates, Kliegl, Vasishth, & Baayen (2015/2018) & Matuschek et al. (2017)** (*"Parsimonious models"*): Demonstrated that fitting maximal models on finite empirical datasets often leads to **overparameterization**, severe loss of statistical power, and **singular fits**.
-
-Let us specify a maximal model according to Barr et al.'s guidelines:
-- Factors varying within `Subject`: `Freq_z`, `Length_z`
-- Factors varying within `Word`: `Native_num`, `Sex_num`
-
 ```{r fit-maximal}
-# Maximal crossed random-effects model
 m_maximal <- lmer(
   RT ~ Freq_z + Length_z + Native_num + Sex_num +
     (1 + Freq_z + Length_z | Subject) +
@@ -199,29 +172,18 @@ m_maximal <- lmer(
 )
 
 # Test for singularity
-is_sing <- isSingular(m_maximal)
-cat("Is the maximal model singular?", is_sing, "\n")
 cat("Is the maximal model singular?", isSingular(m_maximal), "\n")
 ```
 
-## 1.4 Mathematical Mechanics of Singularity
 ## 1.3 Inspecting Boundary Singularity
 
-When `isSingular()` returns `TRUE`, the estimated variance-covariance matrix of the random effects lies on the mathematical boundary:
-- A variance component is estimated as exactly zero ($\sigma_b^2 \approx 0$).
-- A correlation parameter between random effects is estimated as exactly $\pm 1.0$.
 When `isSingular()` returns `TRUE`, the variance-covariance matrix lies on the boundary:
 
-Let us inspect the variance components:
-
 ```{r inspect-varcorr}
-print(VarCorr(m_maximal), comp = c("Std.Dev.", "Corr"))
 print(VarCorr(m_maximal))
 ```
 
 ::: {.callout-warning}
-## Diagnostic Finding: Boundary Collapse
-Notice that the `Word` random intercept standard deviation has collapsed to `0.000` with a correlation of `1.000`. The empirical data cannot support estimating independent item-level intercepts alongside slopes for speaker native language and sex.
 ## Diagnostic Finding: Singularity Collapse
 Notice that the `Word` random intercept standard deviation has collapsed to `0.000` with a boundary correlation of `1.000`. The dataset cannot support estimating independent item-level slopes for speaker background factors alongside intercepts [@bates2015parsimonious].
 :::
@@ -242,61 +204,41 @@ print(summary(m_resolved))
 
 ## 2.1 Classical Residual Checks in Linear Mixed Models
 
-In a standard Gaussian LMM, errors are assumed to be independent, identically distributed normal variables: $\epsilon \sim \mathcal{N}(0, \sigma^2)$.
 In standard Gaussian LMMs, residuals are assumed to follow $\epsilon \sim \mathcal{N}(0, \sigma^2)$:
 
-Let us fit a parsimonious model and inspect the classical residuals:
-
 ```{r fit-parsimonious}
-# Parsimonious random-effects structure
 m_parsimonious <- lmer(
   RT ~ Freq_z + Length_z + Native_num + (1 + Freq_z | Subject) + (1 | Word),
   data = lexdec
 )
-cat("Is the parsimonious model singular?", isSingular(m_parsimonious), "\n")
 ```
 
 ```{r classical-residual-plots, fig.width=9, fig.height=4}
 par(mfrow = c(1, 2))
-
-# Normal Q-Q plot of raw residuals
 qqnorm(residuals(m_parsimonious), main = "Normal Q-Q Plot (Raw Residuals)")
 qqline(residuals(m_parsimonious), col = "red", lwd = 2)
 
-# Residuals vs. Fitted Values (Homoscedasticity check)
 plot(fitted(m_parsimonious), residuals(m_parsimonious),
      xlab = "Fitted Values (log RT)", ylab = "Residuals",
      main = "Residuals vs. Fitted", pch = 16, col = rgb(0,0,0,0.2))
 abline(h = 0, col = "red", lty = 2, lwd = 2)
-
 par(mfrow = c(1, 1))
 ```
 
-## 2.2 The GLMM Residual Crisis & Probability Integral Transform
 ## 2.2 Discrete GLMM Residual Crisis & Probability Integral Transform
 
-In Generalized Linear Mixed Models (e.g., Logistic GLMMs for binary judgments or syntactic choices), classical Pearson and deviance residuals fail catastrophically:
-- Because the outcome $y \in \{0, 1\}$ is discrete, raw residuals are restricted to two diagonal bands.
-- Residual variance is inherently coupled to the predicted probability ($\operatorname{Var}(Y) = \mu(1-\mu)$), producing false signals of heteroscedasticity.
 In discrete GLMMs (e.g. logistic regression), raw and Pearson residuals form parallel diagonal bands because outcomes are binary ($y \in \{0, 1\}$).
 
-The **DHARMa** package (Hartig, 2022) solves this using the **Probability Integral Transform (PIT)**:
-1. Conditional on the fitted model, $n$ synthetic response datasets are simulated.
-2. For each observed data point $y_i$, its empirical cumulative distribution percentile relative to the simulated distribution is calculated:
-   $$u_i = P(Y^{\text{sim}}_i \le y_i) \sim \mathcal{U}(0, 1)$$
-3. If the model is correctly specified, these quantile residuals are uniformly distributed on $[0, 1]$ regardless of the GLMM family.
 The **DHARMa** package [@hartig2022dharma] uses the **Probability Integral Transform (PIT)** to simulate $n$ datasets from the fitted model and compute quantile residuals:
 $$u_i = P(Y^{\text{sim}}_i \le y_i) \sim \mathcal{U}(0, 1)$$
 
 ## 2.3 DHARMa in Action: Prominence in the Dative Alternation
 
-We model the English dative alternation using `languageR::dative`. Prominence factors (animate recipients, pronominal recipients, short themes) predict the double-object construction (NP: *give John the book*) versus the prepositional construction (PP: *give the book to John*).
 We model the English dative alternation [@bresnan2007predicting], where prominence features (animate recipients, pronominal recipients, short themes) predict the double-object construction (NP) versus prepositional construction (PP):
 
 ```{r fit-glmm-dative}
 data(dative)
 
-# Logistic GLMM for syntactic choice
 m_dative <- glmer(
   RealizationOfRecipient ~ AnimacyOfRec + PronomOfRec + LengthOfTheme + (1 | Verb),
   family = binomial,
@@ -305,45 +247,31 @@ m_dative <- glmer(
 summary(m_dative)
 ```
 
-Now we simulate quantile residuals and run the DHARMa diagnostic suite:
-
 ```{r dharma-sim-glmm, fig.width=10, fig.height=5}
-# Simulate 500 sets of parametric residuals
 sim_dative <- simulateResiduals(fittedModel = m_dative, n = 500, plot = FALSE)
-
-# Standard DHARMa two-panel plot: Uniform Q-Q plot and Residuals vs. Predicted
 plot(sim_dative)
 ```
 
 ```{r dharma-formal-tests}
-# Kolmogorov-Smirnov test for residual uniformity
 # Test residual uniformity (Kolmogorov-Smirnov)
 testUniformity(sim_dative)
 
-# Test for overdispersion / underdispersion
 # Test overdispersion / underdispersion
 testDispersion(sim_dative)
 
-# Test for excess zeros (zero-inflation)
 # Test excess zeros
 testZeroInflation(sim_dative)
 ```
 
-## 2.4 Testing Temporal Autocorrelation across Trials
 ## 2.4 Testing Sequential Autocorrelation across Trials
 
-In self-paced reading and reaction time experiments, participant fatigue and practice effects often induce sequential autocorrelation across trials. DHARMa allows direct testing against the experimental trial order vector:
 In self-paced reading and reaction time experiments, participant fatigue often induces temporal autocorrelation. We aggregate residuals across participants for each experimental trial:
 
-```{r dharma-temporal-autocorr}
-# Simulate residuals for the continuous reaction time model
 ```{r dharma-temporal-autocorr, fig.width=9, fig.height=4}
 sim_lexdec <- simulateResiduals(fittedModel = m_parsimonious, n = 250, plot = FALSE)
 sim_trial <- recalculateResiduals(sim_lexdec, group = lexdec$Trial)
 testTemporalAutocorrelation(sim_trial, time = unique(lexdec$Trial))
 
-# Formal Durbin-Watson test across experimental trials
-testTemporalAutocorrelation(sim_lexdec, time = lexdec$Trial)
 # Individual-level autocorrelation (ACF) for participant A1
 res_a1 <- residuals(m_parsimonious)[lexdec$Subject == "A1"]
 acf(res_a1, main = "Residual Autocorrelation (Subject A1)")
@@ -355,28 +283,15 @@ acf(res_a1, main = "Residual Autocorrelation (Subject A1)")
 
 ## 3.1 Multicollinearity & Variance Inflation Factors (VIF)
 
-In natural language, lexical and syntactic variables are inherently correlated (e.g., high-frequency words are systematically shorter than low-frequency words; Zipf's Law of Abbreviation).
 In natural language, lexical features naturally correlate (Zipf's Law: frequent words are shorter). We test Variance Inflation Factors using `performance::check_collinearity()`:
 
-We check Variance Inflation Factors using `performance::check_collinearity()`:
-
 ```{r check-collinearity}
-# Check multicollinearity among fixed effects
 vif_results <- check_collinearity(m_parsimonious)
 print(vif_results)
 plot(vif_results)
 ```
 
-::: {.callout-tip}
-## VIF Decision Guidelines
-- **$VIF < 5$ (low)**: Predictors can be included together without numerical instability.
-- **$5 \le VIF \le 10$ (moderate)**: Standard errors are moderately inflated; check correlation matrix.
-- **$VIF > 10$ (high)**: Severe collinearity; consider residualizing, structural equation modeling, or principal component scores.
-:::
-
 ## 3.2 Unified Multi-Panel Diagnostics (`easystats`)
-
-The `performance::check_model()` function generates a comprehensive visual audit of model assumptions in a single call:
 
 ```{r multi-panel-check, fig.width=10, fig.height=9}
 check_model(m_parsimonious)
@@ -384,24 +299,14 @@ check_model(m_parsimonious)
 
 ## 3.3 Cluster-Level Influence & Cook's Distance (`influence.ME`)
 
-In linguistic experiments, an effect can appear statistically significant simply because a single atypical participant or an ambiguous stimulus item exerts extreme leverage.
 We check whether particular speakers or items exert disproportionate leverage [@nieuwenhuis2012influence]:
 
-The `influence.ME` package iteratively refits the model, deleting one cluster at a time, to calculate cluster-level Cook's distance and DFBETAS.
-
 ```{r influence-subjects, fig.width=9, fig.height=4.5}
-# Calculate influence by Subject cluster
-infl_subj <- influence(m_parsimonious, group = "Subject")
-
-# Plot Cook's distance across subjects
 infl_subj <- influence(m_parsimonious, group = "Subject", count = FALSE)
 plot(infl_subj, which = "cook", cutoff = 4 / length(unique(lexdec$Subject)),
      main = "Subject-Level Cook's Distance (lexdec)")
 ```
 
-```{r dfbetas-subjects}
-# Inspect standardized parameter changes when individual subjects are dropped
-head(dfbetas(infl_subj))
 ```{r influence-words, fig.width=9, fig.height=4.5}
 infl_word <- influence(m_parsimonious, group = "Word", count = FALSE)
 plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
@@ -410,31 +315,19 @@ plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
 
 ---
 
-# Module 4: Convergence Troubleshooting & Optimizer Debugging
 # Module 4: Ordinal Responses & Cumulative Link Models
 
-## 4.1 Deconstructing `lme4` Warnings
 ## 4.1 The Likert Assumption Fallacy
 
-When fitting complex mixed-effects models, `lme4` may output warnings:
-1. `Model failed to converge with max|grad| = ...`: The optimization reached the step limit before gradients fell below the $10^{-3}$ threshold. Often a false positive due to flat deviance surfaces.
-2. `Model is nearly unidentifiable: very large eigenvalue`: Severe collinearity in the random-effects parameter space.
-3. `Hessian is singular`: The second derivative matrix cannot be inverted; the fit is not at an established minimum.
 Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g. acceptability, semantic size, prototypicality). A widespread practice is treating 1–7 Likert ratings as metric Gaussian variables via `lme4::lmer()`.
 
-## 4.2 Optimizer Benchmarking with `allFit()`
 This practice violates three fundamental assumptions:
 1. **Bounded Support**: Data are bounded at 1 and 7 (floor/ceiling distortions).
 2. **Non-Interval Metric**: The cognitive distance between "1" and "2" is not guaranteed to equal the distance between "4" and "5".
 3. **Discrete Latent Thresholds**: Responses reflect an underlying continuous latent variable $Y^*$ partitioned by cutpoints $\theta_1 < \theta_2 < \dots < \theta_{K-1}$.
 
-To verify whether a convergence warning is an actual numerical failure or a false alarm by a specific optimizer, we benchmark across all available optimization routines (`bobyqa`, `Nelder_Mead`, `nlminbwrap`):
 ## 4.2 Demonstrating the Flaw: Gaussian LMM on Likert Data
 
-```{r benchmark-allfit, message=FALSE, warning=FALSE}
-# Benchmark model across all available optimizers
-all_fits <- allFit(m_parsimonious)
-summary(all_fits)
 Using `languageR::sizeRatings` (3,078 size ratings of 81 words across 38 subjects on a 1–7 scale):
 
 ```{r naive-gaussian-ordinal}
@@ -448,27 +341,17 @@ sim_naive <- simulateResiduals(m_naive_likert, n = 250, plot = FALSE)
 plot(sim_naive)
 ```
 
-::: {.callout-note}
-## Interpreting `allFit()`
-If all optimizers converge to practically identical log-likelihoods (differing by $< 0.01$) and parameter estimates, the original convergence warning was an optimizer-specific false positive and the model estimates are reliable.
 ::: {.callout-caution}
 ## Diagnostic Warning: Severe Quantile Distortion
 The DHARMa Q-Q plot on the naive Gaussian fit exhibits severe, statistically significant S-shaped curvature and failed uniformity tests ($p < 10^{-16}$), proving that standard Gaussian mixed models fail on bounded Likert data.
 :::
 
-## 4.3 Automated Model Simplification (`trouBBlme4SolveR`)
 ## 4.3 The Principled Solution: Cumulative Link Mixed Models (`ordinal::clmm`)
 
-When faced with singular fits, the `trouBBlme4SolveR::dwmw()` function automatically diagnoses zero-variance random slopes, simplifies the formula, and refits the model:
 We fit a proper Cumulative Link Mixed Model using `ordinal::clmm` [@christensen2019ordinal]:
 
-```{r dwmw-resolution}
-# Automatically diagnose and resolve singular maximal model
-m_resolved <- dwmw(m_maximal)
 $$\text{logit}(P(Y_i \le k)) = \theta_k - (X_i \beta + Z_i u)$$
 
-cat("\nIs resolved model singular?", isSingular(m_resolved), "\n")
-print(summary(m_resolved))
 ```{r clmm-fit}
 sizeRatings <- sizeRatings %>%
   mutate(Rating_ord = factor(Rating, ordered = TRUE))
@@ -481,16 +364,10 @@ The model estimates the fixed effect of semantic class alongside the 6 latent cu
 
 ---
 
-# Module 5: Model Comparison, Nakagawa $R^2$ & Open Science Reporting
-# Module 5: Post-Fitting Inference with emmeans
+# Module 5: Post-Fitting Inference with emmeans & The Contrast Coding Synthesis
 
-## 5.1 Enforcing REML vs. Maximum Likelihood Rules
 ## 5.1 Estimating Marginal Means & Contrasts
 
-When conducting Likelihood Ratio Tests (LRTs) via `anova()`:
-* **Comparing Random Effects Structures**: Use **`REML = TRUE`** while keeping fixed effects identical.
-* **Comparing Fixed Effects Structures**: Use **`REML = FALSE`** (Maximum Likelihood) or `anova(m1, m2, refit = TRUE)`. REML log-likelihoods cannot be compared across different fixed-effect formulas.
-* **Reporting Final Model Coefficients**: Refit the chosen model with **`REML = TRUE`** to obtain unbiased variance estimates.
 The `emmeans` package [@lenth2016least] computes Estimated Marginal Means (least-squares means) by averaging predictions over a balanced reference grid:
 
 ```{r emmeans-lmm}
@@ -516,7 +393,37 @@ print(emm_clmm)
 pairs(emm_clmm)
 ```
 
-## 5.2 Methodological Assumptions of emmeans
+## 5.2 Empirical Demonstration: Coding Invariance of emmeans
+
+A profound property of `emmeans` is that it evaluates predictions over a balanced reference grid regardless of how factors were coded in the design matrix $\mathbf{X}$. 
+
+Let us compare two identical models fitted with default treatment coding vs. centered sum coding:
+
+```{r contrast-coding-vs-emmeans}
+# 1. Model with default treatment coding (English = 0, Other = 1)
+m_treatment <- lmer(RT ~ Freq_z * NativeLanguage + (1 | Subject), data = lexdec)
+
+# 2. Model with centered sum coding (-0.5 / +0.5)
+m_sum <- lmer(RT ~ Freq_z * Native_num + (1 | Subject), data = lexdec)
+
+# In the model tables, the lower-order coefficients differ completely:
+# In m_treatment: 'NativeLanguageOther' is a simple effect at Freq_z = 0
+# In m_sum: 'Native_num' is a true main effect averaged across Freq_z
+fixef(m_treatment)
+fixef(m_sum)
+
+# Yet emmeans produces the EXACT SAME estimated marginal means:
+emm_from_treat <- emmeans(m_treatment, ~ NativeLanguage)
+emm_from_sum   <- emmeans(m_sum, ~ Native_num)
+
+cat("\nemmeans from Treatment-Coded Model:\n")
+print(emm_from_treat)
+
+cat("\nemmeans from Sum-Coded Model:\n")
+print(emm_from_sum)
+```
+
+## 5.3 Methodological Assumptions of emmeans
 
 When reporting marginal means, researchers must verify five underlying assumptions:
 
@@ -528,6 +435,28 @@ When reporting marginal means, researchers must verify five underlying assumptio
    - **Tukey HSD**: All pairwise comparisons.
    - **Bonferroni / Šidák**: Planned orthogonal contrasts.
    - **Benjamini-Hochberg (FDR)**: Large exploratory contrast families.
+
+## 5.4 Why Both Are Necessary: The Two-Stage Principle
+
+If `emmeans` produces the same marginal means regardless of factor coding, **why do we still need contrast coding before fitting?** Conversely, if we use sum contrast coding, **why do we still need `emmeans`?**
+
+The answer lies in the distinction between **model estimation** (*a priori*) and **hypothesis evaluation** (*post hoc*):
+
+| Dimension / Objective | Contrast Coding (Before Fitting) | `emmeans` (After Fitting) | Why Both Are Essential |
+| :--- | :--- | :--- | :--- |
+| **Operational Stage** | *A priori*: Parameterizes the design matrix $\mathbf{X}$ during numerical optimization. | *Post hoc*: Constructs reference grid predictions from estimated $\hat{\boldsymbol{\beta}}$ and $\hat{\mathbf{\Sigma}}$. | Neither tool can perform the other's job: `emmeans` cannot refit the model; contrast coding cannot predict across balanced grids automatically. |
+| **Random Slope Stability** | **Crucial**: Centered coding centers random intercepts at the grand mean, preventing artificial correlation collapse ($\rho \approx \pm 1.0$) and singular fits. | **Cannot help**: Operates only on the already-converged model. If uncentered coding triggered a singular fit, `emmeans` cannot repair the corrupted variance parameters. | You **must** contrast-code before fitting to ensure the model converges to valid, non-singular variance estimates. |
+| **Coefficient Interpretation** | Ensures lower-order $\beta$ terms in `summary()` represent true main effects rather than simple effects at an arbitrary baseline. | Does not alter the $\beta$ regression table; only provides reconstructed marginal predictions. | Researchers reading model tables require interpretable $\beta$ coefficients for regression reporting. |
+| **Type III ANOVA (`car::Anova`)** | **Strictly Required**: Type III tests mathematically assume sum/orthogonal contrasts (`contr.sum`). Under treatment coding, Type III tests are statistically meaningless. | Not applicable (evaluates specific linear contrasts rather than overall omnibus decomposition). | If journal reviewers demand Type III Wald/LRT ANOVA tables, models must be fitted with sum contrasts. |
+| **Interaction Decomposition** | Slicing interactions via contrast matrices requires tedious manual coding of custom linear combinations ($\mathbf{c}^\top \boldsymbol{\beta}$) or repeatedly releveling baselines. | **Trivial**: Syntax like `pairwise ~ FactorA \| FactorB` decomposes multi-way interactions into simple pairwise differences in a single line. | You need `emmeans` to explore interactions cleanly without refitting the model multiple times. |
+| **Response Scale for GLMMs** | Operates strictly on the link scale (log-odds $\eta$). Back-transforming manually requires tedious delta-method calculations for SEs. | **Native**: Converts log-odds to response probabilities ($p \in [0, 1]$) and odds ratios with automatic multivariate delta-method standard errors. | You need `emmeans` to translate abstract log-odds coefficients into meaningful probabilities for publication. |
+| **Multiplicity & d.f. Corrections** | Manual adjustment of $p$-values and manual calculation of Satterthwaite/Kenward-Roger d.f. | Automated integration with `lmerTest`/`pbkrtest` for Satterthwaite/Kenward-Roger d.f. and Tukey/FDR adjustments. | You need `emmeans` to avoid anticonservative inferential tests. |
+
+::: {.callout-tip}
+## The Gold-Standard Two-Stage Workflow
+1. **Stage 1 (Before Model Fitting):** Apply centered sum contrast coding (`contr.sum` or $-0.5 / +0.5$) to all categorical predictors. This stabilizes the random-effects covariance matrix against boundary singularities, aligns $\beta$ coefficients with main effects, and validates Type III ANOVA tables.
+2. **Stage 2 (After Model Fitting):** Use `emmeans` to evaluate condition means across balanced reference grids, unpack complex interactions, compute response-scale probabilities and odds ratios, and apply Kenward-Roger d.f. approximations and Tukey multiplicity adjustments.
+:::
 
 ---
 
@@ -547,62 +476,32 @@ summary(all_fits)
 * **Final Reporting**: Refit selected model with **`REML = TRUE`** for unbiased variance estimates.
 
 ```{r lrt-comparison}
-# Nested model comparison for fixed effect of Frequency under ML
 m_full_ml <- lmer(RT ~ Freq_z + Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
 m_null_ml <- lmer(RT ~ Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
 
-# Likelihood Ratio Test
 anova(m_null_ml, m_full_ml)
 ```
 
-## 5.2 Variance Partitioning: Nakagawa's $R^2$
 ## 6.3 Variance Partitioning: Nakagawa’s $R^2$
 
-For mixed models, standard $R^2$ does not apply. Nakagawa & Schielzeth (2013) partition variance into:
-- **Marginal $R^2_m$**: Proportion of variance explained by **fixed effects alone**.
-- **Conditional $R^2_c$**: Proportion of variance explained by **both fixed and random effects**.
-
 ```{r nakagawa-r2}
-# Compute Nakagawa R-squared
 r2_metrics <- r2_nakagawa(m_resolved)
 print(r2_metrics)
 ```
 
-## 5.3 Open Science Reporting Checklist (Meteyard & Davies, 2020)
 ## 6.4 Open Science Reporting Checklist [@meteyard2020best]
 
-When reporting `lme4` models in journal publications:
 1. **Specification**: State full formula syntax, contrast coding schemes, and scaling transformations.
 2. **Estimation**: Specify REML vs. ML, optimizer choice, and integration method.
 3. **Diagnostics**: Report `isSingular()` checks, DHARMa dispersion/uniformity tests, and VIF metrics.
 4. **Parameters**: Provide fixed effect estimates ($\beta$, $SE$, $t/z$, df approximation, $p$), random effect variance components ($\sigma, \rho$), and Nakagawa $R^2$ ($R^2_m, R^2_c$).
 5. **Reproducibility**: Share annotated Quarto (`.qmd`) scripts and data in open repositories.
 
-1. **Model Specification**: State the exact `lme4` formula, contrast coding scheme (treatment vs. sum coding), and continuous variable transformations.
-2. **Estimation Method**: Clarify whether models were fitted using REML or ML, and which optimizer was employed.
-3. **Singularity & Diagnostics**: Explicitly report singularity checks (`isSingular()`), DHARMa dispersion/uniformity tests, and collinearity metrics (VIF).
-4. **Parameter Reporting**: Provide a complete table showing:
-   - Fixed effects: Estimate ($\beta$), Standard Error ($SE$), test statistic ($t$ or $z$), and $p$-value method (e.g., Satterthwaite approximation via `lmerTest`).
-   - Random effects: Standard deviations ($\sigma$) and correlation parameters ($\rho$) for all groupings.
-   - Variance partitioning: Marginal ($R^2_m$) and Conditional ($R^2_c$).
-5. **Open Science**: Deposit reproducible Quarto scripts, analysis pipelines, and de-identified data in public repositories (Zenodo, OSF, GitHub).
-
 ---
 
 # References
 
-- **Baayen, R. H., Feldman, L. B., & Schreuder, R. (2006).** Morphological influences on the recognition of English compound words. *The Mental Lexicon*, 1(1), 3–31.
-- **Barr, D. J., Levy, R., Scheepers, C., & Tily, H. J. (2013).** Random effects structure for confirmatory hypothesis testing: Keep it maximal. *Journal of Memory and Language*, 68(3), 255–278.
-- **Bates, D., Kliegl, R., Vasishth, S., & Baayen, H. (2015).** Parsimonious mixed models. *arXiv:1506.04967*.
-- **Bresnan, J., Cueni, A., Nikitina, T., & Baayen, R. H. (2007).** Predicting the dative alternation. In *Cognitive Foundations of Interpretation* (pp. 69–94). Royal Netherlands Academy of Science.
-- **Clark, H. H. (1973).** The language-as-fixed-effect fallacy: A critique of language statistics in psychological research. *Journal of Verbal Learning and Verbal Behavior*, 12(4), 335–359.
-- **Hartig, F. (2022).** *DHARMa: Residual Diagnostics for Hierarchical (Multi-Level / Mixed) Regression Models*. R package version 0.4.6.
-- **Lüdecke, D., Ben-Shachar, M. S., Patil, I., Waggoner, P., & Makowski, D. (2021).** performance: An R package for assessment, comparison and testing of statistical models. *Journal of Open Source Software*, 6(60), 3139.
-- **Matuschek, H., Kliegl, R., Vasishth, S., Baayen, H., & Bates, D. (2017).** Balancing Type I error and power in linear mixed models. *Journal of Memory and Language*, 94, 305–315.
-- **Meteyard, L., & Davies, R. A. (2020).** Best practice guidance for linear mixed-effects models in psychological science. *Journal of Memory and Language*, 112, 104092.
-- **Nakagawa, S., & Schielzeth, H. (2013).** A general and simple method for obtaining $R^2$ from generalized linear mixed-effects models. *Methods in Ecology and Evolution*, 4(2), 133–142.
-- **Nieuwenhuis, R., te Grotenhuis, M., & Pelzer, B. (2012).** influence.ME: tools for detecting influential data in mixed effects models. *R Journal*, 4(2), 38–47.
 ::: {#refs}
 :::
