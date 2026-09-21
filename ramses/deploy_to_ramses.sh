@@ -24,10 +24,10 @@ scp pull_container_ramses.sh ${RAMSES_USER}@${RAMSES_HOST}:~/brms-workshop/scrip
 scp test_apptainer.sh ${RAMSES_USER}@${RAMSES_HOST}:~/brms-workshop/scripts/
 
 # Transfer workshop materials if they exist
-if [ -d "materials/notebooks" ]; then
+if [ -d "materials/example-notebook" ]; then
     echo ""
     echo "Step 3: Transferring workshop materials..."
-    scp -r materials/notebooks/*.Rmd ${RAMSES_USER}@${RAMSES_HOST}:~/brms-workshop/materials/ 2>/dev/null || echo "  No .Rmd files found"
+    scp -r materials/example-notebook/*.Rmd ${RAMSES_USER}@${RAMSES_HOST}:~/brms-workshop/materials/ 2>/dev/null || echo "  No .Rmd files found"
 fi
 
 echo ""

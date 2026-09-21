@@ -13,9 +13,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.R",
-        "Ikuyadeu.r",
-        "ms-vscode-remote.remote-containers"
+        "REditorSupport.r",
+        "quarto.quarto"
       ],
       "settings": {
         "r.lsp.debug": false,

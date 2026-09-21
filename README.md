@@ -51,18 +51,16 @@ Open your browser to `http://localhost:8787` (login: `rstudio` / `workshop`).
 ```bash
 git clone https://github.com/jobschepens/brms-ws.git
 cd brms-ws
-docker-compose up
+docker compose up
 # Open http://localhost:8787 | Login: rstudio / workshop
 ```
 
-### 🔗 **VS Code Remote** (Recommended)
-**Connect to a running container from your IDE.**
+### 🔗 **VS Code Dev Containers** (Recommended)
+**Connect to the container environment directly from VS Code.**
 
-```bash
-docker run -d -p 2222:22 brms-workshop:working
-# In VS Code: Install "Remote - SSH" extension
-# Connect to user@server -p 2222
-```
+1. Open this repository folder in VS Code
+2. Install the **Dev Containers** extension (`ms-vscode-remote.remote-containers`)
+3. Press `F1` (or `Ctrl+Shift+P`) and choose **Dev Containers: Reopen in Container**
 
 ---
 
@@ -70,8 +68,8 @@ docker run -d -p 2222:22 brms-workshop:working
 
 | Component | Version | Status |
 |-----------|---------|--------|
-| **R** | 4.4.1 | ✅ Pre-installed |
-| **BRMS** | 2.22.0 | ✅ Pre-installed |
+| **R** | 4.5.2 | ✅ Pre-installed |
+| **BRMS** | 2.23.0 | ✅ Pre-installed |
 | **CmdStan** | Latest | ✅ Pre-compiled |
 | **RStudio Server** | Latest | ✅ Ready to use |
 | **Analysis Tools** | - | ✅ bayesplot, tidybayes, loo, projpred |
@@ -130,7 +128,7 @@ View the rendered tutorials directly in your browser:
 
 ### Workshop Notebooks
 
-Workshop notebooks in `materials/notebooks/`:
+Workshop notebooks in `materials/example-notebook/`:
 
 - **`example_01_basics.Rmd`** — Introduction to BRMS
   - Data preparation, linear regression, posterior visualization, predictions
@@ -142,16 +140,16 @@ Workshop notebooks in `materials/notebooks/`:
 ### In Binder
 1. Click the Binder badge above
 2. Wait 2-3 minutes for environment build
-3. Navigate to `materials/notebooks/`
+3. Navigate to `materials/example-notebook/`
 4. Open and run `example_01_basics.Rmd`
 
 **Note**: First model takes ~30-60 seconds (Stan compilation), then everything is instant.
 
 ### Locally with Docker
 ```bash
-docker-compose up
+docker compose up
 # Open http://localhost:8787 | Login: rstudio / workshop
-docker-compose down  # When done
+docker compose down  # When done
 ```
 For detailed instructions on how to pull and run the image, please see the **[Docker Hub README](./README-docker.md)**.
 

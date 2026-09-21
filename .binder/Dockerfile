@@ -1,4 +1,4 @@
-FROM ghcr.io/jobschepens/brms-ws/brms-workshop:working
+FROM ghcr.io/jobschepens/brms-workshop:working
 
 # Switch to root for setup
 USER root

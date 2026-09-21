@@ -22,6 +22,8 @@ declare -a files=(
   "04_comparing_priors_rt.qmd"
   "05_loo.qmd"
   "06_rope.qmd"
+  "06_sequential_testing.qmd"
+  "06_sequential_testing_cont.qmd"
   "07_bayes_factors.qmd"
   "08_convergence.qmd"
 )

@@ -29,9 +29,15 @@ slurm-*.out
 .quarto/
 _site/
 *.knit.md
+*.html.md
 
 # Cache files (keep separate from _files which contains assets)
 *_cache/
+
+# Backup and stray files
+*.backup
+*.qmd.backup
+%
 
 # R package development
 *.tar.gz

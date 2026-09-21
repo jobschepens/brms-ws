@@ -55,11 +55,10 @@ services:
     # Container lifecycle policy
     restart: unless-stopped  # Auto-restart on failure, but not after manual stop
 
-    # Resource limits and reservations
-    # Note: These are docker-compose style limits. For production/swarm, see deploy section below
-    cpus: '8'           # Limit to 8 CPU cores (adjust based on your system)
-    mem_limit: 16g      # Maximum RAM allocation
-    mem_reservation: 6g # Guaranteed minimum RAM (soft limit)
+    # Resource limits and reservations (adjust based on host machine specs)
+    # cpus: '8'           # Limit to 8 CPU cores (uncomment to cap CPU usage)
+    # mem_limit: 16g      # Maximum RAM allocation (uncomment if you want a hard cap)
+    # mem_reservation: 6g # Soft limit (uncomment if your host has at least 8-16 GB free)
     shm_size: 2g        # Shared memory for Stan compilation (important for parallel chains)
 
     # Alternative: Use deploy section for more control (works with docker compose v3.8+)

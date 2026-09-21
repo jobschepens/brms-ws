@@ -30,13 +30,13 @@ Now, use the token you just created to log in from your terminal.
     ```
     If successful, you'll see a `Login Succeeded` message.
 
-### 4. Pull and Run the Image
+### 3. Pull and Run the Image
 
 Now that you're authenticated, you can pull and run the image just like any other.
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/jobschepens/brms-ws:working
+docker pull ghcr.io/jobschepens/brms-workshop:working
 
 # Run the container
 docker run -d \
@@ -44,7 +44,7 @@ docker run -d \
   -e PASSWORD=workshop \
   -v "$(pwd)/materials:/home/rstudio/workshop/materials" \
   -v "$(pwd)/results:/home/rstudio/workshop/results" \
-  ghcr.io/jobschepens/brms-ws:working
+  ghcr.io/jobschepens/brms-workshop:working
 ```
 
 You can now access RStudio at `http://localhost:8787` (login: `rstudio` / `workshop`).
