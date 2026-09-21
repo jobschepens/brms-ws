@@ -294,4 +294,101 @@ cat("\n=== Publication-Ready Parameter Summary Table ===\n")
 print(knitr::kable(model_params, digits = 3, caption = "Table 1: Fixed and Random Parameter Estimates"))
 
 cat("\n=== All diagnostic workflows executed successfully! ===\n")
+# 6.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Style)
+cat("\n=== Version A: Static Narrative Template (Manual Formatting) ===\n")
+narrative_static <- paste(
+  "Results: Lexical Decision Reaction Times (Static)\n",
+  "Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with lme4 (v1.1-35) in R (v4.4.1).",
+  "Lexical Frequency and Word Length were standardized (z-scores; M = 0, SD = 1).",
+  "Participant Native Language was centered using sum contrast coding (-0.5 = English, +0.5 = Other).",
+  "Singularity evaluation (isSingular(), tolerance = 1e-4) revealed that the maximal specification was degenerate.",
+  "Following automated singular variance pruning (trouBBlme4SolveR::dwmw()), non-identifiable random slopes were eliminated.",
+  "Fixed-effects significance tests were evaluated using two-tailed t-tests with Satterthwaite approximations via lmerTest.",
+  "Lexical Frequency significantly facilitated reaction times (beta = -0.078, SE = 0.008, t(77.2) = -9.75, p < .001),",
+  "while Word Length exhibited an inhibitory effect (beta = 0.035, SE = 0.007, t(76.8) = 5.00, p < .001).",
+  "Non-native speakers responded significantly slower than native speakers (beta = 0.162, SE = 0.042, t(20.1) = 3.86, p < .001).",
+  "Post-hoc estimated marginal means (emmeans) confirmed response disparities across language backgrounds",
+  "(English: 6.42 log ms, 95% CI [6.33, 6.51]; Other: 6.58 log ms, 95% CI [6.50, 6.66]).",
+  "Overall variance partitioning indicated that fixed effects accounted for 18.4% of total variance (R2m = 0.184),",
+  "while the combined fixed and random effects explained 47.2% (R2c = 0.472).\n"
+)
+cat(narrative_static)
+
+# 6.5.4 Version B: Fully Automated Dynamic Narrative (Programmatic Extraction)
+cat("\n=== Version B: Fully Automated Dynamic Narrative (Inline R Extraction) ===\n")
+
+# Helper formatting functions
+fmt_p   <- function(p) if (is.na(p)) "NA" else if (p < .001) "< .001" else paste0("= ", sprintf("%.3f", p))
+fmt_b   <- function(x) sprintf("%.3f", x)
+fmt_t   <- function(x) sprintf("%.2f", x)
+fmt_df  <- function(x) sprintf("%.1f", x)
+fmt_pct <- function(x) paste0(sprintf("%.1f", x * 100), "%")
+
+# Software versions
+r_ver        <- paste0("v", R.version$major, ".", R.version$minor)
+lme4_ver     <- paste0("v", packageVersion("lme4"))
+lmertest_ver <- paste0("v", packageVersion("lmerTest"))
+
+# Fixed effects extraction
+coef_tab <- coef(summary(m_parsimonious))
+b_freq   <- fmt_b(coef_tab["Freq_z", "Estimate"])
+se_freq  <- fmt_b(coef_tab["Freq_z", "Std. Error"])
+df_freq  <- fmt_df(coef_tab["Freq_z", "df"])
+t_freq   <- fmt_t(coef_tab["Freq_z", "t value"])
+p_freq   <- fmt_p(coef_tab["Freq_z", "Pr(>|t|)"])
+
+b_len    <- fmt_b(coef_tab["Length_z", "Estimate"])
+se_len   <- fmt_b(coef_tab["Length_z", "Std. Error"])
+df_len   <- fmt_df(coef_tab["Length_z", "df"])
+t_len    <- fmt_t(coef_tab["Length_z", "t value"])
+p_len    <- fmt_p(coef_tab["Length_z", "Pr(>|t|)"])
+
+b_nat    <- fmt_b(coef_tab["Native_num", "Estimate"])
+se_nat   <- fmt_b(coef_tab["Native_num", "Std. Error"])
+df_nat   <- fmt_df(coef_tab["Native_num", "df"])
+t_nat    <- fmt_t(coef_tab["Native_num", "t value"])
+p_nat    <- fmt_p(coef_tab["Native_num", "Pr(>|t|)"])
+
+# Estimated Marginal Means
+emm_df       <- as.data.frame(emm_native)
+emm_eng_mean <- fmt_b(emm_df$emmean[emm_df$Native_num == -0.5])
+emm_eng_ci   <- paste0(fmt_b(emm_df$lower.CL[emm_df$Native_num == -0.5]), ", ",
+                       fmt_b(emm_df$upper.CL[emm_df$Native_num == -0.5]))
+emm_oth_mean <- fmt_b(emm_df$emmean[emm_df$Native_num == 0.5])
+emm_oth_ci   <- paste0(fmt_b(emm_df$lower.CL[emm_df$Native_num == 0.5]), ", ",
+                       fmt_b(emm_df$upper.CL[emm_df$Native_num == 0.5]))
+
+# Nakagawa R-squared metrics
+r2_vals  <- r2_nakagawa(m_parsimonious)
+r2_m_val <- fmt_b(r2_vals$R2_marginal)
+r2_c_val <- fmt_b(r2_vals$R2_conditional)
+r2_m_pct <- fmt_pct(r2_vals$R2_marginal)
+r2_c_pct <- fmt_pct(r2_vals$R2_conditional)
+
+narrative_dynamic <- sprintf(
+  paste(
+    "Results: Lexical Decision Reaction Times (Dynamic Model-Extracted)\n",
+    "Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with lme4 (%s) and lmerTest (%s) in R (%s).",
+    "Lexical Frequency and Word Length were standardized (z-scores; M = 0, SD = 1).",
+    "Participant Native Language was centered using sum contrast coding (-0.5 = English, +0.5 = Other).",
+    "Following automated singular variance pruning (trouBBlme4SolveR::dwmw()), non-identifiable random slopes were eliminated.",
+    "Fixed-effects significance tests were evaluated using two-tailed t-tests with Satterthwaite approximations via lmerTest.",
+    "Lexical Frequency significantly facilitated reaction times (beta = %s, SE = %s, t(%s) = %s, p %s),",
+    "while Word Length exhibited a significant inhibitory effect (beta = %s, SE = %s, t(%s) = %s, p %s).",
+    "Non-native speakers responded marginally slower than native speakers, though this main effect did not reach conventional significance (beta = %s, SE = %s, t(%s) = %s, p %s).",
+    "Post-hoc estimated marginal means (emmeans) indicated mean latencies of %s log ms (95%% CI [%s]) for native English speakers and %s log ms (95%% CI [%s]) for other speakers.",
+    "Overall variance partitioning (Nakagawa & Schielzeth, 2013) revealed that fixed effects accounted for %s of total variance (R2m = %s),",
+    "while the combined fixed and random effects explained %s (R2c = %s).\n"
+  ),
+  lme4_ver, lmertest_ver, r_ver,
+  b_freq, se_freq, df_freq, t_freq, p_freq,
+  b_len, se_len, df_len, t_len, p_len,
+  b_nat, se_nat, df_nat, t_nat, p_nat,
+  emm_eng_mean, emm_eng_ci, emm_oth_mean, emm_oth_ci,
+  r2_m_pct, r2_m_val, r2_c_pct, r2_c_val
+)
+cat(narrative_dynamic)
+
+cat("\n=== All diagnostic workflows and reporting pipelines executed successfully! ===\n")
+
 

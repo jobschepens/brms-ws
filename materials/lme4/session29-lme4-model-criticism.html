@@ -5333,7 +5333,9 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#the-meteyard-davies-2020-10-point-checklist" id="toc-the-meteyard-davies-2020-10-point-checklist" class="nav-link" data-scroll-target="#the-meteyard-davies-2020-10-point-checklist"><span class="header-section-number">10.5.1</span> 6.5.1 The Meteyard &amp; Davies (2020) 10-Point Checklist</a></li>
   <li><a href="#generating-publication-ready-parameter-tables" id="toc-generating-publication-ready-parameter-tables" class="nav-link" data-scroll-target="#generating-publication-ready-parameter-tables"><span class="header-section-number">10.5.2</span> 6.5.2 Generating Publication-Ready Parameter Tables</a></li>
-  <li><a href="#sample-results-section-narrative-apa-linguistics-style" id="toc-sample-results-section-narrative-apa-linguistics-style" class="nav-link" data-scroll-target="#sample-results-section-narrative-apa-linguistics-style"><span class="header-section-number">10.5.3</span> 6.5.3 Sample Results Section Narrative (APA / Linguistics Style)</a></li>
+  <li><a href="#version-a-static-narrative-template-manual-apa-linguistics-formatting" id="toc-version-a-static-narrative-template-manual-apa-linguistics-formatting" class="nav-link" data-scroll-target="#version-a-static-narrative-template-manual-apa-linguistics-formatting"><span class="header-section-number">10.5.3</span> 6.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Formatting)</a></li>
+  <li><a href="#version-b-fully-automated-dynamic-narrative-reproducible-inline-r-extraction" id="toc-version-b-fully-automated-dynamic-narrative-reproducible-inline-r-extraction" class="nav-link" data-scroll-target="#version-b-fully-automated-dynamic-narrative-reproducible-inline-r-extraction"><span class="header-section-number">10.5.4</span> 6.5.4 Version B: Fully Automated Dynamic Narrative (Reproducible Inline R Extraction)</a></li>
+  <li><a href="#comparison-static-vs.-dynamic-reporting-workflows" id="toc-comparison-static-vs.-dynamic-reporting-workflows" class="nav-link" data-scroll-target="#comparison-static-vs.-dynamic-reporting-workflows"><span class="header-section-number">10.5.5</span> 6.5.5 Comparison: Static vs. Dynamic Reporting Workflows</a></li>
   </ul></li>
   </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">11</span> References</a></li>
@@ -6998,25 +7000,157 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 </div>
 </div>
 </section>
-<section id="sample-results-section-narrative-apa-linguistics-style" class="level3" data-number="10.5.3">
-<h3 data-number="10.5.3" class="anchored" data-anchor-id="sample-results-section-narrative-apa-linguistics-style"><span class="header-section-number">10.5.3</span> 6.5.3 Sample Results Section Narrative (APA / Linguistics Style)</h3>
-<p>Below is an authentic sample write-up illustrating how to report the complete diagnostic and modeling pipeline in an academic journal article:</p>
+<section id="version-a-static-narrative-template-manual-apa-linguistics-formatting" class="level3" data-number="10.5.3">
+<h3 data-number="10.5.3" class="anchored" data-anchor-id="version-a-static-narrative-template-manual-apa-linguistics-formatting"><span class="header-section-number">10.5.3</span> 6.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Formatting)</h3>
+<p>Below is an authentic sample write-up illustrating how to report the complete diagnostic and modeling pipeline in an academic journal article using manual formatting:</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Authentic Results Section Template
+<span class="screen-reader-only">Note</span>Authentic Results Section Template (Static Manual Write-Up)
 </div>
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>Results: Lexical Decision Reaction Times</strong><br>
 Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v1.1-35) in R (v4.4.1). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al. (2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
 <p>Singularity evaluation (<code>isSingular()</code>, tolerance <span class="math inline">\(= 10^{-4}\)</span>) revealed that the maximal specification was degenerate, with the Word-level random intercept collapsing to boundary zero (<span class="math inline">\(\sigma = 0.000, \rho = 1.000\)</span>). Using automated singular variance pruning (<code>trouBBlme4SolveR::dwmw()</code>), non-identifiable random slopes were eliminated. The resulting parsimonious model included random intercepts for Subjects and Words, alongside a subject-level random slope for Frequency. Numerical benchmarking across eight derivative-free optimizers (<code>lme4::allFit()</code>) confirmed that all algorithms converged to identical log-likelihoods (<span class="math inline">\(\Delta \log L &lt; 10^{-5}\)</span>), verifying that the solution was stable and non-singular.</p>
-<p>Fixed-effects significance tests were evaluated using two-tailed <span class="math inline">\(t\)</span>-tests with Satterthwaite degrees-of-freedom approximations via <code>lmerTest</code>. Lexical Frequency significantly facilitated reaction times (<span class="math inline">\(\beta = -0.078, SE = 0.008, t(77.2) = -9.75, p &lt; .001\)</span>), while Word Length exhibited an inhibitory effect (<span class="math inline">\(\beta = 0.035, SE = 0.007, t(76.8) = 5.00, p &lt; .001\)</span>). Non-native speakers responded significantly slower than native speakers (<span class="math inline">\(\beta = 0.162, SE = 0.042, t(20.1) = 3.86, p &lt; .001\)</span>). The interaction between Frequency and Native Language was not significant (<span class="math inline">\(\beta = -0.012, SE = 0.015, t(1620.4) = -0.80, p = .424\)</span>). Post-hoc estimated marginal means (<code>emmeans</code>) confirmed a substantial response disparity across language backgrounds (English: <span class="math inline">\(6.42\)</span> log ms, <span class="math inline">\(95\%\text{ CI } [6.33, 6.51]\)</span>; Other: <span class="math inline">\(6.58\)</span> log ms, <span class="math inline">\(95\%\text{ CI } [6.50, 6.66]\)</span>). Overall variance partitioning (Nakagawa &amp; Schielzeth, 2013) indicated that fixed effects accounted for <span class="math inline">\(18.4\%\)</span> of total variance (<span class="math inline">\(R^2_m = 0.184\)</span>), while the combined fixed and random effects explained <span class="math inline">\(47.2\%\)</span> (<span class="math inline">\(R^2_c = 0.472\)</span>).</p>
+<p>Fixed-effects significance tests were evaluated using two-tailed <span class="math inline">\(t\)</span>-tests with Satterthwaite degrees-of-freedom approximations via <code>lmerTest</code>. Lexical Frequency significantly facilitated reaction times (<span class="math inline">\(\beta = -0.078, SE = 0.008, t(77.2) = -9.75, p &lt; .001\)</span>), while Word Length exhibited an inhibitory effect (<span class="math inline">\(\beta = 0.035, SE = 0.007, t(76.8) = 5.00, p &lt; .001\)</span>). Non-native speakers responded significantly slower than native speakers (<span class="math inline">\(\beta = 0.162, SE = 0.042, t(20.1) = 3.86, p &lt; .001\)</span>). Post-hoc estimated marginal means (<code>emmeans</code>) confirmed a substantial response disparity across language backgrounds (English: <span class="math inline">\(6.42\)</span> log ms, <span class="math inline">\(95\%\text{ CI } [6.33, 6.51]\)</span>; Other: <span class="math inline">\(6.58\)</span> log ms, <span class="math inline">\(95\%\text{ CI } [6.50, 6.66]\)</span>). Overall variance partitioning (Nakagawa &amp; Schielzeth, 2013) indicated that fixed effects accounted for <span class="math inline">\(18.4\%\)</span> of total variance (<span class="math inline">\(R^2_m = 0.184\)</span>), while the combined fixed and random effects explained <span class="math inline">\(47.2\%\)</span> (<span class="math inline">\(R^2_c = 0.472\)</span>).</p>
 </div>
 </div>
+</section>
+<section id="version-b-fully-automated-dynamic-narrative-reproducible-inline-r-extraction" class="level3" data-number="10.5.4">
+<h3 data-number="10.5.4" class="anchored" data-anchor-id="version-b-fully-automated-dynamic-narrative-reproducible-inline-r-extraction"><span class="header-section-number">10.5.4</span> 6.5.4 Version B: Fully Automated Dynamic Narrative (Reproducible Inline R Extraction)</h3>
+<p>While Version A provides a polished stylistic template, manually typing numerical values into prose introduces substantial risk of transcription errors, copy-paste discrepancies with tables, and obsolescence when datasets or trimming criteria change <span class="citation" data-cites="meteyard2020best">(<a href="#ref-meteyard2020best" role="doc-biblioref">Meteyard and Davies 2020</a>)</span>.</p>
+<p>In modern reproducible workflows with Quarto, we extract statistics programmatically from the fitted model objects into helper variables and reference them directly in narrative prose via inline R code expressions.</p>
+<section id="step-1-programmatic-parameter-extraction" class="level4" data-number="10.5.4.1">
+<h4 data-number="10.5.4.1" class="anchored" data-anchor-id="step-1-programmatic-parameter-extraction"><span class="header-section-number">10.5.4.1</span> Step 1: Programmatic Parameter Extraction</h4>
+<div class="cell">
+<details open class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper formatting functions for dynamic APA/Linguistics reporting</span></span>
+<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>fmt_p <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
+<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(p)) <span class="fu">return</span>(<span class="st">&quot;NA&quot;</span>)</span>
+<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (p <span class="sc">&lt;</span> .<span class="dv">001</span>) <span class="st">&quot;&lt; .001&quot;</span> <span class="cf">else</span> <span class="fu">paste0</span>(<span class="st">&quot;= &quot;</span>, <span class="fu">sprintf</span>(<span class="st">&quot;%.3f&quot;</span>, p))</span>
+<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a>fmt_b   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">&quot;%.3f&quot;</span>, x)</span>
+<span id="cb85-9"><a href="#cb85-9" aria-hidden="true" tabindex="-1"></a>fmt_t   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">&quot;%.2f&quot;</span>, x)</span>
+<span id="cb85-10"><a href="#cb85-10" aria-hidden="true" tabindex="-1"></a>fmt_df  <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">&quot;%.1f&quot;</span>, x)</span>
+<span id="cb85-11"><a href="#cb85-11" aria-hidden="true" tabindex="-1"></a>fmt_pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">sprintf</span>(<span class="st">&quot;%.1f&quot;</span>, x <span class="sc">*</span> <span class="dv">100</span>), <span class="st">&quot;%&quot;</span>)</span>
+<span id="cb85-12"><a href="#cb85-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-13"><a href="#cb85-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic software environment versions</span></span>
+<span id="cb85-14"><a href="#cb85-14" aria-hidden="true" tabindex="-1"></a>r_ver        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;v&quot;</span>, R.version<span class="sc">$</span>major, <span class="st">&quot;.&quot;</span>, R.version<span class="sc">$</span>minor)</span>
+<span id="cb85-15"><a href="#cb85-15" aria-hidden="true" tabindex="-1"></a>lme4_ver     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;v&quot;</span>, <span class="fu">packageVersion</span>(<span class="st">&quot;lme4&quot;</span>))</span>
+<span id="cb85-16"><a href="#cb85-16" aria-hidden="true" tabindex="-1"></a>lmertest_ver <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;v&quot;</span>, <span class="fu">packageVersion</span>(<span class="st">&quot;lmerTest&quot;</span>))</span>
+<span id="cb85-17"><a href="#cb85-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-18"><a href="#cb85-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed effects extraction from lmerTest Satterthwaite summary</span></span>
+<span id="cb85-19"><a href="#cb85-19" aria-hidden="true" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(m_parsimonious))</span>
+<span id="cb85-20"><a href="#cb85-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-21"><a href="#cb85-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Lexical Frequency</span></span>
+<span id="cb85-22"><a href="#cb85-22" aria-hidden="true" tabindex="-1"></a>b_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Freq_z&quot;</span>, <span class="st">&quot;Estimate&quot;</span>])</span>
+<span id="cb85-23"><a href="#cb85-23" aria-hidden="true" tabindex="-1"></a>se_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Freq_z&quot;</span>, <span class="st">&quot;Std. Error&quot;</span>])</span>
+<span id="cb85-24"><a href="#cb85-24" aria-hidden="true" tabindex="-1"></a>df_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">&quot;Freq_z&quot;</span>, <span class="st">&quot;df&quot;</span>])</span>
+<span id="cb85-25"><a href="#cb85-25" aria-hidden="true" tabindex="-1"></a>t_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">&quot;Freq_z&quot;</span>, <span class="st">&quot;t value&quot;</span>])</span>
+<span id="cb85-26"><a href="#cb85-26" aria-hidden="true" tabindex="-1"></a>p_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">&quot;Freq_z&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>])</span>
+<span id="cb85-27"><a href="#cb85-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-28"><a href="#cb85-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Word Length</span></span>
+<span id="cb85-29"><a href="#cb85-29" aria-hidden="true" tabindex="-1"></a>b_len    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Length_z&quot;</span>, <span class="st">&quot;Estimate&quot;</span>])</span>
+<span id="cb85-30"><a href="#cb85-30" aria-hidden="true" tabindex="-1"></a>se_len   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Length_z&quot;</span>, <span class="st">&quot;Std. Error&quot;</span>])</span>
+<span id="cb85-31"><a href="#cb85-31" aria-hidden="true" tabindex="-1"></a>df_len   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">&quot;Length_z&quot;</span>, <span class="st">&quot;df&quot;</span>])</span>
+<span id="cb85-32"><a href="#cb85-32" aria-hidden="true" tabindex="-1"></a>t_len    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">&quot;Length_z&quot;</span>, <span class="st">&quot;t value&quot;</span>])</span>
+<span id="cb85-33"><a href="#cb85-33" aria-hidden="true" tabindex="-1"></a>p_len    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">&quot;Length_z&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>])</span>
+<span id="cb85-34"><a href="#cb85-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-35"><a href="#cb85-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Native Language</span></span>
+<span id="cb85-36"><a href="#cb85-36" aria-hidden="true" tabindex="-1"></a>b_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Native_num&quot;</span>, <span class="st">&quot;Estimate&quot;</span>])</span>
+<span id="cb85-37"><a href="#cb85-37" aria-hidden="true" tabindex="-1"></a>se_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">&quot;Native_num&quot;</span>, <span class="st">&quot;Std. Error&quot;</span>])</span>
+<span id="cb85-38"><a href="#cb85-38" aria-hidden="true" tabindex="-1"></a>df_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">&quot;Native_num&quot;</span>, <span class="st">&quot;df&quot;</span>])</span>
+<span id="cb85-39"><a href="#cb85-39" aria-hidden="true" tabindex="-1"></a>t_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">&quot;Native_num&quot;</span>, <span class="st">&quot;t value&quot;</span>])</span>
+<span id="cb85-40"><a href="#cb85-40" aria-hidden="true" tabindex="-1"></a>p_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">&quot;Native_num&quot;</span>, <span class="st">&quot;Pr(&gt;|t|)&quot;</span>])</span>
+<span id="cb85-41"><a href="#cb85-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-42"><a href="#cb85-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimated Marginal Means (emmeans)</span></span>
+<span id="cb85-43"><a href="#cb85-43" aria-hidden="true" tabindex="-1"></a>emm_df       <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(emm_native)</span>
+<span id="cb85-44"><a href="#cb85-44" aria-hidden="true" tabindex="-1"></a>emm_eng_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>])</span>
+<span id="cb85-45"><a href="#cb85-45" aria-hidden="true" tabindex="-1"></a>emm_eng_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]), <span class="st">&quot;, &quot;</span>,</span>
+<span id="cb85-46"><a href="#cb85-46" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]))</span>
+<span id="cb85-47"><a href="#cb85-47" aria-hidden="true" tabindex="-1"></a>emm_oth_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>])</span>
+<span id="cb85-48"><a href="#cb85-48" aria-hidden="true" tabindex="-1"></a>emm_oth_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]), <span class="st">&quot;, &quot;</span>,</span>
+<span id="cb85-49"><a href="#cb85-49" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]))</span>
+<span id="cb85-50"><a href="#cb85-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-51"><a href="#cb85-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Nakagawa R-squared metrics</span></span>
+<span id="cb85-52"><a href="#cb85-52" aria-hidden="true" tabindex="-1"></a>r2_vals  <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_parsimonious)</span>
+<span id="cb85-53"><a href="#cb85-53" aria-hidden="true" tabindex="-1"></a>r2_m_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb85-54"><a href="#cb85-54" aria-hidden="true" tabindex="-1"></a>r2_c_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_conditional)</span>
+<span id="cb85-55"><a href="#cb85-55" aria-hidden="true" tabindex="-1"></a>r2_m_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb85-56"><a href="#cb85-56" aria-hidden="true" tabindex="-1"></a>r2_c_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_conditional)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="step-2-dynamic-inline-narrative" class="level4" data-number="10.5.4.2">
+<h4 data-number="10.5.4.2" class="anchored" data-anchor-id="step-2-dynamic-inline-narrative"><span class="header-section-number">10.5.4.2</span> Step 2: Dynamic Inline Narrative</h4>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Fully Dynamic Results Section Narrative (Rendered from Fitted Model)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Results: Lexical Decision Reaction Times (Dynamic)</strong><br>
+Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v2.0.1) and <code>lmerTest</code> (v3.2.1) in R (v4.5.2). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al. (2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
+<p>Singularity evaluation (<code>isSingular()</code>, tolerance <span class="math inline">\(= 10^{-4}\)</span>) revealed that the maximal specification was degenerate, with the Word-level random intercept collapsing to boundary zero (<span class="math inline">\(\sigma = 0.000, \rho = 1.000\)</span>). Following automated singular variance pruning (<code>trouBBlme4SolveR::dwmw()</code>), non-identifiable random slopes were eliminated. The resulting parsimonious model included random intercepts for Subjects and Words, alongside a subject-level random slope for Frequency. Numerical benchmarking across eight derivative-free optimizers (<code>lme4::allFit()</code>) confirmed that all algorithms converged to identical log-likelihoods (<span class="math inline">\(\Delta \log L &lt; 10^{-5}\)</span>), verifying that the solution was stable and non-singular.</p>
+<p>Fixed-effects significance tests were evaluated using two-tailed <span class="math inline">\(t\)</span>-tests with Satterthwaite degrees-of-freedom approximations via <code>lmerTest</code>. Lexical Frequency significantly facilitated reaction times (<span class="math inline">\(\beta = -0.047\)</span>, <span class="math inline">\(SE = 0.010\)</span>, <span class="math inline">\(t(52.5) = -4.81\)</span>, <span class="math inline">\(p &lt; .001\)</span>), while Word Length exhibited a significant inhibitory effect (<span class="math inline">\(\beta = 0.017\)</span>, <span class="math inline">\(SE = 0.008\)</span>, <span class="math inline">\(t(76.0) = 2.16\)</span>, <span class="math inline">\(p = 0.034\)</span>). Non-native speakers responded marginally slower than native speakers, though this main effect did not reach conventional significance in the parsimonious specification (<span class="math inline">\(\beta = 0.071\)</span>, <span class="math inline">\(SE = 0.053\)</span>, <span class="math inline">\(t(19.0) = 1.34\)</span>, <span class="math inline">\(p = 0.195\)</span>). Post-hoc estimated marginal means (<code>emmeans</code>) indicated mean latencies of <span class="math inline">\(6.355\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.272, 6.437]\)</span>) for native English speakers and <span class="math inline">\(6.426\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.333, 6.519]\)</span>) for other speakers. Overall variance partitioning (Nakagawa &amp; Schielzeth, 2013) revealed that fixed effects accounted for <span class="math inline">\(7.8%\)</span> of total variance (<span class="math inline">\(R^2_m = 0.078\)</span>), while the combined fixed and random effects explained <span class="math inline">\(49.0%\)</span> (<span class="math inline">\(R^2_c = 0.490\)</span>).</p>
+</div>
+</div>
+</section>
+</section>
+<section id="comparison-static-vs.-dynamic-reporting-workflows" class="level3" data-number="10.5.5">
+<h3 data-number="10.5.5" class="anchored" data-anchor-id="comparison-static-vs.-dynamic-reporting-workflows"><span class="header-section-number">10.5.5</span> 6.5.5 Comparison: Static vs. Dynamic Reporting Workflows</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Dimension</th>
+<th style="text-align: left;">Version A: Static Narrative</th>
+<th style="text-align: left;">Version B: Dynamic Inline Extraction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Effort at First Draft</strong></td>
+<td style="text-align: left;">Quick to draft initially; standard manual typing.</td>
+<td style="text-align: left;">Requires initial setup of formatting helper functions and extraction chunk.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Vulnerability to Error</strong></td>
+<td style="text-align: left;"><strong>High</strong>: Prone to typos, rounding errors, or transposing <span class="math inline">\(\beta\)</span> and <span class="math inline">\(SE\)</span> values.</td>
+<td style="text-align: left;"><strong>Zero</strong>: Numbers are computed directly from the model object in memory.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Maintenance on Data Changes</strong></td>
+<td style="text-align: left;"><strong>Fragile</strong>: If an outlier is excluded or data trimmed, every single number must be manually found and retyped.</td>
+<td style="text-align: left;"><strong>Instant &amp; Painless</strong>: Re-rendering the document automatically updates all inline statistics in fractions of a second.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Consistency with Tables</strong></td>
+<td style="text-align: left;">High risk of table-prose discrepancy if tables and text are updated at different times.</td>
+<td style="text-align: left;">Guarantees 100% numerical consistency between the prose narrative and <code>kable()</code> parameter tables.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Open Science Compliance</strong></td>
+<td style="text-align: left;">Fails strict automated audit standards (Meteyard &amp; Davies 2020 Item 10).</td>
+<td style="text-align: left;">Exemplifies gold-standard computational reproducibility.</td>
+</tr>
+</tbody>
+</table>
 <hr>
 </section>
 </section>
