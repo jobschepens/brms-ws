@@ -128,23 +128,34 @@ theme_set(theme_minimal(base_size = 12))
 
 # Module 1: Continuous Reaction Times & The Singularity Debate
 
-## 1.1 Preparing Linguistic Lexical Decision Data
-## 1.1 Preparing Linguistic Lexical Decision Data & The Need for Contrast Coding
+## 1.1 Preparing Linguistic Lexical Decision Data & Random Effects Syntax
 
-We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying centered sum coding (-0.5 / +0.5) to categorical factors:
+### Random Effects Syntax Reference
+Mixed-effects models relax the rigid balanced-design and sphericity assumptions of repeated-measures ANOVA:
+- **Nested random effects** (e.g., Students nested within Classrooms):
+  `Formula: (1 | Class / Student)` or `(1 | Class) + (1 | Class:Student)`
+- **Crossed random effects** (e.g., Participants crossed with Stimulus Words):
+  `Formula: (1 | Subject) + (1 | Word)`
+
 We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying **centered sum contrast coding** ($-0.5 / +0.5$) to categorical factors [@schad2020contrast]:
 
 ```{r prep-lexdec}
+# Load lexical decision dataset from languageR (Baayen et al., 2006)
 data(lexdec)
 
+# 1. Rescale continuous predictors to z-scores (mean = 0, sd = 1)
+#    This eliminates scale disparities and avoids ill-conditioned deviance valleys
+# 2. Apply centered sum contrast coding (-0.5 / +0.5) to two-level factors
+#    Ensures intercept represents grand mean and beta represents true main effects
 lexdec <- lexdec %>%
   mutate(
-    Freq_z   = as.numeric(scale(Frequency)),
-    Length_z = as.numeric(scale(Length)),
+    Freq_z     = as.numeric(scale(Frequency)),
+    Length_z   = as.numeric(scale(Length)),
     Native_num = ifelse(NativeLanguage == "Other", 0.5, -0.5),
     Sex_num    = ifelse(Sex == "M", 0.5, -0.5)
   )
 
+# Inspect processed variables
 glimpse(select(lexdec, Subject, Word, RT, Trial, Freq_z, Length_z, Native_num, Sex_num))
 ```
 
@@ -166,6 +177,10 @@ According to @barr2013random, any factor varying within a grouping unit must hav
 - Within `Word`: `Native_num`, `Sex_num`
 
 ```{r fit-maximal}
+# Fit maximal random-effects model (Barr et al., 2013)
+# Random intercepts and within-unit random slopes for all predictors:
+# - Within Subject: Frequency and Word Length
+# - Within Word: Native Language and Speaker Sex
 m_maximal <- lmer(
   RT ~ Freq_z + Length_z + Native_num + Sex_num +
     (1 + Freq_z + Length_z | Subject) +
@@ -173,7 +188,7 @@ m_maximal <- lmer(
   data = lexdec
 )
 
-# Test for singularity
+# Test for singularity (Cholesky factor on boundary)
 cat("Is the maximal model singular?", isSingular(m_maximal), "\n")
 ```
 
@@ -182,6 +197,8 @@ cat("Is the maximal model singular?", isSingular(m_maximal), "\n")
 When `isSingular()` returns `TRUE`, the variance-covariance matrix lies on the boundary:
 
 ```{r inspect-varcorr}
+# Inspect estimated variance-covariance matrices and correlation parameters (rho)
+# Look for variances collapsing to 0.000 or correlations at +/- 1.000
 print(VarCorr(m_maximal))
 ```
 
@@ -195,6 +212,8 @@ Notice that the `Word` random intercept standard deviation has collapsed to `0.0
 The `trouBBlme4SolveR::dwmw()` function diagnoses which random slope has zero variance and systematically prunes it:
 
 ```{r dwmw-resolution}
+# Automated troubleshooting for singular fits (Ben Bolker's trouBBlme4SolveR)
+# 'dwmw' ("Don't Worry, Make Warmer") iteratively tests and prunes zero-variance random slopes
 m_resolved <- dwmw(m_maximal)
 cat("\nIs resolved model singular?", isSingular(m_resolved), "\n")
 print(summary(m_resolved))
@@ -209,6 +228,8 @@ print(summary(m_resolved))
 In standard Gaussian LMMs, residuals are assumed to follow $\epsilon \sim \mathcal{N}(0, \sigma^2)$:
 
 ```{r fit-parsimonious}
+# Parsimonious random-effects model (Bates et al., 2015)
+# Retains subject-level frequency slope; prunes overparameterized item slopes
 m_parsimonious <- lmer(
   RT ~ Freq_z + Length_z + Native_num + (1 + Freq_z | Subject) + (1 | Word),
   data = lexdec
@@ -216,6 +237,9 @@ m_parsimonious <- lmer(
 ```
 
 ```{r classical-residual-plots, fig.width=9, fig.height=4}
+# Classical diagnostic plots for Gaussian LMM:
+# Left: Normal Q-Q plot to assess residual normality (epsilon ~ N(0, sigma^2))
+# Right: Residuals vs. Fitted to assess homoscedasticity and linearity
 par(mfrow = c(1, 2))
 qqnorm(residuals(m_parsimonious), main = "Normal Q-Q Plot (Raw Residuals)")
 qqline(residuals(m_parsimonious), col = "red", lwd = 2)
@@ -239,6 +263,8 @@ $$u_i = P(Y^{\text{sim}}_i \le y_i) \sim \mathcal{U}(0, 1)$$
 We model the English dative alternation [@bresnan2007predicting], where prominence features (animate recipients, pronominal recipients, short themes) predict the double-object construction (NP) versus prepositional construction (PP):
 
 ```{r fit-glmm-dative}
+# Discrete Prominence GLMM: English Dative Alternation (Bresnan et al., 2007)
+# Binary outcome: Realization of recipient as NP (double object) vs PP (prepositional)
 data(dative)
 
 m_dative <- glmer(
@@ -250,18 +276,22 @@ summary(m_dative)
 ```
 
 ```{r dharma-sim-glmm, fig.width=10, fig.height=5}
+# DHARMa: Simulate standardized quantile residuals via Probability Integral Transform (PIT)
+# Residuals are transformed to Uniform U(0, 1) under the null of correct specification
 sim_dative <- simulateResiduals(fittedModel = m_dative, n = 500, plot = FALSE)
+
+# DHARMa 2-panel diagnostic plot: Uniform Q-Q plot and Residuals vs. Predicted with spline
 plot(sim_dative)
 ```
 
 ```{r dharma-formal-tests}
-# Test residual uniformity (Kolmogorov-Smirnov)
+# 1. Test overall uniformity (Kolmogorov-Smirnov test against U(0, 1))
 testUniformity(sim_dative)
 
-# Test overdispersion / underdispersion
+# 2. Test for overdispersion or underdispersion relative to binomial theoretical variance
 testDispersion(sim_dative)
 
-# Test excess zeros
+# 3. Test for excess zeros (zero-inflation test)
 testZeroInflation(sim_dative)
 ```
 
@@ -270,11 +300,17 @@ testZeroInflation(sim_dative)
 In self-paced reading and reaction time experiments, participant fatigue often induces temporal autocorrelation. We aggregate residuals across participants for each experimental trial:
 
 ```{r dharma-temporal-autocorr, fig.width=9, fig.height=4}
+# 1. Simulate residuals for continuous reaction time model
 sim_lexdec <- simulateResiduals(fittedModel = m_parsimonious, n = 250, plot = FALSE)
+
+# 2. Recalculate and aggregate residuals across subjects per experimental trial
+# (Crucial: avoids non-unique time value error in repeated measures)
 sim_trial <- recalculateResiduals(sim_lexdec, group = lexdec$Trial)
+
+# 3. Formal Durbin-Watson / Moran's I test on aggregated trial time series
 testTemporalAutocorrelation(sim_trial, time = unique(lexdec$Trial))
 
-# Individual-level autocorrelation (ACF) for participant A1
+# 4. Individual participant autocorrelation function (ACF) for subject A1
 res_a1 <- residuals(m_parsimonious)[lexdec$Subject == "A1"]
 acf(res_a1, main = "Residual Autocorrelation (Subject A1)")
 ```
@@ -288,6 +324,9 @@ acf(res_a1, main = "Residual Autocorrelation (Subject A1)")
 In natural language, lexical features naturally correlate (Zipf's Law: frequent words are shorter). We test Variance Inflation Factors using `performance::check_collinearity()`:
 
 ```{r check-collinearity}
+# Check multicollinearity using Variance Inflation Factors (VIF)
+# VIF measures how much predictor variance is inflated due to collinearity with other predictors
+# Rule of thumb: VIF < 5 is safe; VIF > 10 indicates severe collinearity
 vif_results <- check_collinearity(m_parsimonious)
 print(vif_results)
 plot(vif_results)
@@ -295,7 +334,12 @@ plot(vif_results)
 
 ## 3.2 Unified Multi-Panel Diagnostics (`easystats`)
 
+The `performance::check_model()` interface generates a comprehensive 6-panel diagnostic suite covering linearity, homoscedasticity, posterior predictive checks, normality of residuals, normality of random effects (BLUPs), and multicollinearity.
+
 ```{r multi-panel-check, fig.width=10, fig.height=9}
+# Multi-panel model check from easystats:
+# Generates 6 diagnostic panels: Linearity, Homoscedasticity, Posterior Predictive Checks,
+# Residual Normality, BLUP Random Effect Normality, and Multicollinearity (VIF)
 check_model(m_parsimonious)
 ```
 
@@ -304,12 +348,20 @@ check_model(m_parsimonious)
 We check whether particular speakers or items exert disproportionate leverage [@nieuwenhuis2012influence]:
 
 ```{r influence-subjects, fig.width=9, fig.height=4.5}
+# Subject-level Cook's Distance via iterative cluster deletion (influence.ME)
+# Benchmark threshold for influential clusters: 4 / N_clusters
 infl_subj <- influence(m_parsimonious, group = "Subject", count = FALSE)
 plot(infl_subj, which = "cook", cutoff = 4 / length(unique(lexdec$Subject)),
      main = "Subject-Level Cook's Distance (lexdec)")
+
+# Extract standardized parameter changes upon cluster deletion (DFBETAS)
+# Measures how many standard errors each fixed effect moves when a subject is dropped
+dfbetas_subj <- dfbetas(infl_subj)
+head(dfbetas_subj)
 ```
 
 ```{r influence-words, fig.width=9, fig.height=4.5}
+# Word-level Cook's Distance (Item outliers across the 79 stimulus words)
 infl_word <- influence(m_parsimonious, group = "Word", count = FALSE)
 plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
      main = "Word-Level Cook's Distance (Items)")
@@ -335,10 +387,10 @@ Using `languageR::sizeRatings` (3,078 size ratings of 81 words across 38 subject
 ```{r naive-gaussian-ordinal}
 data(sizeRatings)
 
-# Naive Gaussian LMM
+# 1. Naive Gaussian LMM: treating discrete 1-7 Likert ratings as metric Gaussian variable
 m_naive_likert <- lmer(Rating ~ Class + (1 | Word), data = sizeRatings)
 
-# DHARMa diagnostic plot on naive Gaussian fit
+# 2. DHARMa diagnostic simulation: reveals severe floor/ceiling S-shaped quantile distortion
 sim_naive <- simulateResiduals(m_naive_likert, n = 250, plot = FALSE)
 plot(sim_naive)
 ```
@@ -355,9 +407,12 @@ We fit a proper Cumulative Link Mixed Model using `ordinal::clmm` [@christensen2
 $$\text{logit}(P(Y_i \le k)) = \theta_k - (X_i \beta + Z_i u)$$
 
 ```{r clmm-fit}
+# Cumulative Link Mixed Model (Christensen, 2019)
+# Convert ratings into an ordered factor (1 < 2 < ... < 7)
 sizeRatings <- sizeRatings %>%
   mutate(Rating_ord = factor(Rating, ordered = TRUE))
 
+# Fit CLMM: models cumulative log-odds with latent cutpoints (theta_1 to theta_6)
 m_clmm <- clmm(Rating_ord ~ Class + (1 | Word), data = sizeRatings)
 summary(m_clmm)
 ```
@@ -366,7 +421,6 @@ The model estimates the fixed effect of semantic class alongside the 6 latent cu
 
 ---
 
-# Module 5: Post-Fitting Inference with emmeans
 # Module 5: Post-Fitting Inference with emmeans & The Contrast Coding Synthesis
 
 ## 5.1 Estimating Marginal Means & Contrasts
@@ -375,6 +429,7 @@ The `emmeans` package [@lenth2016least] computes Estimated Marginal Means (least
 
 ```{r emmeans-lmm}
 # Pairwise comparisons on continuous RT model
+# Uses Kenward-Roger degrees-of-freedom approximation to prevent Type I error inflation
 emm_native <- emmeans(m_parsimonious, ~ Native_num)
 print(emm_native)
 pairs(emm_native)
@@ -383,20 +438,22 @@ pairs(emm_native)
 For Generalized and Ordinal models, we compute predictions on the latent link scale or back-transform to the response scale:
 
 ```{r emmeans-glmm}
-# Dative realization: back-transformed response probabilities
+# Dative realization GLMM:
+# type = "response" back-transforms from link scale (log-odds) to predicted probabilities (p in [0,1])
 emm_dative <- emmeans(m_dative, ~ AnimacyOfRec, type = "response")
 print(emm_dative)
+
+# Pairwise contrast on link scale yields Odds Ratios (OR) with delta-method standard errors
 pairs(emm_dative)
 ```
 
 ```{r emmeans-clmm}
-# Ordinal model: latent linear predictor contrasts
+# Ordinal model: latent linear predictor contrasts between semantic classes
 emm_clmm <- emmeans(m_clmm, ~ Class)
 print(emm_clmm)
 pairs(emm_clmm)
 ```
 
-## 5.2 Methodological Assumptions of emmeans
 ## 5.2 Empirical Demonstration: Coding Invariance of emmeans
 
 A profound property of `emmeans` is that it evaluates predictions over a balanced reference grid regardless of how factors were coded in the design matrix $\mathbf{X}$. 
@@ -404,19 +461,23 @@ A profound property of `emmeans` is that it evaluates predictions over a balance
 Let us compare two identical models fitted with default treatment coding vs. centered sum coding:
 
 ```{r contrast-coding-vs-emmeans}
-# 1. Model with default treatment coding (English = 0, Other = 1)
+# 1. Model fitted with default treatment (dummy) coding (English = 0, Other = 1)
 m_treatment <- lmer(RT ~ Freq_z * NativeLanguage + (1 | Subject), data = lexdec)
 
-# 2. Model with centered sum coding (-0.5 / +0.5)
+# 2. Model fitted with centered sum contrast coding (-0.5 / +0.5)
 m_sum <- lmer(RT ~ Freq_z * Native_num + (1 | Subject), data = lexdec)
 
-# In the model tables, the lower-order coefficients differ completely:
-# In m_treatment: 'NativeLanguageOther' is a simple effect at Freq_z = 0
-# In m_sum: 'Native_num' is a true main effect averaged across Freq_z
-fixef(m_treatment)
-fixef(m_sum)
+# Comparison of Fixed Effects Tables:
+# - In m_treatment: 'NativeLanguageOther' is a simple effect at Freq_z = 0
+# - In m_sum: 'Native_num' is a true main effect averaged across all words
+cat("=== Fixed Effects under Treatment Coding ===\n")
+print(fixef(m_treatment))
+cat("\n=== Fixed Effects under Centered Sum Coding ===\n")
+print(fixef(m_sum))
 
-# Yet emmeans produces the EXACT SAME estimated marginal means:
+# Reference Grid Invariance:
+# Regardless of factor coding scheme, emmeans evaluates predictions across
+# a balanced reference grid, yielding IDENTICAL marginal means and contrasts:
 emm_from_treat <- emmeans(m_treatment, ~ NativeLanguage)
 emm_from_sum   <- emmeans(m_sum, ~ Native_num)
 
@@ -468,29 +529,41 @@ The answer lies in the distinction between **model estimation** (*a priori*) and
 
 ## 6.1 Optimizer Benchmarking with `allFit()`
 
+Refits the model across all available optimizers (`bobyqa`, `Nelder_Mead`, `nlminbwrap`, etc.) to verify if convergence warnings are false positives:
+
 ```{r benchmark-allfit, message=FALSE, warning=FALSE}
+# Benchmark model across multiple numerical optimizers (bobyqa, Nelder_Mead, nlminbwrap, etc.)
+# If all optimizers converge to identical log-likelihoods (difference < 1e-4),
+# convergence warnings are typically false-positive numerical artifacts
 all_fits <- allFit(m_parsimonious)
 summary(all_fits)
 ```
 
 ## 6.2 Likelihood Ratio Tests: Enforcing REML vs. ML Rules
 
-* **Testing Random Effects**: Keep fixed effects identical; use **`REML = TRUE`** with `anova(m1, m2)`.
-* **Testing Fixed Effects**: Use **`REML = FALSE`** (Maximum Likelihood) with `anova(m1, m2)`.
-* **Final Reporting**: Refit selected model with **`REML = TRUE`** for unbiased variance estimates.
+- **Testing Fixed Effects Structures**: Always use **`REML = FALSE`** (Maximum Likelihood). REML likelihoods depend on fixed-effect design matrices, making LRTs under REML mathematically invalid.
+- **Testing Random Effects Structures**: Use **`REML = TRUE`** with `anova(m1, m2)`.
+- **Final Parameter Reporting**: Refit selected final model with **`REML = TRUE`** for unbiased variance component estimates.
 
 ```{r lrt-comparison}
+# Nested model comparison for fixed effect of Frequency under Maximum Likelihood (REML = FALSE)
 m_full_ml <- lmer(RT ~ Freq_z + Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
 m_null_ml <- lmer(RT ~ Length_z + Native_num + (1 | Subject) + (1 | Word),
                   data = lexdec, REML = FALSE)
 
+# Likelihood Ratio Test (Chisq test on deviance difference)
 anova(m_null_ml, m_full_ml)
 ```
 
 ## 6.3 Variance Partitioning: Nakagawa’s $R^2$
 
+For mixed models, standard $R^2$ does not apply. Nakagawa & Schielzeth (2013) partition variance into:
+- **Marginal $R^2_m$**: Proportion of variance explained by **fixed effects alone**.
+- **Conditional $R^2_c$**: Proportion of variance explained by **both fixed and random effects** (total model variance).
+
 ```{r nakagawa-r2}
+# Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics
 r2_metrics <- r2_nakagawa(m_resolved)
 print(r2_metrics)
 ```
