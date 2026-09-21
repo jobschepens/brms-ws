@@ -243,15 +243,31 @@ print(emm_clmm)
 print(pairs(emm_clmm))
 
 # ------------------------------------------------------------------------------
-# Module 6: Optimizer Benchmarking, Variance Partitioning & Reporting
+# Module 6: Convergence Warnings, Optimizer Benchmarking & Reporting
 # ------------------------------------------------------------------------------
+# 6.1 Direct Inspection of Gradients and Hessian Curvature
+# When lme4 issues gradient or convergence warnings, inspect optimization derivatives directly:
+grad_vals <- m_parsimonious@optinfo$derivs$gradient
+hess_mat  <- m_parsimonious@optinfo$derivs$Hessian
+eigen_val <- eigen(hess_mat)$values
+
+cat("\n=== Convergence Diagnostics ===\n")
+cat("Maximum absolute gradient:", max(abs(grad_vals)), "\n")
+cat("Minimum Hessian eigenvalue:", min(eigen_val), "\n")
+cat("Hessian eigenvalue ratio (condition number):", max(eigen_val) / min(eigen_val), "\n")
+# Diagnostics interpretation:
+# - max|grad| < 0.002: stationary point attained
+# - min(eigen_val) > 0: strictly positive-definite curvature (local minimum)
+# - condition number < 1e5: well-conditioned deviance surface
+
+# 6.2 Optimizer Benchmarking with allFit()
 # Benchmark model across multiple numerical optimizers (bobyqa, Nelder_Mead, nlminbwrap, etc.)
 # If all optimizers converge to identical log-likelihoods (difference < 1e-4),
 # convergence warnings are typically false-positive numerical artifacts
 all_fits <- allFit(m_parsimonious)
 print(summary(all_fits))
 
-# Likelihood Ratio Tests: Enforcing REML vs. ML Rules
+# 6.3 Likelihood Ratio Tests: Enforcing REML vs. ML Rules
 # - Testing Fixed Effects: Always use REML = FALSE (Maximum Likelihood)
 # - Testing Random Effects: Use REML = TRUE
 # - Final Reporting: Refit selected model with REML = TRUE for unbiased variance components
@@ -265,10 +281,17 @@ m_null_ml <- lmer(RT ~ Length_z + Native_num + (1 | Subject) + (1 | Word),
 # Likelihood Ratio Test (Chisq test on deviance difference)
 print(anova(m_null_ml, m_full_ml))
 
-# Variance partitioning: Marginal vs Conditional R2 (Nakagawa & Schielzeth, 2013)
+# 6.4 Variance Partitioning: Marginal vs Conditional R2 (Nakagawa & Schielzeth, 2013)
 # - Marginal R2 (R2m): Proportion of variance explained by fixed effects alone
 # - Conditional R2 (R2c): Proportion of variance explained by both fixed and random effects
 r2_val <- r2_nakagawa(m_resolved)
 print(r2_val)
 
+# 6.5 Publication-Ready Model Summary Table (Meteyard & Davies, 2020)
+# Extract clean parameter table with Satterthwaite degrees of freedom and 95% CIs
+model_params <- parameters::model_parameters(m_parsimonious, ci = 0.95, effects = "all")
+cat("\n=== Publication-Ready Parameter Summary Table ===\n")
+print(knitr::kable(model_params, digits = 3, caption = "Table 1: Fixed and Random Parameter Estimates"))
+
 cat("\n=== All diagnostic workflows executed successfully! ===\n")
+

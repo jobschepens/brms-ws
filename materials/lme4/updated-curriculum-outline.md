@@ -73,11 +73,22 @@ Instead of non-linguistic toy examples (e.g. `sleepstudy`), the workshop demonst
 
 ---
 
-### Module 6: Optimizer Benchmarking, Variance Partitioning & Reporting (15:15 – 15:30)
+### Module 6: Convergence Warnings, Optimizer Benchmarking & Open Science Reporting (15:15 – 15:30)
+- **Deconstructing & Troubleshooting `lme4` Warnings**:
+  - Boundary singularity warnings (`isSingular()`): mathematical causes, uncentered factors, zero-variance pruning via `dwmw()`, and Bayesian prior regularization.
+  - Gradient warnings (`max|grad| > 0.002`): distinguishing true non-convergence from false-positive scaling artifacts via relative gradients ($\boldsymbol{\delta} = \mathbf{H}^{-1}\mathbf{g}$) and `allFit()`.
+  - Degenerate Hessian warnings (negative eigenvalues): loss of positive-definiteness, saddle points, and remediation.
+  - Condition number / eigenvalue ratios ($\kappa > 10^5$): identifying ill-conditioned deviance valleys.
+  - GLMM convergence failures (`pwrssUpdate`): complete separation, extreme probabilities, and PIRLS loop tuning.
+  - Visual troubleshooting decision flowchart (Mermaid diagram).
 - **Optimizer Benchmarking**:
-  - Testing multiple algorithms via `lme4::allFit()`.
+  - Testing multiple algorithms via `lme4::allFit()` (`bobyqa`, `Nelder_Mead`, `nlminbwrap`, etc.) and assessing log-likelihood stability ($\Delta \log L < 10^{-4}$).
 - **Model Comparison Protocols**:
-  - REML vs. ML rules: `REML = TRUE` for random effects; `REML = FALSE` for fixed effects LRTs.
-- **Variance Partitioning & Reporting**:
+  - REML vs. ML rules: `REML = TRUE` for random-effects comparisons; `REML = FALSE` for fixed-effects Likelihood Ratio Tests (`anova()`).
+- **Variance Partitioning**:
   - Nakagawa's Marginal ($R^2_m$) and Conditional ($R^2_c$) metrics.
-  - Meteyard & Davies (2020) reporting standards for open science.
+- **Best Practices in Reporting (Meteyard & Davies, 2020)**:
+  - 10-point reporting checklist for peer-reviewed journal publication.
+  - Generating publication-ready parameter summary tables (`parameters::model_parameters()`, `knitr::kable()`).
+  - Narrative Results Section template (APA / Linguistics journal style).
+
