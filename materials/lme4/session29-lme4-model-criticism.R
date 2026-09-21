@@ -293,7 +293,6 @@ model_params <- parameters::model_parameters(m_parsimonious, ci = 0.95, effects 
 cat("\n=== Publication-Ready Parameter Summary Table ===\n")
 print(knitr::kable(model_params, digits = 3, caption = "Table 1: Fixed and Random Parameter Estimates"))
 
-cat("\n=== All diagnostic workflows executed successfully! ===\n")
 # 6.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Style)
 cat("\n=== Version A: Static Narrative Template (Manual Formatting) ===\n")
 narrative_static <- paste(

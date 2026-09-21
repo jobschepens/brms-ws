@@ -713,7 +713,7 @@ Fixed-effects significance tests were evaluated using two-tailed $t$-tests with 
 
 While Version A provides a polished stylistic template, manually typing numerical values into prose introduces substantial risk of transcription errors, copy-paste discrepancies with tables, and obsolescence when datasets or trimming criteria change [@meteyard2020best]. 
 
-In modern reproducible workflows with Quarto, we extract statistics programmatically from the fitted model objects into helper variables and reference them directly in narrative prose via inline R code expressions.
+In modern reproducible workflows with Quarto, we extract statistics programmatically from the fitted model objects and reference them directly in narrative prose via inline code expressions (`` `r expr` ``).
 
 #### Step 1: Programmatic Parameter Extraction
 

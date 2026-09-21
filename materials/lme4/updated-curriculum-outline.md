@@ -90,7 +90,6 @@ Instead of non-linguistic toy examples (e.g. `sleepstudy`), the workshop demonst
 - **Best Practices in Reporting (Meteyard & Davies, 2020)**:
   - 10-point reporting checklist for peer-reviewed journal publication.
   - Generating publication-ready parameter summary tables (`parameters::model_parameters()`, `knitr::kable()`).
-  - Narrative Results Section template (APA / Linguistics journal style).
   - **Version A**: Static narrative template (standard APA / Linguistics journal formatting).
   - **Version B**: Fully automated dynamic narrative (programmatic parameter extraction via inline R expressions `` `r var` ``, eliminating manual copy-paste errors and ensuring 100% table-text consistency).
   - Comparative analysis: Static vs. Dynamic reporting workflows in computational open science.
