@@ -80,6 +80,8 @@ docker compose up
 
 ## 🎓 Workshop Materials
 
+A guide with module summaries, experimental setups (Reaction Times vs. Grammaticality Judgments), and recommended literature is available in the [**Curriculum Overview**](./materials/scripts/README.md).
+
 ### Rendered HTML Scripts
 
 View the rendered tutorials directly in your browser:
