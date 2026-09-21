@@ -195,6 +195,12 @@ install.packages(c(
   "effectsize",     # Compute standardized effects (easystats)
   "effsize",        # Classical effect size calculations
   "lmerTest",       # p-values and tests for lme4 models
+  "DHARMa",         # Simulation-based quantile residual diagnostics for LMM/GLMM
+  "influence.ME",   # Cluster-level leverage, Cook's distance, DFBETAS for mixed models
+  "trouBBlme4SolveR", # Automated troubleshooting for singular fits and convergence warnings
+  "dfoptim",        # Derivative-free optimizers (Nelder-Mead, Hooke-Jeeves) for allFit()
+  "languageR",      # Benchmark linguistic datasets (lexdec, dative, sizeRatings)
+  "ordinal",        # Cumulative Link Mixed Models (CLMM) for Likert/ordinal data
   "rstatix",        # Pipe-friendly wrappers for common statistical tests
   "pwr",            # Power analysis utilities
   "modelbased",     # Model diagnostic summaries and predictions (easystats)
