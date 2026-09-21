@@ -128,8 +128,10 @@ theme_set(theme_minimal(base_size = 12))
 
 # Module 1: Continuous Reaction Times & The Singularity Debate
 
+## 1.1 Preparing Linguistic Lexical Decision Data
 ## 1.1 Preparing Linguistic Lexical Decision Data & The Need for Contrast Coding
 
+We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying centered sum coding (-0.5 / +0.5) to categorical factors:
 We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying **centered sum contrast coding** ($-0.5 / +0.5$) to categorical factors [@schad2020contrast]:
 
 ```{r prep-lexdec}
@@ -364,6 +366,7 @@ The model estimates the fixed effect of semantic class alongside the 6 latent cu
 
 ---
 
+# Module 5: Post-Fitting Inference with emmeans
 # Module 5: Post-Fitting Inference with emmeans & The Contrast Coding Synthesis
 
 ## 5.1 Estimating Marginal Means & Contrasts
@@ -393,6 +396,7 @@ print(emm_clmm)
 pairs(emm_clmm)
 ```
 
+## 5.2 Methodological Assumptions of emmeans
 ## 5.2 Empirical Demonstration: Coding Invariance of emmeans
 
 A profound property of `emmeans` is that it evaluates predictions over a balanced reference grid regardless of how factors were coded in the design matrix $\mathbf{X}$. 
