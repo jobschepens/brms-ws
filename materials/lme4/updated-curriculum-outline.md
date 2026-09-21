@@ -77,7 +77,7 @@ Instead of non-linguistic toy examples (e.g. `sleepstudy`), the workshop demonst
 - **Optimizer Benchmarking**:
   - Testing multiple algorithms via `lme4::allFit()`.
 - **Model Comparison Protocols**:
-  - REML vs. ML rules: `REML = TRUE` for random effects; `REML = FALSE` for fixed effects LRTs.
+  - REML vs. ML rules: `REML = TRUE` for random-effects comparisons, `REML = FALSE` for fixed-effects Likelihood Ratio Tests (`anova()`).
 - **Variance Partitioning & Reporting**:
   - Nakagawa's Marginal ($R^2_m$) and Conditional ($R^2_c$) metrics.
   - Meteyard & Davies (2020) reporting standards for open science.
