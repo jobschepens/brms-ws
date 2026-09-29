@@ -455,6 +455,8 @@ print(emm_native)
 pairs(emm_native)
 ```
 
+Interpret these estimates as effect sizes as well as test results. In the `lexdec` model, coefficients are on the log-RT scale: $\exp(\beta)$ is the multiplicative ratio in geometric mean RTs, and $100\,[\exp(\beta)-1]\%$ is the corresponding percent difference. Since `Freq_z` and `Length_z` are standardized, their slopes are per one-standard-deviation increase; `Native_num` ranges from $-0.5$ to $0.5$, so its coefficient is the full Other-versus-English contrast. Report estimates with uncertainty intervals, not p-values alone.
+
 For Generalized and Ordinal models, we compute predictions on the latent link scale or back-transform to the response scale:
 
 ```{r emmeans-glmm}
