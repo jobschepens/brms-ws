@@ -13,7 +13,7 @@ format:
     code-fold: show
     code-summary: "Toggle Code"
     theme: flatly
-    embed-resources: true
+    embed-resources: false
     link-external-newwindow: true
 execute:
   warning: false
