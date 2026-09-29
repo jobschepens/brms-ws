@@ -45,6 +45,8 @@ Over the past decade, mixed-effects modeling in experimental linguistics and psy
 ## 1. The Random-Effects Complexity Debate (2013–2017)
 In a landmark paper, @barr2013random argued that confirmatory hypothesis testing requires "maximal" random-effects structures—including random intercepts and random slopes for all within-unit factors—to avoid Type I error rates soaring to 20–40%. However, @bates2015parsimonious and @matuschek2017balancing demonstrated through extensive simulations that fitting maximal models on finite empirical datasets frequently produces **overparameterization**, severe loss of statistical power, and **singular fits**. They advocated for principled, data-driven model selection to strike an optimal balance between Type I error control and power.
 
+For related simulation-based sample-size and power analyses, see the [sequential testing notebook for condition effects](https://jobschepens.github.io/brms-ws/06_sequential_testing.html), its [continuous-predictor counterpart](https://jobschepens.github.io/brms-ws/06_sequential_testing_cont.html), and the interactive [sequential-design sample-size report](https://jobschepens.github.io/samplesize/).
+
 ## 2. The GLMM Residual Revolution: DHARMa (2016–2022)
 For decades, researchers struggled to diagnose Generalized Linear Mixed Models (GLMMs) because raw, Pearson, and deviance residuals fail catastrophically on discrete binary and count outcomes due to intrinsic mean-variance coupling. Florian Hartig [-@hartig2022dharma] solved this by introducing simulation-based quantile residuals using the **Probability Integral Transform (PIT)**. This transformed GLMM diagnostics from an intractable guessing game into a rigorous testing suite for uniformity, overdispersion, and zero-inflation.
 
@@ -57,14 +59,14 @@ As lead maintainer of `lme4`, Ben Bolker pioneered diagnostic tooling to demysti
 
 ## 4. Unified Model Criticism via `easystats` (2020–2024)
 The `easystats` ecosystem [@ludecke2021performance] unified disparate diagnostic scripts into coherent workflows:
-- `performance::check_model()`: A comprehensive visual audit covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality.
+- `performance::check_model()`: A comprehensive visual audit covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. See the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) for a Bayesian counterpart.
 - `performance::r2_nakagawa()`: Formalized variance partitioning into Marginal and Conditional $R^2$ [@nakagawa2013general].
 
 ## 5. Post-Fitting & Marginal Effects (`emmeans` & `marginaleffects`)
 Russell Lenth’s `emmeans` [-@lenth2016least] and Vincent Arel-Bundock’s `marginaleffects` [-@arelbundock2024marginaleffects] established modern protocols for post-hoc contrasts, reference grids, and counterfactual prediction on the response scale.
 
 ## 6. The Bayesian Migration: `brms` (2017–2024)
-Paul-Christian Bürkner’s `brms` [-@burkner2017brms] opened full Hamiltonian Monte Carlo (HMC) estimation via Stan to applied linguists. As @vasishth2018bayesian emphasize, weakly informative priors naturally regularize boundary estimates, eliminating frequentist singular fits without requiring researchers to discard scientifically motivated random slopes.
+Paul-Christian Bürkner’s `brms` [-@burkner2017brms] opened full Hamiltonian Monte Carlo (HMC) estimation via Stan to applied linguists. As @vasishth2018bayesian emphasize, weakly informative priors (see [Setting Priors in brms](https://jobschepens.github.io/brms-ws/01_setting_priors.html)) naturally regularize boundary estimates, eliminating frequentist singular fits without requiring researchers to discard scientifically motivated random slopes.
 
 ---
 
@@ -72,17 +74,20 @@ Paul-Christian Bürkner’s `brms` [-@burkner2017brms] opened full Hamiltonian M
 
 The table below summarizes how assumptions have evolved from classical ANOVA to modern Bayesian mixed models:
 
+::: {.table-responsive}
 | Assumption Dimension | RM-ANOVA | `lme4` Linear (LMM) | `lme4` Generalized (GLMM) | Bayesian Mixed Models (`brms`) | Modern Diagnostic Tool |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Design Balance** | Strict balance required; listwise deletion for missing cells | Unbalanced cells and missing observations handled natively | Unbalanced cells and missing observations handled natively | Unbalanced cells and missing observations handled natively | Missing data audits (`naniar`, `summary`) |
-| **Sphericity** | Required; violated sphericity inflates $F$-test Type I errors | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Full covariance prior (e.g. LKJ) modeled directly | Mauchly's test (ANOVA only; bypassed in mixed models) |
-| **Crossed Item Variation** | **Violated**: Language-as-fixed-effect fallacy [@clark1973language] | **Satisfied**: Crossed random intercepts & slopes (`Subject` + `Word`) | **Satisfied**: Crossed random structures | **Satisfied**: Crossed random structures with regularizing priors | Crossed formula syntax: `(1 \| Subject) + (1 \| Word)` |
+| **Design Balance** | Strict balance required; listwise deletion for missing cells | Unbalanced cells and missing observations handled natively | Unbalanced cells and missing observations handled natively | Unbalanced cells and missing observations handled natively | Missingness summaries (`summary()`, `colSums(is.na(data))`) |
+| **Sphericity** | Required; violated sphericity inflates $F$-test Type I errors | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Full covariance prior (e.g. LKJ) modeled directly | Mauchly's test and Greenhouse-Geisser/Huynh-Feldt corrections (ANOVA only) |
+| **Crossed Item Variation** | **Violated**: Language-as-fixed-effect fallacy [@clark1973language] | **Satisfied**: Crossed random intercepts & slopes (`Subject` + `Word`) | **Satisfied**: Crossed random structures | **Satisfied**: Crossed random structures with regularizing priors | Crossed formula syntax: <code>(1 &#124; Subject) + (1 &#124; Word)</code> |
 | **Residual Distribution** | $\epsilon \sim \mathcal{N}(0, \sigma^2)$ | $\epsilon \sim \mathcal{N}(0, \sigma^2)$ (Normality required) | Uniform quantile residuals $\mathcal{U}(0,1)$ via PIT | Full posterior predictive distribution matching data family | Q-Q plots, `performance::check_model()`, `DHARMa::testUniformity()` |
-| **Homoscedasticity** | Homogeneity across groups required | Homoscedastic residual variance $\sigma^2$ assumed | Variance coupled to mean ($\mu(1-\mu)$); overdispersion fatal | Can model residual variance as distributional regression (`sigma ~ ...`) | Scale-location plots, `DHARMa::testDispersion()` |
-| **Linearity & Scaling** | Linear relationships assumed | Linear on response scale; scale continuous predictors | Linear on **link scale** (log, logit, probit, cloglog) | Linear or non-linear on link scale | Partial residual plots, `check_model()` |
-| **Random Effects Normality** | N/A | BLUPs assumed multivariate normal: $b \sim \mathcal{N}(0, \Sigma)$ | Conditional modes assumed multivariate normal | Priors specify random-effects distributions (Normal, Student-$t$) | Q-Q plots of BLUPs, `check_model()` |
-| **Singularity & Boundaries** | N/A | **Critical vulnerability**: Boundary collapse ($\sigma_b^2 = 0, \rho = \pm 1$) | **Critical vulnerability**: Laplace boundary failure | **Immune**: Regularizing priors keep estimates off hard boundary | `lme4::isSingular()`, `trouBBlme4SolveR::dwmw()` |
-| **Residual Independence** | Assumed across trials | Assumed; sequential trial fatigue violates independence | Assumed; temporal/spatial clustering violates independence | Autoregressive structures can be added (`ar()`, `cor_ar()`) | `acf()`, `DHARMa::testTemporalAutocorrelation()` |
+| **Homoscedasticity (homogeneity of variance)** | Equal variance across groups required | Homoscedastic residual variance $\sigma^2$ assumed | Variance coupled to mean ($\mu(1-\mu)$); overdispersion fatal | Can model residual variance as distributional regression (`sigma ~ ...`) | Residual-vs-fitted/scale-location plots, `performance::check_heteroscedasticity()`, `DHARMa::testDispersion()` |
+| **Linearity & Scaling** | Linear relationships assumed | Linear on response scale; scale continuous predictors | Linear on **link scale** (log, logit, probit, cloglog) | Linear or non-linear on link scale | Partial residual plots and `performance::check_model()` |
+| **Multicollinearity (predictor collinearity)** | Correlated predictors make effects non-orthogonal and less precise | Correlated fixed predictors inflate standard errors and destabilize estimates | Collinearity can destabilize estimates, especially with sparse outcomes | Priors can regularize estimates but cannot replace information absent from data | `performance::check_collinearity()`, predictor correlation matrix (`cor()`) |
+| **Random Effects Normality** | N/A | BLUPs assumed multivariate normal: $b \sim \mathcal{N}(0, \Sigma)$ | Conditional modes assumed multivariate normal | Priors specify random-effects distributions (Normal, Student-$t$) | Q-Q plots of BLUPs, `performance::check_model()` |
+| **Singularity & Boundaries** | N/A | **Critical vulnerability**: Boundary collapse ($\sigma_b^2 = 0, \rho = \pm 1$) | **Critical vulnerability**: Laplace boundary failure | **Immune**: Regularizing priors keep estimates off hard boundary | `lme4::isSingular()`, `lme4::rePCA()`, `lme4::allFit()` |
+| **Residual Independence** | Assumed across trials | Assumed; sequential trial fatigue violates independence | Assumed; temporal/spatial clustering violates independence | Autoregressive structures can be added (`ar()`, `cor_ar()`) | `acf()`, `performance::check_autocorrelation()`, `DHARMa::testTemporalAutocorrelation()` |
+:::
 
 ---
 
@@ -137,9 +142,13 @@ theme_set(theme_minimal(base_size = 12))
 ### Random Effects Syntax Reference
 Mixed-effects models relax the rigid balanced-design and sphericity assumptions of repeated-measures ANOVA:
 - **Nested random effects** (e.g., Students nested within Classrooms):
-  `Formula: (1 | Class / Student)` or `(1 | Class) + (1 | Class:Student)`
+  `(1 | Class / Student)` expands to `(1 | Class) + (1 | Class:Student)`.
 - **Crossed random effects** (e.g., Participants crossed with Stimulus Words):
-  `Formula: (1 | Subject) + (1 | Word)`
+  `(1 | Subject) + (1 | Word)`
+- **Interaction operator `:`**: `(1 | Subject:Word)` gives a random intercept for each observed Subject-Word pairing; use it when pair-specific variation is part of the design.
+- **Correlated random intercept and slope**: `(1 + x | Subject)` estimates their correlation as well as their variances.
+- **Slope without an intercept**: `(0 + x | Subject)` estimates a subject-specific slope for `x` without a subject-specific intercept; `0 +` removes the intercept term.
+- **Uncorrelated random intercept and slope**: For numeric `x`, `(1 + x || Subject)` expands to `(1 | Subject) + (0 + x | Subject)`, fitting the terms without their correlation.
 
 We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying **centered sum contrast coding** ($-0.5 / +0.5$) to categorical factors [@schad2020contrast]:
 
@@ -204,6 +213,13 @@ When `isSingular()` returns `TRUE`, the variance-covariance matrix lies on the b
 # Inspect estimated variance-covariance matrices and correlation parameters (rho)
 # Look for variances collapsing to 0.000 or correlations at +/- 1.000
 print(VarCorr(m_maximal))
+```
+
+`rePCA()` gives a complementary view by rotating each grouping factor's random-effects covariance into orthogonal principal components. Near-zero component standard deviations reveal unsupported directions, including combinations of intercepts and slopes that may not be obvious in `VarCorr()`.
+
+```{r inspect-repca}
+# Inspect standard deviations of orthogonal random-effects components
+print(rePCA(m_maximal))
 ```
 
 ::: {.callout-warning}
@@ -338,7 +354,7 @@ plot(vif_results)
 
 ## 3.2 Unified Multi-Panel Diagnostics (`easystats`)
 
-The `performance::check_model()` interface generates a comprehensive 6-panel diagnostic suite covering linearity, homoscedasticity, posterior predictive checks, normality of residuals, normality of random effects (BLUPs), and multicollinearity.
+The `performance::check_model()` interface generates a comprehensive 6-panel diagnostic suite covering linearity, homoscedasticity, posterior predictive checks, normality of residuals, normality of random effects (BLUPs), and multicollinearity. Treat it as a visual screening overview: its panels are model-specific, so interpret patterns in context and follow concerns with focused checks rather than treating formal tests as binary pass/fail ([vignette](https://easystats.github.io/performance/articles/check_model.html)).
 
 ```{r multi-panel-check, fig.width=10, fig.height=9}
 # Multi-panel model check from easystats:
