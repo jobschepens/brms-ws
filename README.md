@@ -128,6 +128,10 @@ View the rendered tutorials directly in your browser:
   - Troubleshooting convergence issues
   - Iteration doubling tests
 
+### Mixed-Effects Modeling
+
+- [**Session 29: lme4 Model Criticism & Advanced Mixed-Effects Diagnostics**](./materials/lme4/session29-lme4-model-criticism.html)
+
 ### Workshop Notebooks
 
 Workshop notebooks in `materials/example-notebook/`:
