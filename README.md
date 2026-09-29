@@ -130,7 +130,7 @@ View the rendered tutorials directly in your browser:
 
 ### Mixed-Effects Modeling
 
-- [**Session 29: lme4 Model Criticism & Advanced Mixed-Effects Diagnostics**](./materials/lme4/session29-lme4-model-criticism.html)
+- [**Session 29: lme4 Model Criticism & Advanced Mixed-Effects Diagnostics**](https://jobschepens.github.io/brms-ws/lme4/session29-lme4-model-criticism.html)
 
 ### Workshop Notebooks
 

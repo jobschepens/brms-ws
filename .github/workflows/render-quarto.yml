@@ -23,6 +23,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
+      - name: Add lme4 workshop to Pages artifact
+        run: |
+          mkdir -p materials/scripts/lme4
+          cp materials/lme4/session29-lme4-model-criticism.html materials/scripts/lme4/
+          cp -R materials/lme4/session29-lme4-model-criticism_files materials/scripts/lme4/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
