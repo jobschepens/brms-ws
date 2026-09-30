@@ -33,7 +33,7 @@ Rather than using generic examples such as `sleepstudy`, which lacks item variat
 
 1. **Continuous Reaction Time LMM (`languageR::lexdec`)** [@baayen2006morphological]: Visual lexical decision reaction times ($N = 1,659$) with **crossed random factors** (21 `Subject`s crossed with 79 `Word`s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (`NativeLanguage`), and experimental progression (`Trial`).
 2. **Discrete Syntactic Choice GLMM (`languageR::dative`)** [@bresnan2007predicting]: Dative alternation choices ($N = 3,263$; double object NP *give John the book* vs. prepositional PP *give the book to John*), with predictors related to **prominence hierarchies** studied in CRC 1252 (Animacy, Pronominality, Givenness, End-Weight).
-3. **Ordinal Subjective Rating CLMM (`languageR::sizeRatings`)**: Semantic size ratings ($N = 3,078$) on a 7-point Likert scale across 38 subjects and 81 concrete nouns, demonstrating why naive Gaussian models fail on bounded ordinal responses.
+3. **Ordinal Subjective Rating CLMM (`languageR::sizeRatings`)**: Semantic size ratings ($N = 3,078$) on a 7-point Likert scale across 38 subjects and 81 concrete nouns, used to compare Gaussian and ordinal models.
 :::
 
 ---
@@ -57,16 +57,16 @@ As lead maintainer of `lme4`, Ben Bolker helped develop tools for investigating 
 - `glmmTMB` [@brooks2017glmmtmb]: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures.
 - `trouBBlme4SolveR`: Automated diagnostic routines to resolve boundary singularities.
 
-## 4. Unified Model Criticism via `easystats` (2020–2024)
-The `easystats` ecosystem [@ludecke2021performance] unified disparate diagnostic scripts into coherent workflows:
+## 4. Model Checks with `easystats` (2020–2024)
+The `easystats` packages [@ludecke2021performance] provide tools for model diagnostics and summaries:
 - `performance::check_model()`: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. See the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) for a Bayesian counterpart.
-- `performance::r2_nakagawa()`: Formalized variance partitioning into Marginal and Conditional $R^2$ [@nakagawa2013general].
+- `performance::r2_nakagawa()`: Estimates marginal and conditional $R^2$ [@nakagawa2013general].
 
 ## 5. Post-Fitting & Marginal Effects (`emmeans` & `marginaleffects`)
-Russell Lenth’s `emmeans` [-@lenth2016least] and Vincent Arel-Bundock’s `marginaleffects` [-@arelbundock2024marginaleffects] established modern protocols for post-hoc contrasts, reference grids, and counterfactual prediction on the response scale.
+Russell Lenth’s `emmeans` [-@lenth2016least] and Vincent Arel-Bundock’s `marginaleffects` [-@arelbundock2024marginaleffects] provide tools for post-hoc contrasts, reference grids, and response-scale predictions.
 
 ## 6. Bayesian Models with `brms` (2017–2024)
-Paul-Christian Bürkner’s `brms` [-@burkner2017brms] made Hamiltonian Monte Carlo (HMC) estimation through Stan accessible to applied linguists. As @vasishth2018bayesian emphasize, weakly informative priors (see [Setting Priors in brms](https://jobschepens.github.io/brms-ws/01_setting_priors.html)) can keep boundary estimates away from zero without requiring researchers to discard scientifically motivated random slopes.
+Paul-Christian Bürkner’s `brms` [-@burkner2017brms] provides an interface to Hamiltonian Monte Carlo (HMC) estimation through Stan. As @vasishth2018bayesian discuss, weakly informative priors (see [Setting Priors in brms](https://jobschepens.github.io/brms-ws/01_setting_priors.html)) can regularize boundary estimates while retaining scientifically motivated random slopes.
 
 ---
 
@@ -174,11 +174,11 @@ glimpse(select(lexdec, Subject, Word, RT, Trial, Freq_z, Length_z, Native_num, S
 
 ::: {.callout-important}
 ## Why Contrast Coding Matters Before Model Fitting
-In R, factors default to **treatment (dummy) coding** (`contr.treatment`), which maps the first alphabetical level to 0 and all other levels to 1. In mixed-effects modeling, this default creates three major hazards [@schad2020contrast]:
+In R, factors default to **treatment (dummy) coding** (`contr.treatment`), which maps the first alphabetical level to 0 and all other levels to 1. With interactions and random slopes, this coding affects how model coefficients are interpreted and can affect the fitted random-effects correlations [@schad2020contrast]:
 
 1. **Misinterpretation of Main Effects**: In models with interactions ($A \times B$), the lower-order $\beta$ coefficients under treatment coding are **not** main effects; they are *simple effects* restricted specifically to the arbitrary baseline level of the other factor.
 2. **Random Slope Correlations**: In `(1 + Condition | Subject)`, treatment coding defines the random intercept at the baseline condition. Depending on the data, this can increase dependence between intercept and slope estimates and contribute to correlations near $\pm 1.0$ or singular fits.
-3. **Invalid Type III ANOVA Tables**: Type III tests (`car::Anova(type = "III")`) mathematically assume orthogonal contrasts (`contr.sum`). Under default treatment coding, Type III tests are statistically meaningless.
+3. **Type III ANOVA Tables**: Type III tests (`car::Anova(type = "III")`) are often used with sum contrasts (`contr.sum`). With treatment coding, the tests may not answer the intended question.
 
 Centered sum coding ($-0.5 / +0.5$) centers the intercept at the unweighted grand mean across conditions, decouples random intercepts from random slopes, and ensures $\beta$ coefficients represent true main effects.
 :::
@@ -223,13 +223,13 @@ print(rePCA(m_maximal))
 ```
 
 ::: {.callout-warning}
-## Diagnostic Finding: Singularity Collapse
-Notice that the `Word` random intercept standard deviation has collapsed to `0.000` with a boundary correlation of `1.000`. The dataset cannot support estimating independent item-level slopes for speaker background factors alongside intercepts [@bates2015parsimonious].
+## Singular Fit in the Maximal Model
+The `Word` random-intercept standard deviation is `0.000`, with a boundary correlation of `1.000`. This fit does not support estimating separate item-level slopes for speaker background factors alongside the intercepts [@bates2015parsimonious].
 :::
 
 ## 1.4 Automated Singularity Resolution (`trouBBlme4SolveR`)
 
-The `trouBBlme4SolveR::dwmw()` function diagnoses which random slope has zero variance and systematically prunes it:
+The `trouBBlme4SolveR::dwmw()` function identifies zero-variance random slopes and removes them iteratively:
 
 ```{r dwmw-resolution}
 # Automated troubleshooting for singular fits (Ben Bolker's trouBBlme4SolveR)
@@ -324,7 +324,7 @@ In self-paced reading and reaction time experiments, participant fatigue often i
 sim_lexdec <- simulateResiduals(fittedModel = m_parsimonious, n = 250, plot = FALSE)
 
 # 2. Recalculate and aggregate residuals across subjects per experimental trial
-# (Crucial: avoids non-unique time value error in repeated measures)
+# (Avoids a non-unique time value error in repeated measures)
 sim_trial <- recalculateResiduals(sim_lexdec, group = lexdec$Trial)
 
 # 3. Formal Durbin-Watson / Moran's I test on aggregated trial time series
@@ -352,7 +352,7 @@ print(vif_results)
 plot(vif_results)
 ```
 
-## 3.2 Unified Multi-Panel Diagnostics (`easystats`)
+## 3.2 Multi-Panel Diagnostics (`easystats`)
 
 The `performance::check_model()` interface generates six diagnostic panels covering linearity, homoscedasticity, posterior predictive checks, normality of residuals, normality of random effects (BLUPs), and multicollinearity. Treat it as a visual screening overview: its panels are model-specific, so interpret patterns in context and follow concerns with focused checks rather than treating formal tests as binary pass/fail ([vignette](https://easystats.github.io/performance/articles/check_model.html)).
 
@@ -393,14 +393,14 @@ plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
 
 ## 4.1 Assumptions About Likert Ratings
 
-Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g. acceptability, semantic size, prototypicality). A widespread practice is treating 1–7 Likert ratings as metric Gaussian variables via `lme4::lmer()`.
+Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g. acceptability, semantic size, prototypicality). Some analyses treat 1–7 Likert ratings as metric Gaussian variables using `lme4::lmer()`.
 
-This practice violates three fundamental assumptions:
+This approach has three limitations:
 1. **Bounded Support**: Data are bounded at 1 and 7 (floor/ceiling distortions).
 2. **Non-Interval Metric**: The cognitive distance between "1" and "2" is not guaranteed to equal the distance between "4" and "5".
 3. **Discrete Latent Thresholds**: Responses reflect an underlying continuous latent variable $Y^*$ partitioned by cutpoints $\theta_1 < \theta_2 < \dots < \theta_{K-1}$.
 
-## 4.2 Demonstrating the Flaw: Gaussian LMM on Likert Data
+## 4.2 Checking a Gaussian LMM on Likert Data
 
 Using `languageR::sizeRatings` (3,078 size ratings of 81 words across 38 subjects on a 1–7 scale):
 
@@ -422,7 +422,7 @@ The DHARMa Q-Q plot for the naive Gaussian fit shows a pronounced S-shaped patte
 
 ## 4.3 Cumulative Link Mixed Models (`ordinal::clmm`)
 
-We fit a proper Cumulative Link Mixed Model using `ordinal::clmm` [@christensen2019ordinal]:
+We fit a Cumulative Link Mixed Model using `ordinal::clmm` [@christensen2019ordinal]:
 
 $$\text{logit}(P(Y_i \le k)) = \theta_k - (X_i \beta + Z_i u)$$
 
@@ -512,7 +512,7 @@ print(emm_from_sum)
 
 ## 5.3 Methodological Assumptions of emmeans
 
-When reporting marginal means, researchers must verify five underlying assumptions:
+When reporting marginal means, consider these five points:
 
 1. **Reference Grid Balancing**: Continuous covariates are held constant at their grand mean ($\bar{x}$), and factor cells are weighted equally. When covariates are correlated, the reference grid can evaluate combinations unobserved in actual data.
 2. **Scale of Inference**: Differences on the link scale (log-odds) back-transform to **odds ratios** or **ratio of medians** on the response scale.
@@ -529,20 +529,20 @@ If `emmeans` produces the same marginal means regardless of factor coding, **why
 
 The answer lies in the distinction between **model estimation** (*a priori*) and **hypothesis evaluation** (*post hoc*):
 
-| Dimension / Objective | Contrast Coding (Before Fitting) | `emmeans` (After Fitting) | Why Both Are Essential |
+| Dimension / Objective | Contrast Coding (Before Fitting) | `emmeans` (After Fitting) | How They Differ |
 | :--- | :--- | :--- | :--- |
-| **Operational Stage** | *A priori*: Parameterizes the design matrix $\mathbf{X}$ during numerical optimization. | *Post hoc*: Constructs reference grid predictions from estimated $\hat{\boldsymbol{\beta}}$ and $\hat{\mathbf{\Sigma}}$. | Neither tool can perform the other's job: `emmeans` cannot refit the model; contrast coding cannot predict across balanced grids automatically. |
-| **Random Slope Stability** | **Crucial**: Centered coding centers random intercepts at the grand mean, preventing artificial correlation collapse ($\rho \approx \pm 1.0$) and singular fits. | **Cannot help**: Operates only on the already-converged model. If uncentered coding triggered a singular fit, `emmeans` cannot repair the corrupted variance parameters. | You **must** contrast-code before fitting to ensure the model converges to valid, non-singular variance estimates. |
-| **Coefficient Interpretation** | Ensures lower-order $\beta$ terms in `summary()` represent true main effects rather than simple effects at an arbitrary baseline. | Does not alter the $\beta$ regression table; only provides reconstructed marginal predictions. | Researchers reading model tables require interpretable $\beta$ coefficients for regression reporting. |
-| **Type III ANOVA (`car::Anova`)** | **Strictly Required**: Type III tests mathematically assume sum/orthogonal contrasts (`contr.sum`). Under treatment coding, Type III tests are statistically meaningless. | Not applicable (evaluates specific linear contrasts rather than overall omnibus decomposition). | If journal reviewers demand Type III Wald/LRT ANOVA tables, models must be fitted with sum contrasts. |
-| **Interaction Decomposition** | Slicing interactions via contrast matrices requires tedious manual coding of custom linear combinations ($\mathbf{c}^\top \boldsymbol{\beta}$) or repeatedly releveling baselines. | **Trivial**: Syntax like `pairwise ~ FactorA \| FactorB` decomposes multi-way interactions into simple pairwise differences in a single line. | You need `emmeans` to explore interactions cleanly without refitting the model multiple times. |
-| **Response Scale for GLMMs** | Operates strictly on the link scale (log-odds $\eta$). Back-transforming manually requires tedious delta-method calculations for SEs. | **Native**: Converts log-odds to response probabilities ($p \in [0, 1]$) and odds ratios with automatic multivariate delta-method standard errors. | You need `emmeans` to translate abstract log-odds coefficients into meaningful probabilities for publication. |
-| **Multiplicity & d.f. Corrections** | Manual adjustment of $p$-values and manual calculation of Satterthwaite/Kenward-Roger d.f. | Automated integration with `lmerTest`/`pbkrtest` for Satterthwaite/Kenward-Roger d.f. and Tukey/FDR adjustments. | You need `emmeans` to avoid anticonservative inferential tests. |
+| **Operational Stage** | *A priori*: Sets up the design matrix $\mathbf{X}$ for model fitting. | *Post hoc*: Calculates predictions from the fitted model over a reference grid. | Contrast coding affects model parameters; `emmeans` summarizes fitted-model predictions. |
+| **Random Slope Estimates** | Centering categorical predictors changes the interpretation of random intercepts and slopes; the effect on convergence depends on the data. | Works with the fitted model and does not change its estimates. | Consider coding choices before fitting, then inspect the fitted random-effects structure. |
+| **Coefficient Interpretation** | Determines how coefficients in `summary()` relate to factor levels and reference categories. | Reports marginal predictions and contrasts without changing the fitted coefficients. | Choose coding based on the coefficients you need to interpret. |
+| **Type III ANOVA (`car::Anova`)** | Type III tests can depend on contrast coding; sum contrasts are commonly used for these tests. | Can calculate selected contrasts, but does not change the model's coding. | Check that the coding matches the test you plan to report. |
+| **Interactions** | Coefficients depend on coding and the reference levels. | Syntax such as `pairwise ~ FactorA \| FactorB` can summarize comparisons within each level. | Use `emmeans` to obtain simple comparisons without refitting for each level. |
+| **Response Scale for GLMMs** | Coefficients are on the link scale (for example, log-odds $\eta$). | Can report predictions on the response scale and calculate contrasts. | Response-scale summaries can be easier to interpret than link-scale coefficients. |
+| **Multiplicity & d.f. Corrections** | Does not by itself adjust multiple tests or calculate degrees-of-freedom approximations. | Supports adjustments and approximations through packages such as `lmerTest` and `pbkrtest`. | Select corrections that match the comparisons and model. |
 
 ::: {.callout-tip}
 ## A Two-Stage Workflow
-1. **Stage 1 (Before Model Fitting):** Apply centered sum contrast coding (`contr.sum` or $-0.5 / +0.5$) to all categorical predictors. This stabilizes the random-effects covariance matrix against boundary singularities, aligns $\beta$ coefficients with main effects, and validates Type III ANOVA tables.
-2. **Stage 2 (After Model Fitting):** Use `emmeans` to evaluate condition means across balanced reference grids, unpack complex interactions, compute response-scale probabilities and odds ratios, and apply Kenward-Roger d.f. approximations and Tukey multiplicity adjustments.
+1. **Before fitting:** Choose contrasts that make model coefficients interpretable for your research question. Centered sum contrasts are one option for categorical predictors.
+2. **After fitting:** Use `emmeans` to estimate means and contrasts, examine interactions, and obtain response-scale predictions or multiplicity adjustments as needed.
 :::
 
 ---
@@ -612,7 +612,7 @@ cat("Hessian eigenvalue ratio (condition number):", max(eigen_val) / min(eigen_v
 # - Condition number < 1e5 confirms well-conditioned curvature
 ```
 
-### 7. Master Troubleshooting Decision Flowchart
+### 7. Convergence Troubleshooting Flowchart
 
 ```{mermaid}
 flowchart TD
