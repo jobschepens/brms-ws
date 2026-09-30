@@ -451,45 +451,43 @@ plotResiduals(sim_dative_log, dative$LengthOfTheme, xlab = "LengthOfTheme (log e
 par(mfrow = c(1, 1))
 ```
 
-```{r performance-check-dative-log, fig.width=9, fig.height=4}
-# Binned residuals for the refitted model
-check_model(m_dative_log, residual_type = "normal", check = "binned_residuals")
-```
-
 **What changed after the log transformation**
 
 -   **Model fit:** AIC drops from about 2,246 to 2,171, a large improvement with the same number of parameters. The log scale describes the length effect better than the linear scale.
 -   **DHARMa plot:** The Q-Q plot stays on the diagonal (KS $p = 0.97$, dispersion $p = 0.67$, outliers $p = 0.33$). In the residual-vs.-predicted panel, the 25% and 50% curves are now close to their reference lines, and the 75% curve varies less than before. DHARMa still reports quantile deviations, but they are smaller.
 -   **Residuals by theme length:** In the linear model (left), the three quantile lines are clearly above their reference values for the shortest themes (about 0.81, 0.56 and 0.29). After the log transformation (right), they are close to the reference values (about 0.78, 0.52 and 0.25). The 25% line is no longer flagged, but the 50% and 75% lines still show small wiggles, so a small part of the pattern remains.
--   **Binned residuals:** The picture is still similar to before. Many bins lie outside the bounds, with positive residuals at high predicted probabilities (above about 85%) and negative residuals at low ones. The predictions are still somewhat too moderate.
+-   **Binned residuals:** The `check_model()` figure below shows that these are still similar to before, with many bins outside the bounds.
 
 **Conclusion:** A non-linear length effect was a real problem and the log transformation fixes most of it, but the model is not yet fully calibrated. The remaining pattern is more likely due to omitted predictors than to the shape of the length effect. The `dative` data contain other predictors from @bresnan2007predicting, such as the length and definiteness of the recipient, that are not in this model. Adding them, and then repeating the same diagnostics, is the next step. We have not tested that here.
 
+From here on, the formal tests and the `check_model()` figure use the refitted model (`m_dative_log`), and the `emmeans` step in Module 4 does too.
+
 ```{r dharma-formal-tests}
+# Formal tests on the refitted model (log theme length)
 # 1. Test overall uniformity (Kolmogorov-Smirnov test against U(0, 1))
-testUniformity(sim_dative)
+testUniformity(sim_dative_log)
 
 # 2. Test for overdispersion or underdispersion relative to binomial theoretical variance
-testDispersion(sim_dative)
+testDispersion(sim_dative_log)
 
 # 3. Test for excess zeros (zero-inflation test)
-testZeroInflation(sim_dative)
+testZeroInflation(sim_dative_log)
 ```
 
 **How to read the three tests**
 
--   **Uniformity (KS test):** Compares the scaled residuals with the uniform distribution. $p = 0.71$, so there is no evidence against the overall fit.
--   **Dispersion:** The red line is the spread of the residuals in the real data, and the histogram is the spread expected under the fitted model. The red line sits in the middle of the histogram ($p = 0.83$), so there is no over- or underdispersion. For a binary outcome this test has little to detect, because the variance is fixed by the mean.
+-   **Uniformity (KS test):** Compares the scaled residuals with the uniform distribution. $p = 0.97$, so there is no evidence against the overall fit.
+-   **Dispersion:** The red line is the spread of the residuals in the real data, and the histogram is the spread expected under the fitted model. The red line sits in the middle of the histogram ($p = 0.67$), so there is no over- or underdispersion. For a binary outcome this test has little to detect, because the variance is fixed by the mean.
 -   **Zero inflation:** The red line is the observed number of `NP` (coded 0) responses, and the histogram is the number expected under the model. They agree ($p = 0.98$). For a binary outcome this mostly checks the overall proportion of the two outcomes, which the intercept already fits, so it is not informative here. It matters for count models.
 
-All three tests are non-significant, but none of them looks at how residuals relate to the predictors. The pattern in the residual-vs.-predicted panel above is not captured by these tests, so read them together.
+All three tests are non-significant, but none of them looks at how residuals relate to the predictors. The small remaining pattern in the residual-vs.-predicted panel of the refitted model is not captured by these tests, so read them together.
 
 `check_model()` adds a broader visual overview. With `residual_type = "normal"`, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check. The influential-observations panel is left out because it fails for `glmer` fits.
 
 ```{r performance-check-dative, fig.width=10, fig.height=12}
 # The default influential-observation panel fails for glmer fits and blanks the whole figure
 check_model(
-  m_dative,
+  m_dative_log,
   type = "discrete_interval",
   residual_type = "normal",
   check = c("vif", "qq", "homogeneity", "reqq", "pp_check", "binned_residuals")
@@ -499,12 +497,12 @@ check_model(
 **How to read each panel**
 
 -   **Posterior predictive check:** Observed and model-predicted counts of `NP` (about 2,400) and `PP` (about 850) are almost identical, and the predicted intervals contain the observed values. The model reproduces the overall split between the two constructions. This is a weak check for a logistic model with an intercept, because that split is fitted directly.
--   **Binned residuals:** Observations are grouped by predicted probability, and each point is the average residual in a bin. Points should lie within the grey error bounds. Many points (red) fall outside, especially at high predicted probabilities (above about 80%), where the average residual is positive, and at low to moderate probabilities, where it is mostly negative. This means the observed proportions are more extreme than the predictions, and the model's probabilities are pulled toward the middle. This agrees with the wobble in the DHARMa residual-vs.-predicted panel, and it is the most informative panel here.
+-   **Binned residuals:** Observations are grouped by predicted probability, and each point is the average residual in a bin. Points should lie within the grey error bounds. Many points (red) fall outside, mainly at low predicted probabilities (below about 20%), where the average residual is negative, and at high ones (above about 85%), where it is positive. Points in the middle range are mostly inside the bounds. This means the observed proportions are more extreme than the predictions, and the model's probabilities are pulled toward the middle. It is the most informative panel here, and it is the same pattern as before the log transformation.
 -   **Collinearity:** All three predictors have low variance inflation factors (green, below 5). The interval for `AnimacyOfRec` is wide and runs off the top of the scale, so it is less precisely estimated, but nothing indicates a collinearity problem.
 -   **Normality of residuals:** This is a half-normal Q-Q plot of absolute deviance residuals. The curve and steps are expected for a binary outcome (see the explanation above), so this panel is not informative for this model. Use the DHARMa Q-Q plot instead.
 -   **Normality of random effects (Verb):** Most verb intercepts follow the line, with a few verbs at the extremes (one clearly below the line at about $-4$). Their intervals are wide, which suggests they have few observations. There is no strong evidence against normally distributed verb effects.
 
-**Conclusion:** DHARMa's Q-Q plot and tests, and the posterior predictive check, show that the model captures the overall distribution and dispersion of the outcome. The binned residuals and the DHARMa residual-vs.-predicted panel both show that the predicted probabilities do not match the observed proportions well across the range. The next step is to look for missing predictors or non-linear effects, not to change the distribution family.
+**Conclusion:** For the refitted model, DHARMa's Q-Q plot and tests and the posterior predictive check show that the model captures the overall distribution and dispersion of the outcome, and the log transformation removed most of the misfit with theme length. The binned residuals still show that predicted probabilities are too moderate at the extremes. The next step is to look for missing predictors, not to change the distribution family.
 
 ## 2.4 Autocorrelation 
 
@@ -604,7 +602,7 @@ For Generalized and Ordinal models, we compute predictions on the latent link sc
 ```{r emmeans-glmm}
 # Dative realization GLMM:
 # type = "response" back-transforms from link scale (log-odds) to predicted probabilities (p in [0,1])
-emm_dative <- emmeans(m_dative, ~ AnimacyOfRec, type = "response")
+emm_dative <- emmeans(m_dative_log, ~ AnimacyOfRec, type = "response")
 print(emm_dative)
 
 # Pairwise contrast on link scale yields Odds Ratios (OR) with delta-method standard errors
