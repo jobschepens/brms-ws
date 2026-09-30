@@ -29,7 +29,7 @@ However, standard summary tables can hide assumption violations. A model that co
 
 ::: {.callout-note}
 ## Workshop Datasets: Linguistic Data from CRC 1252
-Rather than using generic examples such as `sleepstudy`, which lacks item variation and linguistic structure, this workshop applies the diagnostic workflows to three linguistic datasets:
+We apply some diagnostic workflows to three linguistic datasets from the 'languageR' package [@baayen2006morphological; @bresnan2007predicting; @christensen2019ordinal]:
 
 1. **Continuous Reaction Time LMM (`languageR::lexdec`)** [@baayen2006morphological]: Visual lexical decision reaction times ($N = 1,659$) with **crossed random factors** (21 `Subject`s crossed with 79 `Word`s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (`NativeLanguage`), and experimental progression (`Trial`).
 2. **Discrete Syntactic Choice GLMM (`languageR::dative`)** [@bresnan2007predicting]: Dative alternation choices ($N = 3,263$; double object NP *give John the book* vs. prepositional PP *give the book to John*), with predictors related to **prominence hierarchies** studied in CRC 1252 (Animacy, Pronominality, Givenness, End-Weight).
@@ -38,34 +38,32 @@ Rather than using generic examples such as `sleepstudy`, which lacks item variat
 
 ---
 
-# Methodological Landscape: A Decade of Mixed-Effects Developments (2014–2024+)
+# Past 10 years
 
-Over the past decade, mixed-effects modeling in experimental linguistics and psychology has changed in several important ways. These developments help explain why model criticism now includes more than traditional residual checks:
-
-## 1. The Random-Effects Complexity Debate (2013–2017)
+## 1. The Random-Effects Complexity Debate (2013)
 In an influential paper, @barr2013random argued that confirmatory hypothesis testing requires "maximal" random-effects structures—including random intercepts and random slopes for all within-unit factors—to avoid Type I error rates rising to 20–40%. However, @bates2015parsimonious and @matuschek2017balancing showed through simulations that maximal models often produce **overparameterization**, lower statistical power, and **singular fits** in finite datasets. They recommended data-driven model selection to balance Type I error control and power.
 
-For related simulation-based sample-size and power analyses, see the [sequential testing notebook for condition effects](https://jobschepens.github.io/brms-ws/06_sequential_testing.html), its [continuous-predictor counterpart](https://jobschepens.github.io/brms-ws/06_sequential_testing_cont.html), and the interactive [sequential-design sample-size report](https://jobschepens.github.io/samplesize/).
+Note: For related simulation-based sample-size and power analyses, see the [sequential testing notebook for condition effects](https://jobschepens.github.io/brms-ws/06_sequential_testing.html), its [continuous-predictor counterpart](https://jobschepens.github.io/brms-ws/06_sequential_testing_cont.html), and the interactive [sequential-design sample-size report](https://jobschepens.github.io/samplesize/).
 
-## 2. Simulation-Based GLMM Residuals: DHARMa (2016–2022)
+## 2. Simulation-Based GLMM Residuals: DHARMa (2016)
 Diagnosing Generalized Linear Mixed Models (GLMMs) is difficult because raw, Pearson, and deviance residuals are not easy to interpret for discrete binary and count outcomes. Florian Hartig [-@hartig2022dharma] introduced simulation-based quantile residuals using the **Probability Integral Transform (PIT)**. DHARMa uses these residuals to test uniformity, overdispersion, and zero-inflation.
 
-## 3. Ben Bolker’s Convergence Tooling & glmmTMB
+## 3. Ben Bolker’s Convergence Tooling & glmmTMB (continuously updated)
 As lead maintainer of `lme4`, Ben Bolker helped develop tools for investigating optimization warnings [@bolker2009generalized]. Relevant tools include:
 - `lme4::allFit()`: Benchmarking models across multiple derivative-free optimizers to detect false-positive convergence warnings.
 - `lme4::isSingular()`: Mathematical boundary checking based on Cholesky factor singular values.
 - `glmmTMB` [@brooks2017glmmtmb]: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures.
 - `trouBBlme4SolveR`: Automated diagnostic routines to resolve boundary singularities.
 
-## 4. Model Checks with `easystats` (2020–2024)
+## 4. Model Checks with `easystats` (2020)
 The `easystats` packages [@ludecke2021performance] provide tools for model diagnostics and summaries:
-- `performance::check_model()`: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. See the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) for a Bayesian counterpart.
+- `performance::check_model()`: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. Note: also see the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) for Bayesian alternatives.
 - `performance::r2_nakagawa()`: Estimates marginal and conditional $R^2$ [@nakagawa2013general].
 
-## 5. Post-Fitting & Marginal Effects (`emmeans` & `marginaleffects`)
+## 5. Marginal Effects (2016)
 Russell Lenth’s `emmeans` [-@lenth2016least] and Vincent Arel-Bundock’s `marginaleffects` [-@arelbundock2024marginaleffects] provide tools for post-hoc contrasts, reference grids, and response-scale predictions.
 
-## 6. Bayesian Models with `brms` (2017–2024)
+## 6. Bayesian Models with `brms` (2017)
 Paul-Christian Bürkner’s `brms` [-@burkner2017brms] provides an interface to Hamiltonian Monte Carlo (HMC) estimation through Stan. As @vasishth2018bayesian discuss, weakly informative priors (see [Setting Priors in brms](https://jobschepens.github.io/brms-ws/01_setting_priors.html)) can regularize boundary estimates while retaining scientifically motivated random slopes.
 
 ---
@@ -81,7 +79,7 @@ The table below compares assumptions in classical ANOVA and Bayesian mixed model
 | **Sphericity** | Required; violated sphericity inflates $F$-test Type I errors | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Variance-covariance components modeled directly | **Relaxed**: Full covariance prior (e.g. LKJ) modeled directly | Mauchly's test and Greenhouse-Geisser/Huynh-Feldt corrections (ANOVA only) |
 | **Crossed Item Variation** | **Violated**: Language-as-fixed-effect problem [@clark1973language] | **Satisfied**: Crossed random intercepts & slopes (`Subject` + `Word`) | **Satisfied**: Crossed random structures | **Satisfied**: Crossed random structures with regularizing priors | Crossed formula syntax: <code>(1 &#124; Subject) + (1 &#124; Word)</code> |
 | **Residual Distribution** | $\epsilon \sim \mathcal{N}(0, \sigma^2)$ | $\epsilon \sim \mathcal{N}(0, \sigma^2)$ (Normality required) | Uniform quantile residuals $\mathcal{U}(0,1)$ via PIT | Full posterior predictive distribution matching data family | Q-Q plots, `performance::check_model()`, `DHARMa::testUniformity()` |
-| **Homoscedasticity (homogeneity of variance)** | Equal variance across groups required | Homoscedastic residual variance $\sigma^2$ assumed | Variance coupled to mean ($\mu(1-\mu)$); overdispersion can invalidate the model | Can model residual variance as distributional regression (`sigma ~ ...`) | Residual-vs-fitted/scale-location plots, `performance::check_heteroscedasticity()`, `DHARMa::testDispersion()` |
+| **Homoscedasticity ('scatterness' of variance)** | Equal variance across groups required | Homoscedastic residual variance $\sigma^2$ assumed | Variance coupled to mean ($\mu(1-\mu)$); overdispersion can invalidate the model | Can model residual variance as distributional regression (`sigma ~ ...`) | Residual-vs-fitted/scale-location plots, `performance::check_heteroscedasticity()`, `DHARMa::testDispersion()` |
 | **Linearity & Scaling** | Linear relationships assumed | Linear on response scale; scale continuous predictors | Linear on **link scale** (log, logit, probit, cloglog) | Linear or non-linear on link scale | Partial residual plots and `performance::check_model()` |
 | **Multicollinearity (predictor collinearity)** | Correlated predictors make effects non-orthogonal and less precise | Correlated fixed predictors inflate standard errors and destabilize estimates | Collinearity can destabilize estimates, especially with sparse outcomes | Priors can regularize estimates but cannot replace information absent from data | `performance::check_collinearity()`, predictor correlation matrix (`cor()`) |
 | **Random Effects Normality** | N/A | BLUPs assumed multivariate normal: $b \sim \mathcal{N}(0, \Sigma)$ | Conditional modes assumed multivariate normal | Priors specify random-effects distributions (Normal, Student-$t$) | Q-Q plots of BLUPs, `performance::check_model()` |
