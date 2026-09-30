@@ -261,6 +261,18 @@ print(summary(m_resolved))
 check_model(m_resolved)
 ```
 
+**How to read each panel**
+
+-   **Posterior predictive check:** The blue lines are data simulated from the model, and the green line is the observed RT distribution. They agree on location and spread, and the tails match. The observed peak is slightly higher and narrower than the simulated ones, so the model spreads a little too much probability away from the mode. This is a minor mismatch.
+-   **Linearity:** The reference line should be flat at zero. It is, so there is no sign of curvature between fitted values and residuals. A few large positive residuals (up to about 1 log unit) are the slow responses that also show up in the residual Q-Q panel.
+-   **Homogeneity of variance:** The reference line should be flat. It rises only slightly, and the spread of the points is similar across fitted values. There is no strong heteroscedasticity.
+-   **Influential observations:** Points outside the dashed contour lines would be both high-leverage and poorly fitted. None fall outside, so no single trial dominates the fit. Note that the standardized residuals here are compressed near zero, so this panel is less informative for mixed models than the cluster-level checks in Module 3.
+-   **Collinearity:** All variance inflation factors are close to 1, well below the rule-of-thumb threshold of 5, so the predictors do not overlap enough to destabilize the estimates.
+-   **Normality of residuals:** This is a detrended Q-Q plot, so a perfect fit would lie on the horizontal line. The middle follows it, but the upper tail lifts away, up to about 0.5. This is the same heavy right tail (a few very slow responses) discussed in Module 2. It is a real but modest departure, and Module 2 checks whether it affects the results.
+-   **Normality of random effects (Word and Subject):** The dots should follow the line, given their intervals. The intercepts and slopes for both `Word` and `Subject` stay close to it, with small deviations only at the extremes where intervals are wide. There is no clear evidence against normally distributed random effects.
+
+**Conclusion:** The model shows no major violations. The main concern is the heavy upper tail of the residuals, which is small enough that it should be checked with a sensitivity analysis rather than treated as a reason to reject the model.
+
 ------------------------------------------------------------------------
 
 # Module 2: GLMMs, Dative Alternation & DHARMa
@@ -329,9 +341,36 @@ In this dataset, 36 of 1,659 trials (about 2%) are extreme. They are spread over
 
 ## 2.2 Discrete GLMM Residuals 
 
-In discrete GLMMs (e.g. logistic regression), raw and Pearson residuals form parallel diagonal bands because outcomes are binary ($y \in \{0, 1\}$).
+### Why standard residual plots fail for discrete outcomes
 
-The **DHARMa** package [@hartig2022dharma] uses the **Probability Integral Transform (PIT)** to simulate $n$ datasets from the fitted model and compute quantile residuals: $$u_i = P(Y^{\text{sim}}_i \le y_i) \sim \mathcal{U}(0, 1)$$
+In a Gaussian LMM, a residual is $y_i - \hat{y}_i$. If the model is correct, these residuals have the same roughly normal shape at every fitted value, so a normal Q-Q plot and a residuals-vs-fitted plot can reveal problems.
+
+In a logistic GLMM this breaks down, even when the model is correct:
+
+-   **The residuals can take only two values per fitted value.** Suppose the model predicts $\hat{p}_i = 0.8$. The observed outcome is either 0 or 1, so the raw residual is either $-0.8$ or $+0.2$, never anything in between. Plotted against the fitted values, the residuals fall on two diagonal bands ($-\hat{p}$ and $1 - \hat{p}$) instead of forming a cloud.
+-   **Rescaling does not fix this.** Pearson residuals, $(y_i - \hat{p}_i) / \sqrt{\hat{p}_i(1 - \hat{p}_i)}$, and deviance residuals are still a function of one of two outcomes at each $\hat{p}_i$, so they form curved bands and are far from normal.
+-   **The variance depends on the mean.** For a binary outcome, $\text{Var}(y_i) = \hat{p}_i(1 - \hat{p}_i)$. Unequal spread across fitted values is therefore expected and is not evidence of heteroscedasticity in the sense used for LMMs.
+-   **The reference distribution is unclear.** There is no simple "should look like this" pattern, so a Q-Q plot against the normal distribution or a smoother through the residuals cannot separate real misfit from these built-in artifacts. The same applies to counts with few distinct values, such as low-rate Poisson data.
+
+The practical consequence is that a bad-looking standard residual plot does not show that the model is wrong, and a good-looking one does not show that it is right.
+
+### What DHARMa does instead
+
+The **DHARMa** package [@hartig2022dharma] turns residuals of any model family into a common, interpretable scale, using simulation:
+
+1.  Simulate many new datasets (for example, 250 or 500) from the fitted model, including its random effects.
+2.  For each observation, find where the observed value falls within the distribution of the simulated values for that same observation. This gives a scaled residual between 0 and 1, computed with the **Probability Integral Transform (PIT)**: $$u_i = P(Y^{\text{sim}}_i \le y_i) \sim \mathcal{U}(0, 1)$$
+3.  For discrete outcomes, many simulated values tie, so DHARMa randomizes the position within the tie. This is what makes the residuals continuous.
+
+If the model is correctly specified, the scaled residuals are **uniformly distributed** between 0 and 1, whatever the family (binomial, Poisson, Gaussian). A residual of 0.5 means the observation was at the median of what the model predicts, and values near 0 or 1 mean it was unusually low or high.
+
+This gives one uniform reference for every model type:
+
+-   A **uniform Q-Q plot** checks whether the overall distribution is compatible with the model.
+-   **Residuals vs. predicted values** should show no trend and roughly flat quantile lines.
+-   **Formal tests** (`testUniformity()`, `testDispersion()`, `testZeroInflation()`) check specific problems, such as over- or underdispersion or excess zeros, against the simulated expectation.
+
+DHARMa does not remove the need for judgment. With many observations, the tests can flag small deviations that do not matter, so compare the plots with the test results.
 
 ## 2.3 Data: Dative Alternation
 
@@ -359,6 +398,73 @@ sim_dative <- simulateResiduals(fittedModel = m_dative, n = 500, plot = FALSE)
 plot(sim_dative)
 ```
 
+**How to read the DHARMa plot**
+
+-   **QQ plot residuals (left):** Under a correct model, the scaled residuals are uniform, so the points lie on the diagonal. They do, and the three tests printed on the plot are all non-significant: uniformity (KS test, $p = 0.71$), dispersion ($p = 0.83$), and outliers ($p = 0.49$). The overall distribution of the residuals is compatible with the model.
+-   **DHARMa residual vs. predicted (right):** The three solid curves are smoothed quantiles (25%, 50%, 75%) of the residuals across the model's predictions, and the dashed lines show where they should be if the model is correct. The curves wobble around the dashed lines (the 75% curve rises to about 0.82 near the middle of the range and dips to about 0.70 elsewhere), and DHARMa reports "quantile deviations detected" in red. The vertical stripes are not a problem: the predictors are mostly categorical, so many observations share the same prediction.
+
+**Conclusion:** The model reproduces the overall distribution of the outcome, but the predicted probabilities are not calibrated equally well across the range. With 3,263 observations the quantile test is sensitive, and the deviations are moderate, so treat this as a sign of possible misspecification rather than a failure. Possible causes are a missing predictor, a non-linear effect (for example, of `LengthOfTheme`), or a missing interaction. Plotting the residuals against each predictor with `plotResiduals()` shows where the pattern comes from.
+
+```{r dharma-residuals-by-predictor, fig.width=12, fig.height=4}
+# Scaled residuals against each predictor: flat quantile lines mean no unmodelled pattern
+par(mfrow = c(1, 3))
+plotResiduals(sim_dative, dative$AnimacyOfRec, xlab = "AnimacyOfRec")
+plotResiduals(sim_dative, dative$PronomOfRec, xlab = "PronomOfRec")
+plotResiduals(sim_dative, dative$LengthOfTheme, xlab = "LengthOfTheme")
+par(mfrow = c(1, 1))
+```
+
+**Reading the residuals by predictor.** For a categorical predictor, `plotResiduals()` draws a boxplot of the scaled residuals per level and tests them; for a numeric predictor, it draws smoothed 25%, 50% and 75% quantile lines against the rank of the predictor. In a correct model, boxes and lines sit at the dashed reference values (0.25, 0.5, 0.75).
+
+-   **`AnimacyOfRec` and `PronomOfRec`:** The boxes are centred on the reference lines and similar across levels, and both the homogeneity-of-variance and within-group uniformity tests are non-significant. These predictors do not explain the pattern.
+-   **`LengthOfTheme`:** DHARMa reports significant quantile deviations. The three lines are clearly above their reference values for the shortest themes (about 0.81, 0.56, and 0.29 instead of 0.75, 0.50, and 0.25) and flatten onto them for longer themes. For the shortest themes, the observed outcome (`PP`, coded 1) is therefore more frequent than the model predicts.
+
+**Conclusion:** The misfit comes from `LengthOfTheme`, not from the categorical predictors. The model assumes that the log-odds change linearly with theme length, but the residuals show that the relationship is not linear, mainly at the short end. A natural next step is to model the length effect differently, for example with a log-transformed length or a smooth term, and check whether the residual pattern disappears. This has not been tested here.
+
+### Refitting with a non-linear length effect
+
+Theme length is a count of words with a long right tail, and the residuals are off mainly among the shortest themes. A log transformation gives short themes more weight relative to long ones, so the length effect is no longer forced to be linear on the raw scale. We refit the model with `log(LengthOfTheme)` and repeat the diagnostics.
+
+```{r fit-glmm-dative-log}
+# Same model with a log-transformed theme length
+m_dative_log <- glmer(
+  RealizationOfRecipient ~ AnimacyOfRec + PronomOfRec + log(LengthOfTheme) + (1 | Verb),
+  family = binomial,
+  data = dative
+)
+
+# Lower AIC = better trade-off between fit and complexity (same number of parameters)
+AIC(m_dative, m_dative_log)
+
+sim_dative_log <- simulateResiduals(fittedModel = m_dative_log, n = 500, plot = FALSE)
+```
+
+```{r dharma-sim-glmm-log, fig.width=10, fig.height=5}
+plot(sim_dative_log)
+```
+
+```{r dharma-residuals-length-log, fig.width=10, fig.height=4}
+# Residuals against the original length scale, before (left) and after (right) the log transformation
+par(mfrow = c(1, 2))
+plotResiduals(sim_dative, dative$LengthOfTheme, xlab = "LengthOfTheme (linear effect)")
+plotResiduals(sim_dative_log, dative$LengthOfTheme, xlab = "LengthOfTheme (log effect)")
+par(mfrow = c(1, 1))
+```
+
+```{r performance-check-dative-log, fig.width=9, fig.height=4}
+# Binned residuals for the refitted model
+check_model(m_dative_log, residual_type = "normal", check = "binned_residuals")
+```
+
+**What changed after the log transformation**
+
+-   **Model fit:** AIC drops from about 2,246 to 2,171, a large improvement with the same number of parameters. The log scale describes the length effect better than the linear scale.
+-   **DHARMa plot:** The Q-Q plot stays on the diagonal (KS $p = 0.97$, dispersion $p = 0.67$, outliers $p = 0.33$). In the residual-vs.-predicted panel, the 25% and 50% curves are now close to their reference lines, and the 75% curve varies less than before. DHARMa still reports quantile deviations, but they are smaller.
+-   **Residuals by theme length:** In the linear model (left), the three quantile lines are clearly above their reference values for the shortest themes (about 0.81, 0.56 and 0.29). After the log transformation (right), they are close to the reference values (about 0.78, 0.52 and 0.25). The 25% line is no longer flagged, but the 50% and 75% lines still show small wiggles, so a small part of the pattern remains.
+-   **Binned residuals:** The picture is still similar to before. Many bins lie outside the bounds, with positive residuals at high predicted probabilities (above about 85%) and negative residuals at low ones. The predictions are still somewhat too moderate.
+
+**Conclusion:** A non-linear length effect was a real problem and the log transformation fixes most of it, but the model is not yet fully calibrated. The remaining pattern is more likely due to omitted predictors than to the shape of the length effect. The `dative` data contain other predictors from @bresnan2007predicting, such as the length and definiteness of the recipient, that are not in this model. Adding them, and then repeating the same diagnostics, is the next step. We have not tested that here.
+
 ```{r dharma-formal-tests}
 # 1. Test overall uniformity (Kolmogorov-Smirnov test against U(0, 1))
 testUniformity(sim_dative)
@@ -369,6 +475,14 @@ testDispersion(sim_dative)
 # 3. Test for excess zeros (zero-inflation test)
 testZeroInflation(sim_dative)
 ```
+
+**How to read the three tests**
+
+-   **Uniformity (KS test):** Compares the scaled residuals with the uniform distribution. $p = 0.71$, so there is no evidence against the overall fit.
+-   **Dispersion:** The red line is the spread of the residuals in the real data, and the histogram is the spread expected under the fitted model. The red line sits in the middle of the histogram ($p = 0.83$), so there is no over- or underdispersion. For a binary outcome this test has little to detect, because the variance is fixed by the mean.
+-   **Zero inflation:** The red line is the observed number of `NP` (coded 0) responses, and the histogram is the number expected under the model. They agree ($p = 0.98$). For a binary outcome this mostly checks the overall proportion of the two outcomes, which the intercept already fits, so it is not informative here. It matters for count models.
+
+All three tests are non-significant, but none of them looks at how residuals relate to the predictors. The pattern in the residual-vs.-predicted panel above is not captured by these tests, so read them together.
 
 `check_model()` adds a broader visual overview. With `residual_type = "normal"`, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check. The influential-observations panel is left out because it fails for `glmer` fits.
 
@@ -381,6 +495,16 @@ check_model(
   check = c("vif", "qq", "homogeneity", "reqq", "pp_check", "binned_residuals")
 )
 ```
+
+**How to read each panel**
+
+-   **Posterior predictive check:** Observed and model-predicted counts of `NP` (about 2,400) and `PP` (about 850) are almost identical, and the predicted intervals contain the observed values. The model reproduces the overall split between the two constructions. This is a weak check for a logistic model with an intercept, because that split is fitted directly.
+-   **Binned residuals:** Observations are grouped by predicted probability, and each point is the average residual in a bin. Points should lie within the grey error bounds. Many points (red) fall outside, especially at high predicted probabilities (above about 80%), where the average residual is positive, and at low to moderate probabilities, where it is mostly negative. This means the observed proportions are more extreme than the predictions, and the model's probabilities are pulled toward the middle. This agrees with the wobble in the DHARMa residual-vs.-predicted panel, and it is the most informative panel here.
+-   **Collinearity:** All three predictors have low variance inflation factors (green, below 5). The interval for `AnimacyOfRec` is wide and runs off the top of the scale, so it is less precisely estimated, but nothing indicates a collinearity problem.
+-   **Normality of residuals:** This is a half-normal Q-Q plot of absolute deviance residuals. The curve and steps are expected for a binary outcome (see the explanation above), so this panel is not informative for this model. Use the DHARMa Q-Q plot instead.
+-   **Normality of random effects (Verb):** Most verb intercepts follow the line, with a few verbs at the extremes (one clearly below the line at about $-4$). Their intervals are wide, which suggests they have few observations. There is no strong evidence against normally distributed verb effects.
+
+**Conclusion:** DHARMa's Q-Q plot and tests, and the posterior predictive check, show that the model captures the overall distribution and dispersion of the outcome. The binned residuals and the DHARMa residual-vs.-predicted panel both show that the predicted probabilities do not match the observed proportions well across the range. The next step is to look for missing predictors or non-linear effects, not to change the distribution family.
 
 ## 2.4 Autocorrelation 
 
@@ -404,61 +528,10 @@ acf(res_a1, main = "Residual Autocorrelation (Subject A1)")
 
 ------------------------------------------------------------------------
 
-# Module 3: GLMM, More Datives, and Multicollinearity
 
-## 3.1 Multicollinearity & Variance Inflation Factors (VIF)
+# Module 3: Ordinal Models, Likert Ratings, and More QQ Plots
 
-In language data, lexical features often correlate (Zipf's Law: frequent words are shorter). We test Variance Inflation Factors using `performance::check_collinearity()`:
-
-```{r check-collinearity}
-# Check multicollinearity using Variance Inflation Factors (VIF)
-# VIF measures how much predictor variance is inflated due to collinearity with other predictors
-# Rule of thumb: VIF < 5 is usually acceptable; VIF > 10 indicates strong collinearity
-vif_results <- check_collinearity(m_parsimonious)
-print(vif_results)
-plot(vif_results)
-```
-
-## 3.2 Alternatively: `easystats`
-
-The `performance::check_model()` interface generates six diagnostic panels covering linearity, homoscedasticity, posterior predictive checks, normality of residuals, normality of random effects (BLUPs), and multicollinearity. Treat it as a visual screening overview: its panels are model-specific, so interpret patterns in context and follow concerns with focused checks rather than treating formal tests as binary pass/fail ([vignette](https://easystats.github.io/performance/articles/check_model.html)).
-
-```{r multi-panel-check, fig.width=10, fig.height=9}
-# Multi-panel model check from easystats:
-# Generates 6 diagnostic panels: Linearity, Homoscedasticity, Posterior Predictive Checks,
-# Residual Normality, BLUP Random Effect Normality, and Multicollinearity (VIF)
-check_model(m_parsimonious)
-```
-
-## 3.3 Cluster-Level Influence (`influence.ME`)
-
-We check whether particular speakers or items exert disproportionate leverage [@nieuwenhuis2012influence]:
-
-```{r influence-subjects, fig.width=9, fig.height=4.5}
-# Subject-level Cook's Distance via iterative cluster deletion (influence.ME)
-# Benchmark threshold for influential clusters: 4 / N_clusters
-infl_subj <- influence(m_parsimonious, group = "Subject", count = FALSE)
-plot(infl_subj, which = "cook", cutoff = 4 / length(unique(lexdec$Subject)),
-     main = "Subject-Level Cook's Distance (lexdec)")
-
-# Extract standardized parameter changes upon cluster deletion (DFBETAS)
-# Measures how many standard errors each fixed effect moves when a subject is dropped
-dfbetas_subj <- dfbetas(infl_subj)
-head(dfbetas_subj)
-```
-
-```{r influence-words, fig.width=9, fig.height=4.5}
-# Word-level Cook's Distance (Item outliers across the 79 stimulus words)
-infl_word <- influence(m_parsimonious, group = "Word", count = FALSE)
-plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
-     main = "Word-Level Cook's Distance (Items)")
-```
-
-------------------------------------------------------------------------
-
-# Module 4: Ordinal Models, Likert Ratings, and More QQ Plots
-
-## 4.1 Likert Ratings
+## 3.1 Likert Ratings
 
 Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g. acceptability, semantic size, prototypicality). Some analyses treat 1–7 Likert ratings as metric Gaussian variables using `lme4::lmer()`.
 
@@ -468,7 +541,7 @@ This approach has three limitations:
 2. **Non-interval metric**: The distance between adjacent ratings is not guaranteed to be equal.
 3. **Discrete latent thresholds**: Responses reflect an underlying continuous variable $Y^*$ divided by cutpoints $\theta_1 < \theta_2 < \dots < \theta_{K-1}$.
 
-## 4.2 Likert Data
+## 3.2 Likert Data
 
 Using `languageR::sizeRatings` (3,078 size ratings of 81 words across 38 subjects on a 1–7 scale):
 
@@ -489,7 +562,7 @@ plot(sim_naive)
 The DHARMa Q-Q plot for the naive Gaussian fit shows a pronounced S-shaped pattern, and the uniformity test rejects uniformity ($p < 10^{-16}$). This suggests that the Gaussian model does not adequately describe these bounded Likert responses.
 :::
 
-## 4.3 Ordinal Models (`ordinal::clmm`)
+## 3.3 Ordinal Models (`ordinal::clmm`)
 
 We fit a Cumulative Link Mixed Model using `ordinal::clmm` [@christensen2019ordinal]:
 
@@ -510,9 +583,9 @@ The model estimates the fixed effect of semantic class alongside the 6 latent cu
 
 ------------------------------------------------------------------------
 
-# Module 5: emmeans 
+# Module 4: emmeans 
 
-## 5.1 Marginal Means 
+## 4.1 Marginal Means 
 
 The `emmeans` package [@lenth2016least] computes Estimated Marginal Means (least-squares means) by averaging predictions over a balanced reference grid:
 
@@ -545,7 +618,7 @@ print(emm_clmm)
 pairs(emm_clmm)
 ```
 
-## 5.2 Methodological Assumptions of emmeans
+## 4.2 Methodological Assumptions of emmeans
 
 When reporting marginal means, consider these five points:
 
@@ -560,9 +633,9 @@ When reporting marginal means, consider these five points:
 
 ## 
 
-# Module 6: Warnings & Reporting
+# Module 5: Warnings & Reporting
 
-## 6.1 `lme4` Warnings
+## 5.1 `lme4` Warnings
 
 In practice, fitting complex mixed models frequently generates warnings. Understanding the exact mathematical origin of each warning determines whether it represents a critical model breakdown or a benign numerical artifact [@bolker2009generalized]:
 
@@ -652,7 +725,7 @@ flowchart TD
     CheckHess -- No --> OptTune["Tuning Required<br/>Increase maxfun = 2e5<br/>Use optimizer = 'bobyqa'"]
 ```
 
-## 6.2 `allFit()`
+## 5.2 `allFit()`
 
 Refits the model across all available optimizers (`bobyqa`, `Nelder_Mead`, `nlminbwrap`, etc.) to verify if convergence warnings are false positives:
 
@@ -664,7 +737,7 @@ all_fits <- allFit(m_parsimonious)
 summary(all_fits)
 ```
 
-## 6.3 Likelihood Ratio Tests: Enforcing REML vs. ML Rules
+## 5.3 Likelihood Ratio Tests: Enforcing REML vs. ML Rules
 
 -   **Testing Fixed Effects Structures**: Always use **`REML = FALSE`** (Maximum Likelihood). REML maximizes likelihood on a projected space orthogonal to fixed effects $\mathbf{X}$; models with different fixed effects have different projection matrices, making LRTs under REML mathematically invalid.
 -   **Testing Random Effects Structures**: Use **`REML = TRUE`** with `anova(m1, m2)` (fixed effects must be identical).
@@ -681,7 +754,7 @@ m_null_ml <- lmer(RT ~ Length_z + Native_num + (1 | Subject) + (1 | Word),
 anova(m_null_ml, m_full_ml)
 ```
 
-## 6.4 Variance Partitioning: Nakagawa’s $R^2$
+## 5.4 Variance Partitioning: Nakagawa’s $R^2$
 
 For mixed models, standard $R^2$ does not apply. Nakagawa and Schielzeth (2013) partition variance into:
 
@@ -694,9 +767,9 @@ r2_metrics <- r2_nakagawa(m_resolved)
 print(r2_metrics)
 ```
 
-## 6.5 Reporting Mixed-Effects Models
+## 5.5 Reporting Mixed-Effects Models
 
-### 6.5.1 The Meteyard & Davies (2020) 10-Point Checklist
+### 5.5.1 The Meteyard & Davies (2020) 10-Point Checklist
 
 When submitting empirical mixed-effects analyses to peer-reviewed journals, follow this 10-point reporting standard:
 
@@ -711,7 +784,7 @@ When submitting empirical mixed-effects analyses to peer-reviewed journals, foll
 9.  **Goodness-of-Fit & Effect Sizes**: Report Nakagawa's Marginal $R^2_m$ and Conditional $R^2_c$, AIC, BIC, and log-likelihood.
 10. **Open Science Deposit**: Share reproducible Quarto (`.qmd`) source files, analysis scripts (`.R`), and de-identified data in public repositories (OSF, Zenodo, GitHub).
 
-### 6.5.2 Generating Parameter Tables
+### 5.5.2 Generating Parameter Tables
 
 Using `parameters::model_parameters()` from `easystats` and `knitr::kable()`, we format the final parsimonious model into a parameter table:
 
@@ -731,7 +804,7 @@ kable(
 )
 ```
 
-### 6.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Formatting)
+### 5.5.3 Version A: Static Narrative Template (Manual APA / Linguistics Formatting)
 
 Below is a sample write-up showing how to report the diagnostic and modeling pipeline in an academic journal article using manual formatting:
 
@@ -746,7 +819,7 @@ Singularity evaluation (`isSingular()`, tolerance $= 10^{-4}$) revealed that the
 Fixed-effects significance tests were evaluated using two-tailed $t$-tests with Satterthwaite degrees-of-freedom approximations via `lmerTest`. Lexical Frequency significantly facilitated reaction times ($\beta = -0.078, SE = 0.008, t(77.2) = -9.75, p < .001$), while Word Length exhibited an inhibitory effect ($\beta = 0.035, SE = 0.007, t(76.8) = 5.00, p < .001$). Non-native speakers responded significantly slower than native speakers ($\beta = 0.162, SE = 0.042, t(20.1) = 3.86, p < .001$). Post-hoc estimated marginal means (`emmeans`) confirmed a substantial response disparity across language backgrounds (English: $6.42$ log ms, $95\%\text{ CI } [6.33, 6.51]$; Other: $6.58$ log ms, $95\%\text{ CI } [6.50, 6.66]$). Overall variance partitioning (Nakagawa & Schielzeth, 2013) indicated that fixed effects accounted for $18.4\%$ of total variance ($R^2_m = 0.184$), while the combined fixed and random effects explained $47.2\%$ ($R^2_c = 0.472$).
 :::
 
-### 6.5.4 Version B: Dynamic Narrative (Reproducible Inline R Extraction)
+### 5.5.4 Version B: Dynamic Narrative (Reproducible Inline R Extraction)
 
 While Version A provides a polished stylistic template, manually typing numerical values into prose introduces substantial risk of transcription errors, copy-paste discrepancies with tables, and obsolescence when datasets or trimming criteria change [@meteyard2020best].
 
