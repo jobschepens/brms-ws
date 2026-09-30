@@ -25,7 +25,7 @@ execute:
 
 Linear Mixed-Effects Models (LMMs) and Generalized Linear Mixed-Effects Models (GLMMs) fitted via `lme4` [@bates2015fitting] are widely used in quantitative and experimental linguistics. They can model hierarchically clustered data, handle unbalanced designs, and account for variation across speakers and linguistic materials.
 
-However, standard summary tables can hide serious assumption violations. A model that converges without error may still violate Gauss-Markov assumptions, have a degenerate random-effects structure (singularity), or be driven by a few influential participants or unusual stimulus items [@meteyard2020best].
+However, standard summary tables can hide assumption violations. A model that converges without error may still violate Gauss-Markov assumptions, have a degenerate random-effects structure (singularity), or be strongly affected by a few participants or unusual stimulus items [@meteyard2020best].
 
 ::: {.callout-note}
 ## Workshop Datasets: Linguistic Data from CRC 1252
@@ -85,7 +85,7 @@ The table below compares assumptions in classical ANOVA and Bayesian mixed model
 | **Linearity & Scaling** | Linear relationships assumed | Linear on response scale; scale continuous predictors | Linear on **link scale** (log, logit, probit, cloglog) | Linear or non-linear on link scale | Partial residual plots and `performance::check_model()` |
 | **Multicollinearity (predictor collinearity)** | Correlated predictors make effects non-orthogonal and less precise | Correlated fixed predictors inflate standard errors and destabilize estimates | Collinearity can destabilize estimates, especially with sparse outcomes | Priors can regularize estimates but cannot replace information absent from data | `performance::check_collinearity()`, predictor correlation matrix (`cor()`) |
 | **Random Effects Normality** | N/A | BLUPs assumed multivariate normal: $b \sim \mathcal{N}(0, \Sigma)$ | Conditional modes assumed multivariate normal | Priors specify random-effects distributions (Normal, Student-$t$) | Q-Q plots of BLUPs, `performance::check_model()` |
-| **Singularity & Boundaries** | N/A | **Critical vulnerability**: Boundary collapse ($\sigma_b^2 = 0, \rho = \pm 1$) | **Critical vulnerability**: Laplace boundary failure | **Immune**: Regularizing priors keep estimates off hard boundary | `lme4::isSingular()`, `lme4::rePCA()`, `lme4::allFit()` |
+| **Singularity & Boundaries** | N/A | Boundary estimates ($\sigma_b^2 = 0, \rho = \pm 1$) can occur | Laplace approximation may have difficulty near boundaries | Regularizing priors can reduce boundary estimates | `lme4::isSingular()`, `lme4::rePCA()`, `lme4::allFit()` |
 | **Residual Independence** | Assumed across trials | Assumed; sequential trial fatigue violates independence | Assumed; temporal/spatial clustering violates independence | Autoregressive structures can be added (`ar()`, `cor_ar()`) | `acf()`, `performance::check_autocorrelation()`, `DHARMa::testTemporalAutocorrelation()` |
 :::
 
@@ -177,7 +177,7 @@ glimpse(select(lexdec, Subject, Word, RT, Trial, Freq_z, Length_z, Native_num, S
 In R, factors default to **treatment (dummy) coding** (`contr.treatment`), which maps the first alphabetical level to 0 and all other levels to 1. In mixed-effects modeling, this default creates three major hazards [@schad2020contrast]:
 
 1. **Misinterpretation of Main Effects**: In models with interactions ($A \times B$), the lower-order $\beta$ coefficients under treatment coding are **not** main effects; they are *simple effects* restricted specifically to the arbitrary baseline level of the other factor.
-2. **Artificial Random Slope Singularity**: In `(1 + Condition | Subject)`, treatment coding forces the random intercept to represent variance *specifically at the baseline condition*. This induces severe collinearity between the random intercept and random slope, driving the estimated correlation parameter $\rho$ to boundary values of $\pm 1.0$ and triggering false singular fits.
+2. **Random Slope Correlations**: In `(1 + Condition | Subject)`, treatment coding defines the random intercept at the baseline condition. Depending on the data, this can increase dependence between intercept and slope estimates and contribute to correlations near $\pm 1.0$ or singular fits.
 3. **Invalid Type III ANOVA Tables**: Type III tests (`car::Anova(type = "III")`) mathematically assume orthogonal contrasts (`contr.sum`). Under default treatment coding, Type III tests are statistically meaningless.
 
 Centered sum coding ($-0.5 / +0.5$) centers the intercept at the unweighted grand mean across conditions, decouples random intercepts from random slopes, and ensures $\beta$ coefficients represent true main effects.
@@ -346,7 +346,7 @@ In language data, lexical features often correlate (Zipf's Law: frequent words a
 ```{r check-collinearity}
 # Check multicollinearity using Variance Inflation Factors (VIF)
 # VIF measures how much predictor variance is inflated due to collinearity with other predictors
-# Rule of thumb: VIF < 5 is safe; VIF > 10 indicates severe collinearity
+# Rule of thumb: VIF < 5 is usually acceptable; VIF > 10 indicates strong collinearity
 vif_results <- check_collinearity(m_parsimonious)
 print(vif_results)
 plot(vif_results)
@@ -410,14 +410,14 @@ data(sizeRatings)
 # 1. Naive Gaussian LMM: treating discrete 1-7 Likert ratings as metric Gaussian variable
 m_naive_likert <- lmer(Rating ~ Class + (1 | Word), data = sizeRatings)
 
-# 2. DHARMa diagnostic simulation: reveals severe floor/ceiling S-shaped quantile distortion
+# 2. DHARMa diagnostic simulation: checks for floor/ceiling S-shaped quantile distortion
 sim_naive <- simulateResiduals(m_naive_likert, n = 250, plot = FALSE)
 plot(sim_naive)
 ```
 
 ::: {.callout-caution}
-## Diagnostic Warning: Severe Quantile Distortion
-The DHARMa Q-Q plot on the naive Gaussian fit exhibits severe, statistically significant S-shaped curvature and failed uniformity tests ($p < 10^{-16}$), proving that standard Gaussian mixed models fail on bounded Likert data.
+## Diagnostic Warning: Quantile Distortion
+The DHARMa Q-Q plot for the naive Gaussian fit shows a pronounced S-shaped pattern, and the uniformity test rejects uniformity ($p < 10^{-16}$). This suggests that the Gaussian model does not adequately describe these bounded Likert responses.
 :::
 
 ## 4.3 Cumulative Link Mixed Models (`ordinal::clmm`)
@@ -578,11 +578,11 @@ In practice, fitting complex mixed models frequently generates warnings. Underst
 - **Mathematical Cause**: The Hessian matrix $\mathbf{H}$ (matrix of second partial derivatives) at the proposed optimum is not positive-definite, possessing zero or negative eigenvalues.
 - **Severity**: **Critical**. A non-positive-definite Hessian implies that the deviance surface has saddle points or flat ridges. Standard errors cannot be computed by inverting the Fisher Information matrix ($\mathbf{V} = \mathbf{H}^{-1}$), rendering $p$-values and confidence intervals invalid or `NaN`.
 - **Diagnostic Protocol**: Compute `eigen(m@optinfo$derivs$Hessian)$values`. If $\lambda_{\min} \le 0$, the Hessian is degenerate.
-- **Remediation**: Severe overparameterization or extreme collinearity. Remove redundant fixed effects (high VIF) or simplify random-effects structure.
+- **Remediation**: Check for overparameterization or strong collinearity. Remove redundant fixed effects (high VIF) or simplify the random-effects structure.
 
 ### 4. Eigenvalue Ratio Warnings (`Model is nearly unidentifiable: very large eigenvalue ratio`)
 - **Mathematical Cause**: The condition number $\kappa = \lambda_{\max} / \lambda_{\min}$ of the Hessian exceeds $10^5$ or $10^6$.
-- **Substantive Cause**: Severe ill-conditioning caused by scale disparities between predictors, leading to steep slopes in some directions and virtually flat deviance ravines in others.
+- **Substantive Cause**: Ill-conditioning can result from scale differences between predictors, producing steep slopes in some directions and nearly flat regions of the deviance surface in others.
 - **Remediation**: Standardize all continuous predictors to $z$-scores ($M=0, SD=1$).
 
 ### 5. GLMM-Specific Warnings (`pwrssUpdate did not converge in ... iterations`)
@@ -631,7 +631,7 @@ flowchart TD
     EvalAllFit -- Yes --> FalsePos["False Positive Artifact<br/>(Deviance valley flat/conservative tolerance)<br/>Safe to report and publish"]
     
     EvalAllFit -- No --> CheckHess{"Hessian degenerate?<br/>(min eigenvalue <= 0)"}
-    CheckHess -- Yes --> Severe["Severe Non-Convergence / Saddle Point<br/>1. Remove collinear predictors (VIF > 5)<br/>2. Prune random slopes<br/>3. Rescale continuous predictors to z-scores"]
+    CheckHess -- Yes --> HessProblem["Non-Convergence / Saddle Point<br/>1. Check collinear predictors (VIF > 5)<br/>2. Consider simplifying random slopes<br/>3. Rescale continuous predictors to z-scores"]
     CheckHess -- No --> OptTune["Tuning Required<br/>Increase maxfun = 2e5<br/>Use optimizer = 'bobyqa'"]
 ```
 
@@ -813,7 +813,7 @@ Fixed-effects significance tests were evaluated using two-tailed $t$-tests with 
 | **Effort at First Draft** | Quick to draft initially; standard manual typing. | Requires initial setup of formatting helper functions and extraction chunk. |
 | **Vulnerability to Error** | **High**: Prone to typos, rounding errors, or transposing $\beta$ and $SE$ values. | **Zero**: Numbers are computed directly from the model object in memory. |
 | **Maintenance on Data Changes** | **Fragile**: If an outlier is excluded or data trimmed, every single number must be manually found and retyped. | **Automatic**: Re-rendering the document updates all inline statistics. |
-| **Consistency with Tables** | High risk of table-prose discrepancy if tables and text are updated at different times. | Guarantees 100% numerical consistency between the prose narrative and `kable()` parameter tables. |
+| **Consistency with Tables** | Table-prose discrepancies can occur if tables and text are updated at different times. | Both the prose and `kable()` parameter tables use values extracted from the same model objects. |
 | **Open Science Compliance** | Fails strict automated audit standards (Meteyard & Davies 2020 Item 10). | Supports computational reproducibility. |
 
 
