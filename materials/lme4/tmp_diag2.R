@@ -1,0 +1,16 @@
+suppressMessages({library(lme4);library(lmerTest);library(ordinal);library(dplyr);library(performance);library(see);library(languageR);library(patchwork)})
+data(sizeRatings)
+sr <- sizeRatings %>% mutate(Rating_ord = factor(Rating, ordered = TRUE))
+m <- clmm(Rating_ord ~ Class + (1 | Word), data = sr)
+cm <- check_model(m, type = "discrete_interval", residual_type = "normal")
+cat("clmm assumption components:", names(cm), "\n")
+
+data(lexdec)
+lexdec <- lexdec %>% mutate(Freq_z = as.numeric(scale(Frequency)), Length_z = as.numeric(scale(Length)), Native_num = ifelse(NativeLanguage == "Other", 0.5, -0.5), Sex_num = ifelse(Sex == "M", 0.5, -0.5))
+m_max <- lmer(RT ~ Freq_z + Length_z + Native_num + Sex_num + (1 + Freq_z + Length_z | Subject) + (1 + Native_num + Sex_num | Word), data = lexdec)
+cat("maximal singular:", isSingular(m_max), "\n")
+cm2 <- check_model(m_max)
+cat("maximal components:", names(cm2), "\n")
+f <- "/home/rstudio/workshop/materials/lme4/tmp_diag_max.png"
+png(f, width = 10, height = 12, units = "in", res = 72); print(cm2); dev.off()
+cat("maximal png bytes:", file.info(f)$size, "\n")

@@ -148,7 +148,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions"><span class="header-section-number">3</span> Assumptions</a></li>
   <li><a href="#environment-setup" id="toc-environment-setup" class="nav-link" data-scroll-target="#environment-setup"><span class="header-section-number">4</span> Environment Setup</a></li>
-  <li><a href="#module-1-singularity" id="toc-module-1-singularity" class="nav-link" data-scroll-target="#module-1-singularity"><span class="header-section-number">5</span> Module 1: Singularity</a>
+  <li><a href="#module-1-lmms-reaction-times-singularity" id="toc-module-1-lmms-reaction-times-singularity" class="nav-link" data-scroll-target="#module-1-lmms-reaction-times-singularity"><span class="header-section-number">5</span> Module 1: LMMs, Reaction Times &amp; Singularity</a>
   <ul class="collapse">
   <li><a href="#random-effects-syntax" id="toc-random-effects-syntax" class="nav-link" data-scroll-target="#random-effects-syntax"><span class="header-section-number">5.1</span> 1.1 Random Effects Syntax</a>
   <ul class="collapse">
@@ -158,20 +158,20 @@ window.Quarto = {
   <li><a href="#singularity" id="toc-singularity" class="nav-link" data-scroll-target="#singularity"><span class="header-section-number">5.3</span> 1.3 Singularity</a></li>
   <li><a href="#automated-singularity-resolution-troubblme4solver" id="toc-automated-singularity-resolution-troubblme4solver" class="nav-link" data-scroll-target="#automated-singularity-resolution-troubblme4solver"><span class="header-section-number">5.4</span> 1.4 Automated Singularity Resolution (<code>trouBBlme4SolveR</code>)</a></li>
   </ul></li>
-  <li><a href="#module-2-dharma" id="toc-module-2-dharma" class="nav-link" data-scroll-target="#module-2-dharma"><span class="header-section-number">6</span> Module 2: DHARMa</a>
+  <li><a href="#module-2-glmms-dative-alternation-dharma" id="toc-module-2-glmms-dative-alternation-dharma" class="nav-link" data-scroll-target="#module-2-glmms-dative-alternation-dharma"><span class="header-section-number">6</span> Module 2: GLMMs, Dative Alternation &amp; DHARMa</a>
   <ul class="collapse">
   <li><a href="#classical-residual-checks-in-linear-mixed-models" id="toc-classical-residual-checks-in-linear-mixed-models" class="nav-link" data-scroll-target="#classical-residual-checks-in-linear-mixed-models"><span class="header-section-number">6.1</span> 2.1 Classical Residual Checks in Linear Mixed Models</a></li>
   <li><a href="#discrete-glmm-residuals" id="toc-discrete-glmm-residuals" class="nav-link" data-scroll-target="#discrete-glmm-residuals"><span class="header-section-number">6.2</span> 2.2 Discrete GLMM Residuals</a></li>
   <li><a href="#data-dative-alternation" id="toc-data-dative-alternation" class="nav-link" data-scroll-target="#data-dative-alternation"><span class="header-section-number">6.3</span> 2.3 Data: Dative Alternation</a></li>
   <li><a href="#autocorrelation" id="toc-autocorrelation" class="nav-link" data-scroll-target="#autocorrelation"><span class="header-section-number">6.4</span> 2.4 Autocorrelation</a></li>
   </ul></li>
-  <li><a href="#module-3-multicollinearity" id="toc-module-3-multicollinearity" class="nav-link" data-scroll-target="#module-3-multicollinearity"><span class="header-section-number">7</span> Module 3: Multicollinearity</a>
+  <li><a href="#module-3-glmm-more-datives-and-multicollinearity" id="toc-module-3-glmm-more-datives-and-multicollinearity" class="nav-link" data-scroll-target="#module-3-glmm-more-datives-and-multicollinearity"><span class="header-section-number">7</span> Module 3: GLMM, More Datives, and Multicollinearity</a>
   <ul class="collapse">
   <li><a href="#multicollinearity-variance-inflation-factors-vif" id="toc-multicollinearity-variance-inflation-factors-vif" class="nav-link" data-scroll-target="#multicollinearity-variance-inflation-factors-vif"><span class="header-section-number">7.1</span> 3.1 Multicollinearity &amp; Variance Inflation Factors (VIF)</a></li>
   <li><a href="#alternatively-easystats" id="toc-alternatively-easystats" class="nav-link" data-scroll-target="#alternatively-easystats"><span class="header-section-number">7.2</span> 3.2 Alternatively: <code>easystats</code></a></li>
   <li><a href="#cluster-level-influence-influence.me" id="toc-cluster-level-influence-influence.me" class="nav-link" data-scroll-target="#cluster-level-influence-influence.me"><span class="header-section-number">7.3</span> 3.3 Cluster-Level Influence (<code>influence.ME</code>)</a></li>
   </ul></li>
-  <li><a href="#module-4-ordinal-responses" id="toc-module-4-ordinal-responses" class="nav-link" data-scroll-target="#module-4-ordinal-responses"><span class="header-section-number">8</span> Module 4: Ordinal Responses</a>
+  <li><a href="#module-4-ordinal-models-likert-ratings-and-more-qq-plots" id="toc-module-4-ordinal-models-likert-ratings-and-more-qq-plots" class="nav-link" data-scroll-target="#module-4-ordinal-models-likert-ratings-and-more-qq-plots"><span class="header-section-number">8</span> Module 4: Ordinal Models, Likert Ratings, and More QQ Plots</a>
   <ul class="collapse">
   <li><a href="#likert-ratings" id="toc-likert-ratings" class="nav-link" data-scroll-target="#likert-ratings"><span class="header-section-number">8.1</span> 4.1 Likert Ratings</a></li>
   <li><a href="#likert-data" id="toc-likert-data" class="nav-link" data-scroll-target="#likert-data"><span class="header-section-number">8.2</span> 4.2 Likert Data</a></li>
@@ -180,9 +180,8 @@ window.Quarto = {
   <li><a href="#module-5-emmeans" id="toc-module-5-emmeans" class="nav-link" data-scroll-target="#module-5-emmeans"><span class="header-section-number">9</span> Module 5: emmeans</a>
   <ul class="collapse">
   <li><a href="#marginal-means" id="toc-marginal-means" class="nav-link" data-scroll-target="#marginal-means"><span class="header-section-number">9.1</span> 5.1 Marginal Means</a></li>
-  <li><a href="#contrast-coding-does-matter" id="toc-contrast-coding-does-matter" class="nav-link" data-scroll-target="#contrast-coding-does-matter"><span class="header-section-number">9.2</span> 5.2 Contrast Coding Does Matter</a></li>
-  <li><a href="#methodological-assumptions-of-emmeans" id="toc-methodological-assumptions-of-emmeans" class="nav-link" data-scroll-target="#methodological-assumptions-of-emmeans"><span class="header-section-number">9.3</span> 5.3 Methodological Assumptions of emmeans</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"><span class="header-section-number">9.4</span> </a></li>
+  <li><a href="#methodological-assumptions-of-emmeans" id="toc-methodological-assumptions-of-emmeans" class="nav-link" data-scroll-target="#methodological-assumptions-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Methodological Assumptions of emmeans</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"><span class="header-section-number">9.3</span> </a></li>
   </ul></li>
   <li><a href="#module-6-warnings-reporting" id="toc-module-6-warnings-reporting" class="nav-link" data-scroll-target="#module-6-warnings-reporting"><span class="header-section-number">10</span> Module 6: Warnings &amp; Reporting</a>
   <ul class="collapse">
@@ -453,8 +452,8 @@ window.Quarto = {
 </div>
 <hr>
 </section>
-<section id="module-1-singularity" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Module 1: Singularity</h1>
+<section id="module-1-lmms-reaction-times-singularity" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Module 1: LMMs, Reaction Times &amp; Singularity</h1>
 <section id="random-effects-syntax" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="random-effects-syntax"><span class="header-section-number">5.1</span> 1.1 Random Effects Syntax</h2>
 <section id="overview" class="level3" data-number="5.1.1">
@@ -693,8 +692,8 @@ Sex_num     0.252  0.000  0.000  0.196</code></pre>
 <hr>
 </section>
 </section>
-<section id="module-2-dharma" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> Module 2: DHARMa</h1>
+<section id="module-2-glmms-dative-alternation-dharma" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Module 2: GLMMs, Dative Alternation &amp; DHARMa</h1>
 <section id="classical-residual-checks-in-linear-mixed-models" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="classical-residual-checks-in-linear-mixed-models"><span class="header-section-number">6.1</span> 2.1 Classical Residual Checks in Linear Mixed Models</h2>
 <p>In standard Gaussian LMMs, residuals are assumed to follow <span class="math inline">\(\epsilon \sim \mathcal{N}(0, \sigma^2)\)</span>:</p>
@@ -993,8 +992,8 @@ alternative hypothesis: true autocorrelation is not 0</code></pre>
 <hr>
 </section>
 </section>
-<section id="module-3-multicollinearity" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Module 3: Multicollinearity</h1>
+<section id="module-3-glmm-more-datives-and-multicollinearity" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Module 3: GLMM, More Datives, and Multicollinearity</h1>
 <section id="multicollinearity-variance-inflation-factors-vif" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="multicollinearity-variance-inflation-factors-vif"><span class="header-section-number">7.1</span> 3.1 Multicollinearity &amp; Variance Inflation Factors (VIF)</h2>
 <p>In language data, lexical features often correlate (Zipf’s Law: frequent words are shorter). We test Variance Inflation Factors using <code>performance::check_collinearity()</code>:</p>
@@ -1105,8 +1104,8 @@ I  -0.36801204 -0.042378823  0.09973766 -0.56756922</code></pre>
 <hr>
 </section>
 </section>
-<section id="module-4-ordinal-responses" class="level1" data-number="8">
-<h1 data-number="8"><span class="header-section-number">8</span> Module 4: Ordinal Responses</h1>
+<section id="module-4-ordinal-models-likert-ratings-and-more-qq-plots" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Module 4: Ordinal Models, Likert Ratings, and More QQ Plots</h1>
 <section id="likert-ratings" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="likert-ratings"><span class="header-section-number">8.1</span> 4.1 Likert Ratings</h2>
 <p>Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g.&nbsp;acceptability, semantic size, prototypicality). Some analyses treat 1–7 Likert ratings as metric Gaussian variables using <code>lme4::lmer()</code>.</p>
@@ -1299,103 +1298,8 @@ Confidence level used: 0.95 </code></pre>
 </div>
 </div>
 </section>
-<section id="contrast-coding-does-matter" class="level2" data-number="9.2">
-<h2 data-number="9.2" class="anchored" data-anchor-id="contrast-coding-does-matter"><span class="header-section-number">9.2</span> 5.2 Contrast Coding Does Matter</h2>
-<p><code>emmeans</code> evaluates predictions over a balanced reference grid regardless of how factors were coded in the design matrix <span class="math inline">\(\mathbf{X}\)</span>.</p>
-<p>Let us compare two identical models fitted with default treatment coding vs.&nbsp;centered sum coding:</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Model fitted with default treatment (dummy) coding (English = 0, Other = 1)</span></span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>m_treatment <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">*</span> NativeLanguage <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject), <span class="at">data =</span> lexdec)</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Model fitted with centered sum contrast coding (-0.5 / +0.5)</span></span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>m_sum <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">*</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject), <span class="at">data =</span> lexdec)</span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparison of Fixed Effects Tables:</span></span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a><span class="co"># - In m_treatment: 'NativeLanguageOther' is a simple effect at Freq_z = 0</span></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a><span class="co"># - In m_sum: 'Native_num' is a true main effect averaged across all words</span></span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"=== Fixed Effects under Treatment Coding ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>=== Fixed Effects under Treatment Coding ===</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">fixef</span>(m_treatment))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>               (Intercept)                     Freq_z 
-                6.31830923                -0.03965053 
-       NativeLanguageOther Freq_z:NativeLanguageOther 
-                0.15582119                -0.03502711 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Fixed Effects under Centered Sum Coding ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-=== Fixed Effects under Centered Sum Coding ===</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">fixef</span>(m_sum))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>      (Intercept)            Freq_z        Native_num Freq_z:Native_num 
-       6.39621983       -0.05716408        0.15582119       -0.03502711 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reference Grid Invariance:</span></span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Regardless of factor coding scheme, emmeans evaluates predictions across</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a><span class="co"># a balanced reference grid, yielding IDENTICAL marginal means and contrasts:</span></span>
-<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>emm_from_treat <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(m_treatment, <span class="sc">~</span> NativeLanguage)</span>
-<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>emm_from_sum   <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(m_sum, <span class="sc">~</span> Native_num)</span>
-<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">emmeans from Treatment-Coded Model:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-emmeans from Treatment-Coded Model:</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(emm_from_treat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code> NativeLanguage emmean     SE df lower.CL upper.CL
- English          6.32 0.0396 19     6.24     6.40
- Other            6.47 0.0458 19     6.38     6.57
-
-Degrees-of-freedom method: kenward-roger 
-Confidence level used: 0.95 </code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">emmeans from Sum-Coded Model:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-emmeans from Sum-Coded Model:</code></pre>
-</div>
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(emm_from_sum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code> Native_num emmean     SE df lower.CL upper.CL
-       -0.5   6.32 0.0396 19     6.24     6.40
-        0.5   6.47 0.0458 19     6.38     6.57
-
-Degrees-of-freedom method: kenward-roger 
-Confidence level used: 0.95 </code></pre>
-</div>
-</div>
-</section>
-<section id="methodological-assumptions-of-emmeans" class="level2" data-number="9.3">
-<h2 data-number="9.3" class="anchored" data-anchor-id="methodological-assumptions-of-emmeans"><span class="header-section-number">9.3</span> 5.3 Methodological Assumptions of emmeans</h2>
+<section id="methodological-assumptions-of-emmeans" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="methodological-assumptions-of-emmeans"><span class="header-section-number">9.2</span> 5.2 Methodological Assumptions of emmeans</h2>
 <p>When reporting marginal means, consider these five points:</p>
 <ol type="1">
 <li><strong>Reference Grid Balancing</strong>: Continuous covariates are held constant at their grand mean (<span class="math inline">\(\bar{x}\)</span>), and factor cells are weighted equally. When covariates are correlated, the reference grid can evaluate combinations unobserved in actual data.</li>
@@ -1410,8 +1314,8 @@ Confidence level used: 0.95 </code></pre>
 </ul></li>
 </ol>
 </section>
-<section id="section" class="level2" data-number="9.4">
-<h2 data-number="9.4" class="anchored" data-anchor-id="section"><span class="header-section-number">9.4</span> </h2>
+<section id="section" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="section"><span class="header-section-number">9.3</span> </h2>
 </section>
 </section>
 <section id="module-6-warnings-reporting" class="level1" data-number="10">
@@ -1487,36 +1391,36 @@ Confidence level used: 0.95 </code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Direct extraction of optimization derivatives from lme4 fit:</span></span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>grad_vals <span class="ot">&lt;-</span> m_parsimonious<span class="sc">@</span>optinfo<span class="sc">$</span>derivs<span class="sc">$</span>gradient</span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>hess_mat  <span class="ot">&lt;-</span> m_parsimonious<span class="sc">@</span>optinfo<span class="sc">$</span>derivs<span class="sc">$</span>Hessian</span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>eigen_val <span class="ot">&lt;-</span> <span class="fu">eigen</span>(hess_mat)<span class="sc">$</span>values</span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Maximum absolute gradient:"</span>, <span class="fu">max</span>(<span class="fu">abs</span>(grad_vals)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Direct extraction of optimization derivatives from lme4 fit:</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>grad_vals <span class="ot">&lt;-</span> m_parsimonious<span class="sc">@</span>optinfo<span class="sc">$</span>derivs<span class="sc">$</span>gradient</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>hess_mat  <span class="ot">&lt;-</span> m_parsimonious<span class="sc">@</span>optinfo<span class="sc">$</span>derivs<span class="sc">$</span>Hessian</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>eigen_val <span class="ot">&lt;-</span> <span class="fu">eigen</span>(hess_mat)<span class="sc">$</span>values</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Maximum absolute gradient:"</span>, <span class="fu">max</span>(<span class="fu">abs</span>(grad_vals)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Maximum absolute gradient: 0.02241884 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Minimum Hessian eigenvalue:"</span>, <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Minimum Hessian eigenvalue:"</span>, <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Minimum Hessian eigenvalue: 89.64445 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Hessian eigenvalue ratio (condition number):"</span>, <span class="fu">max</span>(eigen_val) <span class="sc">/</span> <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Hessian eigenvalue ratio (condition number):"</span>, <span class="fu">max</span>(eigen_val) <span class="sc">/</span> <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Hessian eigenvalue ratio (condition number): 17.75098 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation:</span></span>
-<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="co"># - max|grad| &lt; 0.002 confirms convergence to a stationary point</span></span>
-<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a><span class="co"># - min(eigen_val) &gt; 0 confirms positive-definiteness (strict local minimum)</span></span>
-<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a><span class="co"># - Condition number &lt; 1e5 confirms well-conditioned curvature</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpretation:</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="co"># - max|grad| &lt; 0.002 confirms convergence to a stationary point</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a><span class="co"># - min(eigen_val) &gt; 0 confirms positive-definiteness (strict local minimum)</span></span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a><span class="co"># - Condition number &lt; 1e5 confirms well-conditioned curvature</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -1559,10 +1463,10 @@ Confidence level used: 0.95 </code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark model across multiple numerical optimizers (bobyqa, Nelder_Mead, nlminbwrap, etc.)</span></span>
-<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a><span class="co"># If all optimizers converge to identical log-likelihoods (difference &lt; 1e-4),</span></span>
-<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a><span class="co"># convergence warnings are typically false-positive numerical artifacts</span></span>
-<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>all_fits <span class="ot">&lt;-</span> <span class="fu">allFit</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark model across multiple numerical optimizers (bobyqa, Nelder_Mead, nlminbwrap, etc.)</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a><span class="co"># If all optimizers converge to identical log-likelihoods (difference &lt; 1e-4),</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a><span class="co"># convergence warnings are typically false-positive numerical artifacts</span></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>all_fits <span class="ot">&lt;-</span> <span class="fu">allFit</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>bobyqa : [OK]
@@ -1577,7 +1481,7 @@ nloptwrap.NLOPT_LN_BOBYQA : [OK]</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>$which.OK
@@ -1666,12 +1570,12 @@ nloptwrap.NLOPT_LN_BOBYQA                     -0.1034747      0.1101436
 
 $times
                               user.self sys.self elapsed user.child sys.child
-bobyqa                            0.283        0   0.282          0         0
-Nelder_Mead                       0.492        0   0.491          0         0
-nlminbwrap                        0.190        0   0.190          0         0
-nmkbw                             0.555        0   0.557          0         0
-nloptwrap.NLOPT_LN_NELDERMEAD     0.380        0   0.380          0         0
-nloptwrap.NLOPT_LN_BOBYQA         0.399        0   0.399          0         0
+bobyqa                            0.383        0   0.380          0         0
+Nelder_Mead                       1.518        0   1.513          0         0
+nlminbwrap                        0.504        0   0.504          0         0
+nmkbw                             0.867        0   0.872          0         0
+nloptwrap.NLOPT_LN_NELDERMEAD     0.827        0   0.831          0         0
+nloptwrap.NLOPT_LN_BOBYQA         0.380        0   0.383          0         0
 
 $feval
                        bobyqa                   Nelder_Mead 
@@ -1696,14 +1600,14 @@ attr(,"class")
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nested model comparison for fixed effect of Frequency under Maximum Likelihood (REML = FALSE)</span></span>
-<span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb90-3"><a href="#cb90-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb90-4"><a href="#cb90-4" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb90-5"><a href="#cb90-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb90-6"><a href="#cb90-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb90-7"><a href="#cb90-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Likelihood Ratio Test (Chisq test on deviance difference)</span></span>
-<span id="cb90-8"><a href="#cb90-8" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nested model comparison for fixed effect of Frequency under Maximum Likelihood (REML = FALSE)</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Likelihood Ratio Test (Chisq test on deviance difference)</span></span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Data: lexdec
@@ -1724,15 +1628,15 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics</span></span>
-<span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics</span></span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb94"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># R2 for Mixed Models
@@ -1766,19 +1670,19 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb96"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract clean parameter table with Satterthwaite degrees of freedom</span></span>
-<span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>model_params <span class="ot">&lt;-</span> <span class="fu">model_parameters</span>(</span>
-<span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>  m_parsimonious,</span>
-<span id="cb96-4"><a href="#cb96-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci =</span> <span class="fl">0.95</span>,</span>
-<span id="cb96-5"><a href="#cb96-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">effects =</span> <span class="st">"all"</span></span>
-<span id="cb96-6"><a href="#cb96-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb96-7"><a href="#cb96-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-8"><a href="#cb96-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Format into clean publication-ready table</span></span>
-<span id="cb96-9"><a href="#cb96-9" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
-<span id="cb96-10"><a href="#cb96-10" aria-hidden="true" tabindex="-1"></a>  model_params,</span>
-<span id="cb96-11"><a href="#cb96-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb96-12"><a href="#cb96-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Table 1: Fixed and Random Parameter Estimates for Parsimonious Reaction Time LMM"</span></span>
-<span id="cb96-13"><a href="#cb96-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract clean parameter table with Satterthwaite degrees of freedom</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>model_params <span class="ot">&lt;-</span> <span class="fu">model_parameters</span>(</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>  m_parsimonious,</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci =</span> <span class="fl">0.95</span>,</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">effects =</span> <span class="st">"all"</span></span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Format into clean publication-ready table</span></span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>  model_params,</span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Table 1: Fixed and Random Parameter Estimates for Parsimonious Reaction Time LMM"</span></span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1963,62 +1867,62 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
-<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper formatting functions for dynamic APA/Linguistics reporting</span></span>
-<span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
-<span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a>fmt_p <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
-<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(p)) <span class="fu">return</span>(<span class="st">"NA"</span>)</span>
-<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (p <span class="sc">&lt;</span> .<span class="dv">001</span>) <span class="st">"&lt; .001"</span> <span class="cf">else</span> <span class="fu">paste0</span>(<span class="st">"= "</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, p))</span>
-<span id="cb97-7"><a href="#cb97-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb97-8"><a href="#cb97-8" aria-hidden="true" tabindex="-1"></a>fmt_b   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x)</span>
-<span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a>fmt_t   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, x)</span>
-<span id="cb97-10"><a href="#cb97-10" aria-hidden="true" tabindex="-1"></a>fmt_df  <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x)</span>
-<span id="cb97-11"><a href="#cb97-11" aria-hidden="true" tabindex="-1"></a>fmt_pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%"</span>)</span>
-<span id="cb97-12"><a href="#cb97-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-13"><a href="#cb97-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic software environment versions</span></span>
-<span id="cb97-14"><a href="#cb97-14" aria-hidden="true" tabindex="-1"></a>r_ver        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, R.version<span class="sc">$</span>major, <span class="st">"."</span>, R.version<span class="sc">$</span>minor)</span>
-<span id="cb97-15"><a href="#cb97-15" aria-hidden="true" tabindex="-1"></a>lme4_ver     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lme4"</span>))</span>
-<span id="cb97-16"><a href="#cb97-16" aria-hidden="true" tabindex="-1"></a>lmertest_ver <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lmerTest"</span>))</span>
-<span id="cb97-17"><a href="#cb97-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-18"><a href="#cb97-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed effects extraction from lmerTest Satterthwaite summary</span></span>
-<span id="cb97-19"><a href="#cb97-19" aria-hidden="true" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(m_parsimonious))</span>
-<span id="cb97-20"><a href="#cb97-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-21"><a href="#cb97-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Lexical Frequency</span></span>
-<span id="cb97-22"><a href="#cb97-22" aria-hidden="true" tabindex="-1"></a>b_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb97-23"><a href="#cb97-23" aria-hidden="true" tabindex="-1"></a>se_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb97-24"><a href="#cb97-24" aria-hidden="true" tabindex="-1"></a>df_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"df"</span>])</span>
-<span id="cb97-25"><a href="#cb97-25" aria-hidden="true" tabindex="-1"></a>t_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb97-26"><a href="#cb97-26" aria-hidden="true" tabindex="-1"></a>p_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb97-27"><a href="#cb97-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-28"><a href="#cb97-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Word Length</span></span>
-<span id="cb97-29"><a href="#cb97-29" aria-hidden="true" tabindex="-1"></a>b_len    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb97-30"><a href="#cb97-30" aria-hidden="true" tabindex="-1"></a>se_len   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb97-31"><a href="#cb97-31" aria-hidden="true" tabindex="-1"></a>df_len   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"df"</span>])</span>
-<span id="cb97-32"><a href="#cb97-32" aria-hidden="true" tabindex="-1"></a>t_len    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb97-33"><a href="#cb97-33" aria-hidden="true" tabindex="-1"></a>p_len    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb97-34"><a href="#cb97-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-35"><a href="#cb97-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Native Language</span></span>
-<span id="cb97-36"><a href="#cb97-36" aria-hidden="true" tabindex="-1"></a>b_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb97-37"><a href="#cb97-37" aria-hidden="true" tabindex="-1"></a>se_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb97-38"><a href="#cb97-38" aria-hidden="true" tabindex="-1"></a>df_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"df"</span>])</span>
-<span id="cb97-39"><a href="#cb97-39" aria-hidden="true" tabindex="-1"></a>t_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb97-40"><a href="#cb97-40" aria-hidden="true" tabindex="-1"></a>p_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb97-41"><a href="#cb97-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-42"><a href="#cb97-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimated Marginal Means (emmeans)</span></span>
-<span id="cb97-43"><a href="#cb97-43" aria-hidden="true" tabindex="-1"></a>emm_df       <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(emm_native)</span>
-<span id="cb97-44"><a href="#cb97-44" aria-hidden="true" tabindex="-1"></a>emm_eng_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>])</span>
-<span id="cb97-45"><a href="#cb97-45" aria-hidden="true" tabindex="-1"></a>emm_eng_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
-<span id="cb97-46"><a href="#cb97-46" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]))</span>
-<span id="cb97-47"><a href="#cb97-47" aria-hidden="true" tabindex="-1"></a>emm_oth_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>])</span>
-<span id="cb97-48"><a href="#cb97-48" aria-hidden="true" tabindex="-1"></a>emm_oth_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
-<span id="cb97-49"><a href="#cb97-49" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]))</span>
-<span id="cb97-50"><a href="#cb97-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-51"><a href="#cb97-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Nakagawa R-squared metrics</span></span>
-<span id="cb97-52"><a href="#cb97-52" aria-hidden="true" tabindex="-1"></a>r2_vals  <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_parsimonious)</span>
-<span id="cb97-53"><a href="#cb97-53" aria-hidden="true" tabindex="-1"></a>r2_m_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
-<span id="cb97-54"><a href="#cb97-54" aria-hidden="true" tabindex="-1"></a>r2_c_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_conditional)</span>
-<span id="cb97-55"><a href="#cb97-55" aria-hidden="true" tabindex="-1"></a>r2_m_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
-<span id="cb97-56"><a href="#cb97-56" aria-hidden="true" tabindex="-1"></a>r2_c_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_conditional)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper formatting functions for dynamic APA/Linguistics reporting</span></span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>fmt_p <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(p)) <span class="fu">return</span>(<span class="st">"NA"</span>)</span>
+<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (p <span class="sc">&lt;</span> .<span class="dv">001</span>) <span class="st">"&lt; .001"</span> <span class="cf">else</span> <span class="fu">paste0</span>(<span class="st">"= "</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, p))</span>
+<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>fmt_b   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x)</span>
+<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>fmt_t   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, x)</span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>fmt_df  <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x)</span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>fmt_pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%"</span>)</span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic software environment versions</span></span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>r_ver        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, R.version<span class="sc">$</span>major, <span class="st">"."</span>, R.version<span class="sc">$</span>minor)</span>
+<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>lme4_ver     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lme4"</span>))</span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>lmertest_ver <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lmerTest"</span>))</span>
+<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed effects extraction from lmerTest Satterthwaite summary</span></span>
+<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(m_parsimonious))</span>
+<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Lexical Frequency</span></span>
+<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>b_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>se_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>df_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"df"</span>])</span>
+<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>t_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>p_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-28"><a href="#cb81-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Word Length</span></span>
+<span id="cb81-29"><a href="#cb81-29" aria-hidden="true" tabindex="-1"></a>b_len    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb81-30"><a href="#cb81-30" aria-hidden="true" tabindex="-1"></a>se_len   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb81-31"><a href="#cb81-31" aria-hidden="true" tabindex="-1"></a>df_len   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"df"</span>])</span>
+<span id="cb81-32"><a href="#cb81-32" aria-hidden="true" tabindex="-1"></a>t_len    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb81-33"><a href="#cb81-33" aria-hidden="true" tabindex="-1"></a>p_len    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb81-34"><a href="#cb81-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-35"><a href="#cb81-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Native Language</span></span>
+<span id="cb81-36"><a href="#cb81-36" aria-hidden="true" tabindex="-1"></a>b_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb81-37"><a href="#cb81-37" aria-hidden="true" tabindex="-1"></a>se_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb81-38"><a href="#cb81-38" aria-hidden="true" tabindex="-1"></a>df_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"df"</span>])</span>
+<span id="cb81-39"><a href="#cb81-39" aria-hidden="true" tabindex="-1"></a>t_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb81-40"><a href="#cb81-40" aria-hidden="true" tabindex="-1"></a>p_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb81-41"><a href="#cb81-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-42"><a href="#cb81-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimated Marginal Means (emmeans)</span></span>
+<span id="cb81-43"><a href="#cb81-43" aria-hidden="true" tabindex="-1"></a>emm_df       <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(emm_native)</span>
+<span id="cb81-44"><a href="#cb81-44" aria-hidden="true" tabindex="-1"></a>emm_eng_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>])</span>
+<span id="cb81-45"><a href="#cb81-45" aria-hidden="true" tabindex="-1"></a>emm_eng_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
+<span id="cb81-46"><a href="#cb81-46" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]))</span>
+<span id="cb81-47"><a href="#cb81-47" aria-hidden="true" tabindex="-1"></a>emm_oth_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>])</span>
+<span id="cb81-48"><a href="#cb81-48" aria-hidden="true" tabindex="-1"></a>emm_oth_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
+<span id="cb81-49"><a href="#cb81-49" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]))</span>
+<span id="cb81-50"><a href="#cb81-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-51"><a href="#cb81-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Nakagawa R-squared metrics</span></span>
+<span id="cb81-52"><a href="#cb81-52" aria-hidden="true" tabindex="-1"></a>r2_vals  <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_parsimonious)</span>
+<span id="cb81-53"><a href="#cb81-53" aria-hidden="true" tabindex="-1"></a>r2_m_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb81-54"><a href="#cb81-54" aria-hidden="true" tabindex="-1"></a>r2_c_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_conditional)</span>
+<span id="cb81-55"><a href="#cb81-55" aria-hidden="true" tabindex="-1"></a>r2_m_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb81-56"><a href="#cb81-56" aria-hidden="true" tabindex="-1"></a>r2_c_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_conditional)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>

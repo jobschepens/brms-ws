@@ -245,6 +245,12 @@ cat("\nIs resolved model singular?", isSingular(m_resolved), "\n")
 print(summary(m_resolved))
 ```
 
+`performance::check_model()` gives a visual overview of the resolved model: linearity, homogeneity of variance, posterior predictive fit, influential observations, collinearity, and normality of the residuals and of the random effects.
+
+```{r performance-check-resolved, fig.width=10, fig.height=12}
+check_model(m_resolved)
+```
+
 ------------------------------------------------------------------------
 
 # Module 2: GLMMs, Dative Alternation & DHARMa
@@ -356,8 +362,14 @@ testZeroInflation(sim_dative)
 
 `check_model()` adds a broader visual overview. With `residual_type = "normal"`, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM or CLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check.
 
-```{r performance-check-dative, fig.width=10, fig.height=9}
-check_model(m_dative, type = "discrete_interval", residual_type = "normal")
+```{r performance-check-dative, fig.width=10, fig.height=12}
+# The default influential-observation panel fails for glmer fits and blanks the whole figure
+check_model(
+  m_dative,
+  type = "discrete_interval",
+  residual_type = "normal",
+  check = c("vif", "qq", "homogeneity", "reqq", "pp_check", "binned_residuals")
+)
 ```
 
 ## 2.4 Autocorrelation 
