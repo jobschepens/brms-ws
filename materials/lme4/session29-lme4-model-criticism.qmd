@@ -53,11 +53,21 @@ Diagnosing Generalized Linear Mixed Models (GLMMs) is difficult because raw, Pea
 
 ## 3. Ben Bolker’s Convergence Tooling & glmmTMB (continuously updated)
 
-As lead maintainer of `lme4`, Ben Bolker helped develop tools for investigating optimization warnings [@bolker2009generalized]. Relevant tools include: - `lme4::allFit()`: Benchmarking models across multiple derivative-free optimizers to detect false-positive convergence warnings. - `lme4::isSingular()`: Mathematical boundary checking based on Cholesky factor singular values. - `glmmTMB` [@brooks2017glmmtmb]: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures. - `trouBBlme4SolveR`: Automated diagnostic routines to resolve boundary singularities.
+As lead maintainer of `lme4`, Ben Bolker helped develop tools for investigating optimization warnings [@bolker2009generalized]. Relevant tools include:  
+
+- `lme4::allFit()`: Benchmarking models across multiple derivative-free optimizers to detect false-positive convergence warnings. 
+- `lme4::isSingular()`: Mathematical boundary checking based on Cholesky factor singular values. 
+- `glmmTMB` [@brooks2017glmmtmb]: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures. 
+- `trouBBlme4SolveR`: Automated diagnostic routines to resolve boundary singularities.
 
 ## 4. Model Checks with `easystats` (2020)
 
-The `easystats` packages [@ludecke2021performance] provide tools for model diagnostics and summaries: - `performance::check_model()`: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. Note: also see the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html) for Bayesian alternatives. - `performance::r2_nakagawa()`: Estimates marginal and conditional $R^2$ [@nakagawa2013general].
+The `easystats` packages [@ludecke2021performance] provide tools for model diagnostics and summaries:  
+
+- `performance::check_model()`: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. 
+- `performance::r2_nakagawa()`: Estimates marginal and conditional $R^2$ [@nakagawa2013general].
+
+For Bayesian alternatives, see the [brms posterior predictive checks notebook](https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html).
 
 ## 5. Marginal Effects (2016)
 
@@ -192,7 +202,7 @@ Centered sum coding ($-0.5 / +0.5$) centers the intercept at the unweighted gran
 
 ## 1.2 A Maximal Model (Barr et al., 2013)
 
-According to @barr2013random, any factor varying within a grouping unit must have a corresponding random slope: - Within `Subject`: `Freq_z`, `Length_z` - Within `Word`: `Native_num`, `Sex_num`
+According to @barr2013random, any factor varying within a grouping unit must have a corresponding random slope.
 
 ```{r fit-maximal}
 # Fit maximal random-effects model (Barr et al., 2013)
@@ -452,7 +462,11 @@ plot(infl_word, which = "cook", cutoff = 4 / length(unique(lexdec$Word)),
 
 Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g. acceptability, semantic size, prototypicality). Some analyses treat 1–7 Likert ratings as metric Gaussian variables using `lme4::lmer()`.
 
-This approach has three limitations: 1. **Bounded Support**: Data are bounded at 1 and 7 (floor/ceiling distortions). 2. **Non-Interval Metric**: The cognitive distance between "1" and "2" is not guaranteed to equal the distance between "4" and "5". 3. **Discrete Latent Thresholds**: Responses reflect an underlying continuous latent variable $Y^*$ partitioned by cutpoints $\theta_1 < \theta_2 < \dots < \theta_{K-1}$.
+This approach has three limitations:
+
+1. **Bounded support**: Data are bounded at 1 and 7, which can create floor or ceiling effects.
+2. **Non-interval metric**: The distance between adjacent ratings is not guaranteed to be equal.
+3. **Discrete latent thresholds**: Responses reflect an underlying continuous variable $Y^*$ divided by cutpoints $\theta_1 < \theta_2 < \dots < \theta_{K-1}$.
 
 ## 4.2 Likert Data
 
@@ -669,7 +683,10 @@ anova(m_null_ml, m_full_ml)
 
 ## 6.4 Variance Partitioning: Nakagawa’s $R^2$
 
-For mixed models, standard $R^2$ does not apply. Nakagawa & Schielzeth (2013) partition variance into: - **Marginal** $R^2_m$: Proportion of variance explained by **fixed effects alone**. - **Conditional** $R^2_c$: Proportion of variance explained by **both fixed and random effects** (total model variance).
+For mixed models, standard $R^2$ does not apply. Nakagawa and Schielzeth (2013) partition variance into:
+
+- **Marginal $R^2_m$**: Proportion of variance explained by fixed effects alone.
+- **Conditional $R^2_c$**: Proportion of variance explained by fixed and random effects together.
 
 ```{r nakagawa-r2}
 # Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics

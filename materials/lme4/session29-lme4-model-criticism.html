@@ -281,11 +281,22 @@ window.Quarto = {
 </section>
 <section id="ben-bolkers-convergence-tooling-glmmtmb-continuously-updated" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="ben-bolkers-convergence-tooling-glmmtmb-continuously-updated"><span class="header-section-number">2.3</span> 3. Ben Bolker’s Convergence Tooling &amp; glmmTMB (continuously updated)</h2>
-<p>As lead maintainer of <code>lme4</code>, Ben Bolker helped develop tools for investigating optimization warnings <span class="citation" data-cites="bolker2009generalized">(<a href="#ref-bolker2009generalized" role="doc-biblioref">Bolker et al. 2009</a>)</span>. Relevant tools include: - <code>lme4::allFit()</code>: Benchmarking models across multiple derivative-free optimizers to detect false-positive convergence warnings. - <code>lme4::isSingular()</code>: Mathematical boundary checking based on Cholesky factor singular values. - <code>glmmTMB</code> <span class="citation" data-cites="brooks2017glmmtmb">(<a href="#ref-brooks2017glmmtmb" role="doc-biblioref">Brooks et al. 2017</a>)</span>: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures. - <code>trouBBlme4SolveR</code>: Automated diagnostic routines to resolve boundary singularities.</p>
+<p>As lead maintainer of <code>lme4</code>, Ben Bolker helped develop tools for investigating optimization warnings <span class="citation" data-cites="bolker2009generalized">(<a href="#ref-bolker2009generalized" role="doc-biblioref">Bolker et al. 2009</a>)</span>. Relevant tools include:</p>
+<ul>
+<li><code>lme4::allFit()</code>: Benchmarking models across multiple derivative-free optimizers to detect false-positive convergence warnings.</li>
+<li><code>lme4::isSingular()</code>: Mathematical boundary checking based on Cholesky factor singular values.</li>
+<li><code>glmmTMB</code> <span class="citation" data-cites="brooks2017glmmtmb">(<a href="#ref-brooks2017glmmtmb" role="doc-biblioref">Brooks et al. 2017</a>)</span>: Flexible template-model-builder architecture handling complex dispersion, zero-inflation, and spatial/temporal autocorrelation structures.</li>
+<li><code>trouBBlme4SolveR</code>: Automated diagnostic routines to resolve boundary singularities.</li>
+</ul>
 </section>
 <section id="model-checks-with-easystats-2020" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="model-checks-with-easystats-2020"><span class="header-section-number">2.4</span> 4. Model Checks with <code>easystats</code> (2020)</h2>
-<p>The <code>easystats</code> packages <span class="citation" data-cites="ludecke2021performance">(<a href="#ref-ludecke2021performance" role="doc-biblioref">Lüdecke et al. 2021</a>)</span> provide tools for model diagnostics and summaries: - <code>performance::check_model()</code>: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality. Note: also see the <a href="https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html">brms posterior predictive checks notebook</a> for Bayesian alternatives. - <code>performance::r2_nakagawa()</code>: Estimates marginal and conditional <span class="math inline">\(R^2\)</span> <span class="citation" data-cites="nakagawa2013general">(<a href="#ref-nakagawa2013general" role="doc-biblioref">Nakagawa and Schielzeth 2013</a>)</span>.</p>
+<p>The <code>easystats</code> packages <span class="citation" data-cites="ludecke2021performance">(<a href="#ref-ludecke2021performance" role="doc-biblioref">Lüdecke et al. 2021</a>)</span> provide tools for model diagnostics and summaries:</p>
+<ul>
+<li><code>performance::check_model()</code>: A visual overview covering linearity, homoscedasticity, posterior predictive checks, collinearity, and random-effect normality.</li>
+<li><code>performance::r2_nakagawa()</code>: Estimates marginal and conditional <span class="math inline">\(R^2\)</span> <span class="citation" data-cites="nakagawa2013general">(<a href="#ref-nakagawa2013general" role="doc-biblioref">Nakagawa and Schielzeth 2013</a>)</span>.</li>
+</ul>
+<p>For Bayesian alternatives, see the <a href="https://jobschepens.github.io/brms-ws/03_posterior_predictive_checks_rt.html">brms posterior predictive checks notebook</a>.</p>
 </section>
 <section id="marginal-effects-2016" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="marginal-effects-2016"><span class="header-section-number">2.5</span> 5. Marginal Effects (2016)</h2>
@@ -539,7 +550,7 @@ $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -
 </section>
 <section id="a-maximal-model-barr-et-al.-2013" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="a-maximal-model-barr-et-al.-2013"><span class="header-section-number">5.2</span> 1.2 A Maximal Model (Barr et al., 2013)</h2>
-<p>According to <span class="citation" data-cites="barr2013random">Barr et al. (<a href="#ref-barr2013random" role="doc-biblioref">2013</a>)</span>, any factor varying within a grouping unit must have a corresponding random slope: - Within <code>Subject</code>: <code>Freq_z</code>, <code>Length_z</code> - Within <code>Word</code>: <code>Native_num</code>, <code>Sex_num</code></p>
+<p>According to <span class="citation" data-cites="barr2013random">Barr et al. (<a href="#ref-barr2013random" role="doc-biblioref">2013</a>)</span>, any factor varying within a grouping unit must have a corresponding random slope.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
@@ -1136,7 +1147,12 @@ I  -0.36801204 -0.042378823  0.09973766 -0.56756922</code></pre>
 <section id="likert-ratings" class="level2" data-number="8.1">
 <h2 data-number="8.1" class="anchored" data-anchor-id="likert-ratings"><span class="header-section-number">8.1</span> 4.1 Likert Ratings</h2>
 <p>Linguistic experiments frequently collect ordinal ratings on Likert scales (e.g.&nbsp;acceptability, semantic size, prototypicality). Some analyses treat 1–7 Likert ratings as metric Gaussian variables using <code>lme4::lmer()</code>.</p>
-<p>This approach has three limitations: 1. <strong>Bounded Support</strong>: Data are bounded at 1 and 7 (floor/ceiling distortions). 2. <strong>Non-Interval Metric</strong>: The cognitive distance between “1” and “2” is not guaranteed to equal the distance between “4” and “5”. 3. <strong>Discrete Latent Thresholds</strong>: Responses reflect an underlying continuous latent variable <span class="math inline">\(Y^*\)</span> partitioned by cutpoints <span class="math inline">\(\theta_1 &lt; \theta_2 &lt; \dots &lt; \theta_{K-1}\)</span>.</p>
+<p>This approach has three limitations:</p>
+<ol type="1">
+<li><strong>Bounded support</strong>: Data are bounded at 1 and 7, which can create floor or ceiling effects.</li>
+<li><strong>Non-interval metric</strong>: The distance between adjacent ratings is not guaranteed to be equal.</li>
+<li><strong>Discrete latent thresholds</strong>: Responses reflect an underlying continuous variable <span class="math inline">\(Y^*\)</span> divided by cutpoints <span class="math inline">\(\theta_1 &lt; \theta_2 &lt; \dots &lt; \theta_{K-1}\)</span>.</li>
+</ol>
 </section>
 <section id="likert-data" class="level2" data-number="8.2">
 <h2 data-number="8.2" class="anchored" data-anchor-id="likert-data"><span class="header-section-number">8.2</span> 4.2 Likert Data</h2>
@@ -1639,7 +1655,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </section>
 <section id="variance-partitioning-nakagawas-r2" class="level2" data-number="10.4">
 <h2 data-number="10.4" class="anchored" data-anchor-id="variance-partitioning-nakagawas-r2"><span class="header-section-number">10.4</span> 6.4 Variance Partitioning: Nakagawa’s <span class="math inline">\(R^2\)</span></h2>
-<p>For mixed models, standard <span class="math inline">\(R^2\)</span> does not apply. Nakagawa &amp; Schielzeth (2013) partition variance into: - <strong>Marginal</strong> <span class="math inline">\(R^2_m\)</span>: Proportion of variance explained by <strong>fixed effects alone</strong>. - <strong>Conditional</strong> <span class="math inline">\(R^2_c\)</span>: Proportion of variance explained by <strong>both fixed and random effects</strong> (total model variance).</p>
+<p>For mixed models, standard <span class="math inline">\(R^2\)</span> does not apply. Nakagawa and Schielzeth (2013) partition variance into:</p>
+<ul>
+<li><strong>Marginal <span class="math inline">\(R^2_m\)</span></strong>: Proportion of variance explained by fixed effects alone.</li>
+<li><strong>Conditional <span class="math inline">\(R^2_c\)</span></strong>: Proportion of variance explained by fixed and random effects together.</li>
+</ul>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
