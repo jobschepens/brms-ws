@@ -146,7 +146,13 @@ Mixed-effects models relax the rigid balanced-design and sphericity assumptions 
 - **Interaction operator `:`**: `(1 | Subject:Word)` gives a random intercept for each observed Subject-Word pairing; use it when pair-specific variation is part of the design.
 - **Correlated random intercept and slope**: `(1 + x | Subject)` estimates their correlation as well as their variances.
 - **Slope without an intercept**: `(0 + x | Subject)` estimates a subject-specific slope for `x` without a subject-specific intercept; `0 +` removes the intercept term.
-- **Uncorrelated random intercept and slope**: For numeric `x`, `(1 + x || Subject)` expands to `(1 | Subject) + (0 + x | Subject)`, fitting the terms without their correlation.
+- **Uncorrelated random intercept and slope**: For numeric `x`, `(1 + x || Subject)` expands to `(1 | Subject) + (0 + x | Subject)`, fitting the terms without their correlation. Compare `(1 + x | Subject)` (3 parameters) with `(1 + x || Subject)` (2 parameters). Fewer parameters make a singular fit less likely, but the model then assumes, for example, that subjects with slow baselines are no more or less sensitive to `x` than others.
+- **`diag()`**: the name of the same idea in `glmmTMB`, where a covariance structure is written as a function around the term: `diag(1 + x | Subject)` means a *diagonal* covariance matrix (variances only, zero correlations). Other choices there include `us()` (unstructured, the default `|`), `cs()` (compound symmetry), and `ar1()` (autoregressive). Plain `lme4` has no `diag()`; there the double bar is the only shorthand for this structure.
+
+::: {.callout-warning}
+## Caveat for factor predictors
+`||` only removes the correlations reliably for numeric predictors. If `x` is a factor with more than two levels, `lme4` splits the term before it creates the dummy (contrast) columns, so the columns of the factor can stay correlated with each other. For factors, first create numeric contrast columns (as done below with `Native_num` and `Sex_num`) and use those inside `||`, or write out the separate `(0 + ... | ...)` terms.
+:::
 
 We prepare `languageR::lexdec` [@baayen2006morphological], standardizing continuous predictors to optimize numerical conditioning and applying **centered sum contrast coding** ($-0.5 / +0.5$) to categorical factors [@schad2020contrast]:
 
