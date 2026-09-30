@@ -360,7 +360,7 @@ testDispersion(sim_dative)
 testZeroInflation(sim_dative)
 ```
 
-`check_model()` adds a broader visual overview. With `residual_type = "normal"`, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM or CLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check.
+`check_model()` adds a broader visual overview. With `residual_type = "normal"`, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check. The influential-observations panel is left out because it fails for `glmer` fits.
 
 ```{r performance-check-dative, fig.width=10, fig.height=12}
 # The default influential-observation panel fails for glmer fits and blanks the whole figure
@@ -493,16 +493,6 @@ summary(m_clmm)
 ```
 
 The model estimates the fixed effect of semantic class alongside the 6 latent cutpoints ($\theta_{1|2}$ through $\theta_{6|7}$), properly preserving ordinal geometry.
-
-```{r performance-check-clmm, fig.width=9, fig.height=6}
-clmm_checks <- check_model(
-  m_clmm,
-  type = "discrete_interval",
-  residual_type = "normal",
-  panel = FALSE
-)
-for (check_plot in clmm_checks) print(check_plot)
-```
 
 ------------------------------------------------------------------------
 

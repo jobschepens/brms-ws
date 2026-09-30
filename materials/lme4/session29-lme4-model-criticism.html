@@ -689,6 +689,20 @@ Native_num  0.158  0.009 -0.127
 Sex_num     0.252  0.000  0.000  0.196</code></pre>
 </div>
 </div>
+<p><code>performance::check_model()</code> gives a visual overview of the resolved model: linearity, homogeneity of variance, posterior predictive fit, influential observations, collinearity, and normality of the residuals and of the random effects.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="session29-lme4-model-criticism_files/figure-html/performance-check-resolved-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
 <hr>
 </section>
 </section>
@@ -700,28 +714,28 @@ Sex_num     0.252  0.000  0.000  0.196</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parsimonious random-effects model (Bates et al., 2015)</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Retains subject-level frequency slope; prunes overparameterized item slopes</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>m_parsimonious <span class="ot">&lt;-</span> <span class="fu">lmer</span>(</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> Freq_z <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> lexdec</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parsimonious random-effects model (Bates et al., 2015)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Retains subject-level frequency slope; prunes overparameterized item slopes</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>m_parsimonious <span class="ot">&lt;-</span> <span class="fu">lmer</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">+</span> Freq_z <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> lexdec</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Classical diagnostic plots for Gaussian LMM:</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Left: Normal Q-Q plot to assess residual normality (epsilon ~ N(0, sigma^2))</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Right: Residuals vs. Fitted to assess homoscedasticity and linearity</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">residuals</span>(m_parsimonious), <span class="at">main =</span> <span class="st">"Normal Q-Q Plot (Raw Residuals)"</span>)</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">residuals</span>(m_parsimonious), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(m_parsimonious), <span class="fu">residuals</span>(m_parsimonious),</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Fitted Values (log RT)"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>,</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Residuals vs. Fitted"</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">col =</span> <span class="fu">rgb</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">0.2</span>))</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Classical diagnostic plots for Gaussian LMM:</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Left: Normal Q-Q plot to assess residual normality (epsilon ~ N(0, sigma^2))</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Right: Residuals vs. Fitted to assess homoscedasticity and linearity</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">residuals</span>(m_parsimonious), <span class="at">main =</span> <span class="st">"Normal Q-Q Plot (Raw Residuals)"</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">residuals</span>(m_parsimonious), <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(m_parsimonious), <span class="fu">residuals</span>(m_parsimonious),</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Fitted Values (log RT)"</span>, <span class="at">ylab =</span> <span class="st">"Residuals"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Residuals vs. Fitted"</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">col =</span> <span class="fu">rgb</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">0.2</span>))</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -732,7 +746,7 @@ Sex_num     0.252  0.000  0.000  0.196</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p><strong>How to read these plots</strong></p>
@@ -750,20 +764,20 @@ Sex_num     0.252  0.000  0.000  0.196</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized residuals: |z| &gt; 2.5 flags unusually slow or fast trials</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>res_std <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(<span class="fu">residuals</span>(m_parsimonious)))</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>extreme <span class="ot">&lt;-</span> <span class="fu">abs</span>(res_std) <span class="sc">&gt;</span> <span class="fl">2.5</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. How many extreme residuals?</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Extreme residuals:"</span>, <span class="fu">sum</span>(extreme), <span class="st">"of"</span>, <span class="fu">length</span>(res_std), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized residuals: |z| &gt; 2.5 flags unusually slow or fast trials</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>res_std <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(<span class="fu">residuals</span>(m_parsimonious)))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>extreme <span class="ot">&lt;-</span> <span class="fu">abs</span>(res_std) <span class="sc">&gt;</span> <span class="fl">2.5</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. How many extreme residuals?</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Extreme residuals:"</span>, <span class="fu">sum</span>(extreme), <span class="st">"of"</span>, <span class="fu">length</span>(res_std), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Extreme residuals: 36 of 1659 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Do they cluster in particular subjects or words?</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">sort</span>(<span class="fu">table</span>(lexdec<span class="sc">$</span>Subject[extreme]), <span class="at">decreasing =</span> <span class="cn">TRUE</span>), <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Do they cluster in particular subjects or words?</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">sort</span>(<span class="fu">table</span>(lexdec<span class="sc">$</span>Subject[extreme]), <span class="at">decreasing =</span> <span class="cn">TRUE</span>), <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -772,7 +786,7 @@ A1  I M2 R3 A2
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">sort</span>(<span class="fu">table</span>(lexdec<span class="sc">$</span>Word[extreme]), <span class="at">decreasing =</span> <span class="cn">TRUE</span>), <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">sort</span>(<span class="fu">table</span>(lexdec<span class="sc">$</span>Word[extreme]), <span class="at">decreasing =</span> <span class="cn">TRUE</span>), <span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -781,9 +795,9 @@ crocodile  hedgehog      leek    almond       ant
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Sensitivity refit without them: do the fixed effects change?</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>m_trimmed <span class="ot">&lt;-</span> <span class="fu">update</span>(m_parsimonious, <span class="at">data =</span> lexdec[<span class="sc">!</span>extreme, ])</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">cbind</span>(<span class="at">full =</span> <span class="fu">fixef</span>(m_parsimonious), <span class="at">trimmed =</span> <span class="fu">fixef</span>(m_trimmed)), <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Sensitivity refit without them: do the fixed effects change?</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>m_trimmed <span class="ot">&lt;-</span> <span class="fu">update</span>(m_parsimonious, <span class="at">data =</span> lexdec[<span class="sc">!</span>extreme, ])</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">cbind</span>(<span class="at">full =</span> <span class="fu">fixef</span>(m_parsimonious), <span class="at">trimmed =</span> <span class="fu">fixef</span>(m_trimmed)), <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>              full trimmed
@@ -807,16 +821,16 @@ Native_num   0.071   0.080</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Discrete Prominence GLMM: English Dative Alternation (Bresnan et al., 2007)</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Binary outcome: Realization of recipient as NP (double object) vs PP (prepositional)</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(dative)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>m_dative <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  RealizationOfRecipient <span class="sc">~</span> AnimacyOfRec <span class="sc">+</span> PronomOfRec <span class="sc">+</span> LengthOfTheme <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Verb),</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dative</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Discrete Prominence GLMM: English Dative Alternation (Bresnan et al., 2007)</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Binary outcome: Realization of recipient as NP (double object) vs PP (prepositional)</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(dative)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>m_dative <span class="ot">&lt;-</span> <span class="fu">glmer</span>(</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  RealizationOfRecipient <span class="sc">~</span> AnimacyOfRec <span class="sc">+</span> PronomOfRec <span class="sc">+</span> LengthOfTheme <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Verb),</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dative</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
@@ -857,12 +871,12 @@ LengthOfThm -0.305  0.004  0.279</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DHARMa: Simulate standardized quantile residuals via Probability Integral Transform (PIT)</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals are transformed to Uniform U(0, 1) under the null of correct specification</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>sim_dative <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> m_dative, <span class="at">n =</span> <span class="dv">500</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"># DHARMa 2-panel diagnostic plot: Uniform Q-Q plot and Residuals vs. Predicted with spline</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DHARMa: Simulate standardized quantile residuals via Probability Integral Transform (PIT)</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals are transformed to Uniform U(0, 1) under the null of correct specification</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>sim_dative <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> m_dative, <span class="at">n =</span> <span class="dv">500</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co"># DHARMa 2-panel diagnostic plot: Uniform Q-Q plot and Residuals vs. Predicted with spline</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -875,8 +889,8 @@ LengthOfThm -0.305  0.004  0.279</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Test overall uniformity (Kolmogorov-Smirnov test against U(0, 1))</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testUniformity</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Test overall uniformity (Kolmogorov-Smirnov test against U(0, 1))</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testUniformity</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -895,8 +909,8 @@ alternative hypothesis: two-sided</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Test for overdispersion or underdispersion relative to binomial theoretical variance</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testDispersion</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Test for overdispersion or underdispersion relative to binomial theoretical variance</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testDispersion</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -916,8 +930,8 @@ alternative hypothesis: two.sided</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Test for excess zeros (zero-inflation test)</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testZeroInflation</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Test for excess zeros (zero-inflation test)</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">testZeroInflation</span>(sim_dative)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -936,12 +950,25 @@ ratioObsSim = 0.99991, p-value = 0.98
 alternative hypothesis: two.sided</code></pre>
 </div>
 </div>
-<p><code>check_model()</code> adds a broader visual overview. With <code>residual_type = "normal"</code>, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM or CLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check.</p>
+<p><code>check_model()</code> adds a broader visual overview. With <code>residual_type = "normal"</code>, the residual Q-Q panel uses absolute standardized deviance residuals; it does not assume that GLMM residuals are normally distributed. The discrete interval style is used for the posterior predictive check. The influential-observations panel is left out because it fails for <code>glmer</code> fits.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(m_dative, <span class="at">type =</span> <span class="st">"discrete_interval"</span>, <span class="at">residual_type =</span> <span class="st">"normal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The default influential-observation panel fails for glmer fits and blanks the whole figure</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  m_dative,</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"discrete_interval"</span>,</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">residual_type =</span> <span class="st">"normal"</span>,</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">check =</span> <span class="fu">c</span>(<span class="st">"vif"</span>, <span class="st">"qq"</span>, <span class="st">"homogeneity"</span>, <span class="st">"reqq"</span>, <span class="st">"pp_check"</span>, <span class="st">"binned_residuals"</span>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="session29-lme4-model-criticism_files/figure-html/performance-check-dative-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="autocorrelation" class="level2" data-number="6.4">
@@ -950,15 +977,15 @@ alternative hypothesis: two.sided</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Simulate residuals for continuous reaction time model</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>sim_lexdec <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> m_parsimonious, <span class="at">n =</span> <span class="dv">250</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Recalculate and aggregate residuals across subjects per experimental trial</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (Avoids a non-unique time value error in repeated measures)</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>sim_trial <span class="ot">&lt;-</span> <span class="fu">recalculateResiduals</span>(sim_lexdec, <span class="at">group =</span> lexdec<span class="sc">$</span>Trial)</span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Formal Durbin-Watson / Moran's I test on aggregated trial time series</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="fu">testTemporalAutocorrelation</span>(sim_trial, <span class="at">time =</span> <span class="fu">unique</span>(lexdec<span class="sc">$</span>Trial))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Simulate residuals for continuous reaction time model</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>sim_lexdec <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> m_parsimonious, <span class="at">n =</span> <span class="dv">250</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Recalculate and aggregate residuals across subjects per experimental trial</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (Avoids a non-unique time value error in repeated measures)</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>sim_trial <span class="ot">&lt;-</span> <span class="fu">recalculateResiduals</span>(sim_lexdec, <span class="at">group =</span> lexdec<span class="sc">$</span>Trial)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Formal Durbin-Watson / Moran's I test on aggregated trial time series</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="fu">testTemporalAutocorrelation</span>(sim_trial, <span class="at">time =</span> <span class="fu">unique</span>(lexdec<span class="sc">$</span>Trial))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -977,9 +1004,9 @@ alternative hypothesis: true autocorrelation is not 0</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Individual participant autocorrelation function (ACF) for subject A1</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>res_a1 <span class="ot">&lt;-</span> <span class="fu">residuals</span>(m_parsimonious)[lexdec<span class="sc">$</span>Subject <span class="sc">==</span> <span class="st">"A1"</span>]</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">acf</span>(res_a1, <span class="at">main =</span> <span class="st">"Residual Autocorrelation (Subject A1)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Individual participant autocorrelation function (ACF) for subject A1</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>res_a1 <span class="ot">&lt;-</span> <span class="fu">residuals</span>(m_parsimonious)[lexdec<span class="sc">$</span>Subject <span class="sc">==</span> <span class="st">"A1"</span>]</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">acf</span>(res_a1, <span class="at">main =</span> <span class="st">"Residual Autocorrelation (Subject A1)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1000,11 +1027,11 @@ alternative hypothesis: true autocorrelation is not 0</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check multicollinearity using Variance Inflation Factors (VIF)</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co"># VIF measures how much predictor variance is inflated due to collinearity with other predictors</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Rule of thumb: VIF &lt; 5 is usually acceptable; VIF &gt; 10 indicates strong collinearity</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>vif_results <span class="ot">&lt;-</span> <span class="fu">check_collinearity</span>(m_parsimonious)</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(vif_results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check multicollinearity using Variance Inflation Factors (VIF)</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co"># VIF measures how much predictor variance is inflated due to collinearity with other predictors</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Rule of thumb: VIF &lt; 5 is usually acceptable; VIF &gt; 10 indicates strong collinearity</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>vif_results <span class="ot">&lt;-</span> <span class="fu">check_collinearity</span>(m_parsimonious)</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(vif_results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># Check for Multicollinearity
@@ -1018,7 +1045,7 @@ Low Correlation
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(vif_results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(vif_results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1035,10 +1062,10 @@ Low Correlation
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Multi-panel model check from easystats:</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Generates 6 diagnostic panels: Linearity, Homoscedasticity, Posterior Predictive Checks,</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residual Normality, BLUP Random Effect Normality, and Multicollinearity (VIF)</span></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Multi-panel model check from easystats:</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Generates 6 diagnostic panels: Linearity, Homoscedasticity, Posterior Predictive Checks,</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Residual Normality, BLUP Random Effect Normality, and Multicollinearity (VIF)</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(m_parsimonious)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1055,11 +1082,11 @@ Low Correlation
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Subject-level Cook's Distance via iterative cluster deletion (influence.ME)</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark threshold for influential clusters: 4 / N_clusters</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>infl_subj <span class="ot">&lt;-</span> <span class="fu">influence</span>(m_parsimonious, <span class="at">group =</span> <span class="st">"Subject"</span>, <span class="at">count =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(infl_subj, <span class="at">which =</span> <span class="st">"cook"</span>, <span class="at">cutoff =</span> <span class="dv">4</span> <span class="sc">/</span> <span class="fu">length</span>(<span class="fu">unique</span>(lexdec<span class="sc">$</span>Subject)),</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Subject-Level Cook's Distance (lexdec)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Subject-level Cook's Distance via iterative cluster deletion (influence.ME)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Benchmark threshold for influential clusters: 4 / N_clusters</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>infl_subj <span class="ot">&lt;-</span> <span class="fu">influence</span>(m_parsimonious, <span class="at">group =</span> <span class="st">"Subject"</span>, <span class="at">count =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(infl_subj, <span class="at">which =</span> <span class="st">"cook"</span>, <span class="at">cutoff =</span> <span class="dv">4</span> <span class="sc">/</span> <span class="fu">length</span>(<span class="fu">unique</span>(lexdec<span class="sc">$</span>Subject)),</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Subject-Level Cook's Distance (lexdec)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1070,10 +1097,10 @@ Low Correlation
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract standardized parameter changes upon cluster deletion (DFBETAS)</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Measures how many standard errors each fixed effect moves when a subject is dropped</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>dfbetas_subj <span class="ot">&lt;-</span> <span class="fu">dfbetas</span>(infl_subj)</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dfbetas_subj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract standardized parameter changes upon cluster deletion (DFBETAS)</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Measures how many standard errors each fixed effect moves when a subject is dropped</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>dfbetas_subj <span class="ot">&lt;-</span> <span class="fu">dfbetas</span>(infl_subj)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dfbetas_subj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>   (Intercept)       Freq_z    Length_z  Native_num
@@ -1088,10 +1115,10 @@ I  -0.36801204 -0.042378823  0.09973766 -0.56756922</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Word-level Cook's Distance (Item outliers across the 79 stimulus words)</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>infl_word <span class="ot">&lt;-</span> <span class="fu">influence</span>(m_parsimonious, <span class="at">group =</span> <span class="st">"Word"</span>, <span class="at">count =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(infl_word, <span class="at">which =</span> <span class="st">"cook"</span>, <span class="at">cutoff =</span> <span class="dv">4</span> <span class="sc">/</span> <span class="fu">length</span>(<span class="fu">unique</span>(lexdec<span class="sc">$</span>Word)),</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Word-Level Cook's Distance (Items)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Word-level Cook's Distance (Item outliers across the 79 stimulus words)</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>infl_word <span class="ot">&lt;-</span> <span class="fu">influence</span>(m_parsimonious, <span class="at">group =</span> <span class="st">"Word"</span>, <span class="at">count =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(infl_word, <span class="at">which =</span> <span class="st">"cook"</span>, <span class="at">cutoff =</span> <span class="dv">4</span> <span class="sc">/</span> <span class="fu">length</span>(<span class="fu">unique</span>(lexdec<span class="sc">$</span>Word)),</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Word-Level Cook's Distance (Items)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1117,14 +1144,14 @@ I  -0.36801204 -0.042378823  0.09973766 -0.56756922</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(sizeRatings)</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Naive Gaussian LMM: treating discrete 1-7 Likert ratings as metric Gaussian variable</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>m_naive_likert <span class="ot">&lt;-</span> <span class="fu">lmer</span>(Rating <span class="sc">~</span> Class <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word), <span class="at">data =</span> sizeRatings)</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. DHARMa diagnostic simulation: checks for floor/ceiling S-shaped quantile distortion</span></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>sim_naive <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(m_naive_likert, <span class="at">n =</span> <span class="dv">250</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim_naive)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(sizeRatings)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Naive Gaussian LMM: treating discrete 1-7 Likert ratings as metric Gaussian variable</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>m_naive_likert <span class="ot">&lt;-</span> <span class="fu">lmer</span>(Rating <span class="sc">~</span> Class <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word), <span class="at">data =</span> sizeRatings)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. DHARMa diagnostic simulation: checks for floor/ceiling S-shaped quantile distortion</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>sim_naive <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(m_naive_likert, <span class="at">n =</span> <span class="dv">250</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim_naive)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1155,14 +1182,14 @@ I  -0.36801204 -0.042378823  0.09973766 -0.56756922</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cumulative Link Mixed Model (Christensen, 2019)</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert ratings into an ordered factor (1 &lt; 2 &lt; ... &lt; 7)</span></span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>sizeRatings <span class="ot">&lt;-</span> sizeRatings <span class="sc">%&gt;%</span></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Rating_ord =</span> <span class="fu">factor</span>(Rating, <span class="at">ordered =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit CLMM: models cumulative log-odds with latent cutpoints (theta_1 to theta_6)</span></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>m_clmm <span class="ot">&lt;-</span> <span class="fu">clmm</span>(Rating_ord <span class="sc">~</span> Class <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word), <span class="at">data =</span> sizeRatings)</span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_clmm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cumulative Link Mixed Model (Christensen, 2019)</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert ratings into an ordered factor (1 &lt; 2 &lt; ... &lt; 7)</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>sizeRatings <span class="ot">&lt;-</span> sizeRatings <span class="sc">%&gt;%</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Rating_ord =</span> <span class="fu">factor</span>(Rating, <span class="at">ordered =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit CLMM: models cumulative log-odds with latent cutpoints (theta_1 to theta_6)</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>m_clmm <span class="ot">&lt;-</span> <span class="fu">clmm</span>(Rating_ord <span class="sc">~</span> Class <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word), <span class="at">data =</span> sizeRatings)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m_clmm)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Cumulative Link Mixed Model fitted with the Laplace approximation
@@ -1195,18 +1222,6 @@ Threshold coefficients:
 </div>
 </div>
 <p>The model estimates the fixed effect of semantic class alongside the 6 latent cutpoints (<span class="math inline">\(\theta_{1|2}\)</span> through <span class="math inline">\(\theta_{6|7}\)</span>), properly preserving ordinal geometry.</p>
-<div class="cell">
-<details open="" class="code-fold">
-<summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>clmm_checks <span class="ot">&lt;-</span> <span class="fu">check_model</span>(</span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  m_clmm,</span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"discrete_interval"</span>,</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">residual_type =</span> <span class="st">"normal"</span>,</span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel =</span> <span class="cn">FALSE</span></span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (check_plot <span class="cf">in</span> clmm_checks) <span class="fu">print</span>(check_plot)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
 <hr>
 </section>
 </section>
