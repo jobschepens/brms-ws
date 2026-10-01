@@ -903,6 +903,31 @@ Fixed-effects significance tests were evaluated using two-tailed $t$-tests with 
 
 ------------------------------------------------------------------------
 
+# Reproducibility
+
+The following details record the R session and package versions used for this render.
+
+```{r session-details}
+key_packages <- c(
+  "lme4", "lmerTest", "DHARMa", "performance", "parameters",
+  "see", "influence.ME", "trouBBlme4SolveR", "dfoptim", "ordinal",
+  "emmeans", "languageR", "tidyverse", "knitr", "quarto"
+)
+
+installed_packages <- key_packages[vapply(key_packages, requireNamespace, logical(1), quietly = TRUE)]
+package_versions <- data.frame(
+  Package = installed_packages,
+  Version = vapply(installed_packages, function(package) as.character(packageVersion(package)), character(1)),
+  row.names = NULL
+)
+
+knitr::kable(package_versions, caption = "Key package versions")
+```
+
+```{r session-info}
+sessionInfo()
+```
+
 # References
 
 ::: {#refs}

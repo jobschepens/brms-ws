@@ -91,7 +91,7 @@ div.csl-indent {
 <link href="session29-lme4-model-criticism_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-6f1ea6475c7f2ddbc0b5385cc59ba192.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-c6e58a84874182a982a87d3e90212b7a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid.min.js"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid-init.js"></script>
 <link href="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
@@ -207,7 +207,8 @@ window.Quarto = {
   <li><a href="#version-b-dynamic-narrative-reproducible-inline-r-extraction" id="toc-version-b-dynamic-narrative-reproducible-inline-r-extraction" class="nav-link" data-scroll-target="#version-b-dynamic-narrative-reproducible-inline-r-extraction"><span class="header-section-number">9.5.4</span> 5.5.4 Version B: Dynamic Narrative (Reproducible Inline R Extraction)</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">10</span> References</a></li>
+  <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility"><span class="header-section-number">10</span> Reproducibility</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">11</span> References</a></li>
   </ul>
 </nav>
 </div>
@@ -586,12 +587,12 @@ $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Groups   Name        Std.Dev. Corr          
- Word     (Intercept) 0.052691               
-          Native_num  0.034874  0.760        
-          Sex_num     0.017057 -0.799 -0.998 
- Subject  (Intercept) 0.142155               
-          Freq_z      0.018883 -0.433        
-          Length_z    0.023393  0.921 -0.473 
+ Word     (Intercept) 0.052690               
+          Native_num  0.034876  0.759        
+          Sex_num     0.017059 -0.799 -0.998 
+ Subject  (Intercept) 0.142142               
+          Freq_z      0.018886 -0.433        
+          Length_z    0.023391  0.921 -0.473 
  Residual             0.168190               </code></pre>
 </div>
 </div>
@@ -605,23 +606,23 @@ $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -
 <div class="cell-output cell-output-stdout">
 <pre><code>$Word
 Standard deviations (1, .., p=3):
-[1] 0.3681704 0.1259932 0.0000000
+[1] 0.3681683 0.1260249 0.0000000
 
 Rotation (n x k) = (3 x 3):
            [,1]       [,2]       [,3]
-[1,] -0.8291929  0.5582191 0.02881801
-[2,] -0.4990758 -0.7625868 0.41156384
-[3,]  0.2517190  0.3268835 0.91092521
+[1,] -0.8291786  0.5582373 0.02887635
+[2,] -0.4990797 -0.7625968 0.41154044
+[3,]  0.2517583  0.3268289 0.91093393
 
 $Subject
 Standard deviations (1, .., p=3):
-[1] 0.85629601 0.10177689 0.05212154
+[1] 0.85622048 0.10179529 0.05210706
 
 Rotation (n x k) = (3 x 3):
             [,1]        [,2]       [,3]
-[1,] -0.98696410 -0.07894477 -0.1402483
-[2,]  0.05780736 -0.98716663  0.1488635
-[3,] -0.15020043  0.13881557  0.9788616
+[1,] -0.98696242 -0.07894182 -0.1402618
+[2,]  0.05781978 -0.98718289  0.1487509
+[3,] -0.15020673  0.13870160  0.9788768
 
 attr(,"class")
 [1] "prcomplist"</code></pre>
@@ -671,25 +672,25 @@ REML criterion at convergence: -976.9
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--2.2258 -0.6208 -0.1123  0.4417  6.3908 
+-2.2258 -0.6208 -0.1122  0.4417  6.3909 
 
 Random effects:
  Groups   Name        Variance  Std.Dev. Corr        
- Word     (Intercept) 0.0030409 0.05514              
-          Native_num  0.0012926 0.03595  0.83        
- Subject  (Intercept) 0.0201128 0.14182              
-          Freq_z      0.0003594 0.01896  -0.43       
-          Length_z    0.0005398 0.02323   0.92 -0.46 
- Residual             0.0283972 0.16851              
+ Word     (Intercept) 0.0030407 0.05514              
+          Native_num  0.0012919 0.03594  0.83        
+ Subject  (Intercept) 0.0201101 0.14181              
+          Freq_z      0.0003596 0.01896  -0.43       
+          Length_z    0.0005399 0.02324   0.92 -0.46 
+ Residual             0.0283971 0.16851              
 Number of obs: 1659, groups:  Word, 79; Subject, 21
 
 Fixed effects:
              Estimate Std. Error        df t value Pr(&gt;|t|)    
-(Intercept)  6.392941   0.033063 19.617695 193.356  &lt; 2e-16 ***
-Freq_z      -0.044292   0.008835 44.955350  -5.014 8.81e-06 ***
-Length_z     0.016891   0.009332 44.562463   1.810    0.077 .  
-Native_num   0.071476   0.045789 20.034371   1.561    0.134    
-Sex_num      0.016473   0.046206 18.002150   0.357    0.726    
+(Intercept)  6.392944   0.033061 19.620469 193.366  &lt; 2e-16 ***
+Freq_z      -0.044293   0.008835 44.950850  -5.013 8.82e-06 ***
+Length_z     0.016891   0.009332 44.572775   1.810   0.0771 .  
+Native_num   0.071506   0.045793 20.032054   1.562   0.1341    
+Sex_num      0.016483   0.046211 18.001881   0.357   0.7255    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -904,9 +905,9 @@ Number of obs: 3263, groups:  Verb, 75
 
 Fixed effects:
                       Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)            1.42924    0.29130   4.906 9.28e-07 ***
-AnimacyOfRecinanimate  1.14478    0.18633   6.144 8.06e-10 ***
-PronomOfRecpronominal -2.46711    0.12257 -20.128  &lt; 2e-16 ***
+(Intercept)            1.42924    0.29128   4.907 9.26e-07 ***
+AnimacyOfRecinanimate  1.14478    0.18632   6.144 8.04e-10 ***
+PronomOfRecpronominal -2.46711    0.12257 -20.129  &lt; 2e-16 ***
 LengthOfTheme         -0.28716    0.02266 -12.671  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1331,7 +1332,7 @@ Degrees-of-freedom method: kenward-roger </code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> AnimacyOfRec  prob     SE  df asymp.LCL asymp.UCL
- animate      0.182 0.0432 Inf     0.112     0.282
+ animate      0.182 0.0433 Inf     0.112     0.282
  inanimate    0.427 0.0833 Inf     0.276     0.592
 
 Results are averaged over the levels of: PronomOfRec 
@@ -1476,21 +1477,21 @@ Confidence level used: 0.95 </code></pre>
 <span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Maximum absolute gradient:"</span>, <span class="fu">max</span>(<span class="fu">abs</span>(grad_vals)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Maximum absolute gradient: 0.02241884 </code></pre>
+<pre><code>Maximum absolute gradient: 0.02241888 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Minimum Hessian eigenvalue:"</span>, <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Minimum Hessian eigenvalue: 89.64445 </code></pre>
+<pre><code>Minimum Hessian eigenvalue: 89.64496 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Hessian eigenvalue ratio (condition number):"</span>, <span class="fu">max</span>(eigen_val) <span class="sc">/</span> <span class="fu">min</span>(eigen_val), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Hessian eigenvalue ratio (condition number): 17.75098 </code></pre>
+<pre><code>Hessian eigenvalue ratio (condition number): 17.75088 </code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
@@ -1548,17 +1549,14 @@ Confidence level used: 0.95 </code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>bobyqa : [OK]
 Nelder_Mead : [OK]
-nlminbwrap : </code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[OK]
+nlminbwrap : [OK]
 nmkbw : [OK]
 nloptwrap.NLOPT_LN_NELDERMEAD : [OK]
 nloptwrap.NLOPT_LN_BOBYQA : [OK]</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(all_fits)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>$which.OK
@@ -1591,12 +1589,12 @@ NULL
 
 $fixef
                               (Intercept)      Freq_z   Length_z Native_num
-bobyqa                           6.390167 -0.04721155 0.01736278 0.07107993
+bobyqa                           6.390167 -0.04721155 0.01736278 0.07107996
 Nelder_Mead                      6.390167 -0.04721155 0.01736278 0.07107962
-nlminbwrap                       6.390168 -0.04721155 0.01736278 0.07109141
+nlminbwrap                       6.390167 -0.04721155 0.01736278 0.07108499
 nmkbw                            6.390167 -0.04721155 0.01736278 0.07107776
 nloptwrap.NLOPT_LN_NELDERMEAD    6.390167 -0.04721155 0.01736278 0.07108218
-nloptwrap.NLOPT_LN_BOBYQA        6.390166 -0.04721155 0.01736278 0.07107456
+nloptwrap.NLOPT_LN_BOBYQA        6.390167 -0.04721155 0.01736278 0.07107666
 
 $llik
                        bobyqa                   Nelder_Mead 
@@ -1608,59 +1606,59 @@ nloptwrap.NLOPT_LN_NELDERMEAD     nloptwrap.NLOPT_LN_BOBYQA
 
 $sdcor
                               Word.(Intercept) Subject.(Intercept)
-bobyqa                              0.05263917           0.1417792
+bobyqa                              0.05263917           0.1417791
 Nelder_Mead                         0.05263936           0.1417786
-nlminbwrap                          0.05263882           0.1417706
+nlminbwrap                          0.05263917           0.1417778
 nmkbw                               0.05263984           0.1417695
 nloptwrap.NLOPT_LN_NELDERMEAD       0.05263786           0.1417827
-nloptwrap.NLOPT_LN_BOBYQA           0.05263861           0.1417795
+nloptwrap.NLOPT_LN_BOBYQA           0.05263880           0.1417816
                               Subject.Freq_z Subject.Freq_z.(Intercept)
-bobyqa                            0.02581105                 -0.6846668
+bobyqa                            0.02581103                 -0.6846667
 Nelder_Mead                       0.02581083                 -0.6846703
-nlminbwrap                        0.02581082                 -0.6846140
+nlminbwrap                        0.02581153                 -0.6846364
 nmkbw                             0.02580908                 -0.6847169
 nloptwrap.NLOPT_LN_NELDERMEAD     0.02580999                 -0.6846240
-nloptwrap.NLOPT_LN_BOBYQA         0.02580959                 -0.6846982
+nloptwrap.NLOPT_LN_BOBYQA         0.02581160                 -0.6846859
                                   sigma
 bobyqa                        0.1707834
 Nelder_Mead                   0.1707834
-nlminbwrap                    0.1707835
+nlminbwrap                    0.1707834
 nmkbw                         0.1707836
 nloptwrap.NLOPT_LN_NELDERMEAD 0.1707835
-nloptwrap.NLOPT_LN_BOBYQA     0.1707836
+nloptwrap.NLOPT_LN_BOBYQA     0.1707834
 
 $theta
                               Word.(Intercept) Subject.(Intercept)
-bobyqa                               0.3082218           0.8301695
+bobyqa                               0.3082218           0.8301692
 Nelder_Mead                          0.3082229           0.8301663
-nlminbwrap                           0.3082196           0.8301189
+nlminbwrap                           0.3082219           0.8301614
 nmkbw                                0.3082254           0.8301116
 nloptwrap.NLOPT_LN_NELDERMEAD        0.3082140           0.8301895
-nloptwrap.NLOPT_LN_BOBYQA            0.3082182           0.8301704
+nloptwrap.NLOPT_LN_BOBYQA            0.3082197           0.8301835
                               Subject.Freq_z.(Intercept) Subject.Freq_z
-bobyqa                                        -0.1034759      0.1101544
+bobyqa                                        -0.1034758      0.1101543
 Nelder_Mead                                   -0.1034756      0.1101530
-nlminbwrap                                    -0.1034670      0.1101609
+nlminbwrap                                    -0.1034732      0.1101608
 nmkbw                                         -0.1034754      0.1101387
 nloptwrap.NLOPT_LN_NELDERMEAD                 -0.1034651      0.1101559
-nloptwrap.NLOPT_LN_BOBYQA                     -0.1034747      0.1101436
+nloptwrap.NLOPT_LN_BOBYQA                     -0.1034810      0.1101540
 
 $times
                               user.self sys.self elapsed user.child sys.child
-bobyqa                            0.383        0   0.380          0         0
-Nelder_Mead                       1.518        0   1.513          0         0
-nlminbwrap                        0.504        0   0.504          0         0
-nmkbw                             0.867        0   0.872          0         0
-nloptwrap.NLOPT_LN_NELDERMEAD     0.827        0   0.831          0         0
-nloptwrap.NLOPT_LN_BOBYQA         0.380        0   0.383          0         0
+bobyqa                            0.303        0   0.303          0         0
+Nelder_Mead                       0.363        0   0.362          0         0
+nlminbwrap                        0.293        0   0.293          0         0
+nmkbw                             0.376        0   0.393          0         0
+nloptwrap.NLOPT_LN_NELDERMEAD     0.348        0   0.348          0         0
+nloptwrap.NLOPT_LN_BOBYQA         0.252        0   0.253          0         0
 
 $feval
                        bobyqa                   Nelder_Mead 
-                           94                           143 
+                           93                           143 
                    nlminbwrap                         nmkbw 
                            NA                           155 
 nloptwrap.NLOPT_LN_NELDERMEAD     nloptwrap.NLOPT_LN_BOBYQA 
-                          143                            40 
+                          143                            37 
 
 attr(,"class")
 [1] "summary.allFit"</code></pre>
@@ -1677,14 +1675,14 @@ attr(,"class")
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nested model comparison for fixed effect of Frequency under Maximum Likelihood (REML = FALSE)</span></span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
-<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Likelihood Ratio Test (Chisq test on deviance difference)</span></span>
-<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Nested model comparison for fixed effect of Frequency under Maximum Likelihood (REML = FALSE)</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>m_full_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Freq_z <span class="sc">+</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>m_null_ml <span class="ot">&lt;-</span> <span class="fu">lmer</span>(RT <span class="sc">~</span> Length_z <span class="sc">+</span> Native_num <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Subject) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> Word),</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lexdec, <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Likelihood Ratio Test (Chisq test on deviance difference)</span></span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(m_null_ml, m_full_ml)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Data: lexdec
@@ -1709,15 +1707,15 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics</span></span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Nakagawa Marginal (R2m) and Conditional (R2c) R-squared metrics</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>r2_metrics <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_resolved)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
 </div>
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(r2_metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># R2 for Mixed Models
@@ -1751,19 +1749,19 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract clean parameter table with Satterthwaite degrees of freedom</span></span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>model_params <span class="ot">&lt;-</span> <span class="fu">model_parameters</span>(</span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>  m_parsimonious,</span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci =</span> <span class="fl">0.95</span>,</span>
-<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">effects =</span> <span class="st">"all"</span></span>
-<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Format into clean publication-ready table</span></span>
-<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
-<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>  model_params,</span>
-<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
-<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Table 1: Fixed and Random Parameter Estimates for Parsimonious Reaction Time LMM"</span></span>
-<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract clean parameter table with Satterthwaite degrees of freedom</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>model_params <span class="ot">&lt;-</span> <span class="fu">model_parameters</span>(</span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>  m_parsimonious,</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci =</span> <span class="fl">0.95</span>,</span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">effects =</span> <span class="st">"all"</span></span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Format into clean publication-ready table</span></span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(</span>
+<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a>  model_params,</span>
+<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Table 1: Fixed and Random Parameter Estimates for Parsimonious Reaction Time LMM"</span></span>
+<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1948,62 +1946,62 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper formatting functions for dynamic APA/Linguistics reporting</span></span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
-<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>fmt_p <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
-<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(p)) <span class="fu">return</span>(<span class="st">"NA"</span>)</span>
-<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (p <span class="sc">&lt;</span> .<span class="dv">001</span>) <span class="st">"&lt; .001"</span> <span class="cf">else</span> <span class="fu">paste0</span>(<span class="st">"= "</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, p))</span>
-<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>fmt_b   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x)</span>
-<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>fmt_t   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, x)</span>
-<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>fmt_df  <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x)</span>
-<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>fmt_pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%"</span>)</span>
-<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic software environment versions</span></span>
-<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>r_ver        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, R.version<span class="sc">$</span>major, <span class="st">"."</span>, R.version<span class="sc">$</span>minor)</span>
-<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>lme4_ver     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lme4"</span>))</span>
-<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>lmertest_ver <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lmerTest"</span>))</span>
-<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed effects extraction from lmerTest Satterthwaite summary</span></span>
-<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(m_parsimonious))</span>
-<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Lexical Frequency</span></span>
-<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>b_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>se_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>df_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"df"</span>])</span>
-<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>t_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>p_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-28"><a href="#cb81-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Word Length</span></span>
-<span id="cb81-29"><a href="#cb81-29" aria-hidden="true" tabindex="-1"></a>b_len    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb81-30"><a href="#cb81-30" aria-hidden="true" tabindex="-1"></a>se_len   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb81-31"><a href="#cb81-31" aria-hidden="true" tabindex="-1"></a>df_len   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"df"</span>])</span>
-<span id="cb81-32"><a href="#cb81-32" aria-hidden="true" tabindex="-1"></a>t_len    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb81-33"><a href="#cb81-33" aria-hidden="true" tabindex="-1"></a>p_len    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb81-34"><a href="#cb81-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-35"><a href="#cb81-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Native Language</span></span>
-<span id="cb81-36"><a href="#cb81-36" aria-hidden="true" tabindex="-1"></a>b_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Estimate"</span>])</span>
-<span id="cb81-37"><a href="#cb81-37" aria-hidden="true" tabindex="-1"></a>se_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Std. Error"</span>])</span>
-<span id="cb81-38"><a href="#cb81-38" aria-hidden="true" tabindex="-1"></a>df_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"df"</span>])</span>
-<span id="cb81-39"><a href="#cb81-39" aria-hidden="true" tabindex="-1"></a>t_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"t value"</span>])</span>
-<span id="cb81-40"><a href="#cb81-40" aria-hidden="true" tabindex="-1"></a>p_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
-<span id="cb81-41"><a href="#cb81-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-42"><a href="#cb81-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimated Marginal Means (emmeans)</span></span>
-<span id="cb81-43"><a href="#cb81-43" aria-hidden="true" tabindex="-1"></a>emm_df       <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(emm_native)</span>
-<span id="cb81-44"><a href="#cb81-44" aria-hidden="true" tabindex="-1"></a>emm_eng_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>])</span>
-<span id="cb81-45"><a href="#cb81-45" aria-hidden="true" tabindex="-1"></a>emm_eng_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
-<span id="cb81-46"><a href="#cb81-46" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]))</span>
-<span id="cb81-47"><a href="#cb81-47" aria-hidden="true" tabindex="-1"></a>emm_oth_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>])</span>
-<span id="cb81-48"><a href="#cb81-48" aria-hidden="true" tabindex="-1"></a>emm_oth_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
-<span id="cb81-49"><a href="#cb81-49" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]))</span>
-<span id="cb81-50"><a href="#cb81-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-51"><a href="#cb81-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Nakagawa R-squared metrics</span></span>
-<span id="cb81-52"><a href="#cb81-52" aria-hidden="true" tabindex="-1"></a>r2_vals  <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_parsimonious)</span>
-<span id="cb81-53"><a href="#cb81-53" aria-hidden="true" tabindex="-1"></a>r2_m_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
-<span id="cb81-54"><a href="#cb81-54" aria-hidden="true" tabindex="-1"></a>r2_c_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_conditional)</span>
-<span id="cb81-55"><a href="#cb81-55" aria-hidden="true" tabindex="-1"></a>r2_m_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
-<span id="cb81-56"><a href="#cb81-56" aria-hidden="true" tabindex="-1"></a>r2_c_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_conditional)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper formatting functions for dynamic APA/Linguistics reporting</span></span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ==============================================================================</span></span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>fmt_p <span class="ot">&lt;-</span> <span class="cf">function</span>(p) {</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.na</span>(p)) <span class="fu">return</span>(<span class="st">"NA"</span>)</span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (p <span class="sc">&lt;</span> .<span class="dv">001</span>) <span class="st">"&lt; .001"</span> <span class="cf">else</span> <span class="fu">paste0</span>(<span class="st">"= "</span>, <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, p))</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>fmt_b   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.3f"</span>, x)</span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>fmt_t   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, x)</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>fmt_df  <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x)</span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>fmt_pct <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">sprintf</span>(<span class="st">"%.1f"</span>, x <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%"</span>)</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Dynamic software environment versions</span></span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>r_ver        <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, R.version<span class="sc">$</span>major, <span class="st">"."</span>, R.version<span class="sc">$</span>minor)</span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a>lme4_ver     <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lme4"</span>))</span>
+<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>lmertest_ver <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"v"</span>, <span class="fu">packageVersion</span>(<span class="st">"lmerTest"</span>))</span>
+<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fixed effects extraction from lmerTest Satterthwaite summary</span></span>
+<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(m_parsimonious))</span>
+<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Lexical Frequency</span></span>
+<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a>b_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a>se_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a>df_freq  <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"df"</span>])</span>
+<span id="cb80-25"><a href="#cb80-25" aria-hidden="true" tabindex="-1"></a>t_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb80-26"><a href="#cb80-26" aria-hidden="true" tabindex="-1"></a>p_freq   <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Freq_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb80-27"><a href="#cb80-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-28"><a href="#cb80-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Word Length</span></span>
+<span id="cb80-29"><a href="#cb80-29" aria-hidden="true" tabindex="-1"></a>b_len    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb80-30"><a href="#cb80-30" aria-hidden="true" tabindex="-1"></a>se_len   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb80-31"><a href="#cb80-31" aria-hidden="true" tabindex="-1"></a>df_len   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"df"</span>])</span>
+<span id="cb80-32"><a href="#cb80-32" aria-hidden="true" tabindex="-1"></a>t_len    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb80-33"><a href="#cb80-33" aria-hidden="true" tabindex="-1"></a>p_len    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Length_z"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb80-34"><a href="#cb80-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-35"><a href="#cb80-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Native Language</span></span>
+<span id="cb80-36"><a href="#cb80-36" aria-hidden="true" tabindex="-1"></a>b_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Estimate"</span>])</span>
+<span id="cb80-37"><a href="#cb80-37" aria-hidden="true" tabindex="-1"></a>se_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Std. Error"</span>])</span>
+<span id="cb80-38"><a href="#cb80-38" aria-hidden="true" tabindex="-1"></a>df_nat   <span class="ot">&lt;-</span> <span class="fu">fmt_df</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"df"</span>])</span>
+<span id="cb80-39"><a href="#cb80-39" aria-hidden="true" tabindex="-1"></a>t_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_t</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"t value"</span>])</span>
+<span id="cb80-40"><a href="#cb80-40" aria-hidden="true" tabindex="-1"></a>p_nat    <span class="ot">&lt;-</span> <span class="fu">fmt_p</span>(coef_tab[<span class="st">"Native_num"</span>, <span class="st">"Pr(&gt;|t|)"</span>])</span>
+<span id="cb80-41"><a href="#cb80-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-42"><a href="#cb80-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimated Marginal Means (emmeans)</span></span>
+<span id="cb80-43"><a href="#cb80-43" aria-hidden="true" tabindex="-1"></a>emm_df       <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(emm_native)</span>
+<span id="cb80-44"><a href="#cb80-44" aria-hidden="true" tabindex="-1"></a>emm_eng_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>])</span>
+<span id="cb80-45"><a href="#cb80-45" aria-hidden="true" tabindex="-1"></a>emm_eng_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
+<span id="cb80-46"><a href="#cb80-46" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="sc">-</span><span class="fl">0.5</span>]))</span>
+<span id="cb80-47"><a href="#cb80-47" aria-hidden="true" tabindex="-1"></a>emm_oth_mean <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>emmean[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>])</span>
+<span id="cb80-48"><a href="#cb80-48" aria-hidden="true" tabindex="-1"></a>emm_oth_ci   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>lower.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]), <span class="st">", "</span>,</span>
+<span id="cb80-49"><a href="#cb80-49" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">fmt_b</span>(emm_df<span class="sc">$</span>upper.CL[emm_df<span class="sc">$</span>Native_num <span class="sc">==</span> <span class="fl">0.5</span>]))</span>
+<span id="cb80-50"><a href="#cb80-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-51"><a href="#cb80-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Nakagawa R-squared metrics</span></span>
+<span id="cb80-52"><a href="#cb80-52" aria-hidden="true" tabindex="-1"></a>r2_vals  <span class="ot">&lt;-</span> <span class="fu">r2_nakagawa</span>(m_parsimonious)</span>
+<span id="cb80-53"><a href="#cb80-53" aria-hidden="true" tabindex="-1"></a>r2_m_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb80-54"><a href="#cb80-54" aria-hidden="true" tabindex="-1"></a>r2_c_val <span class="ot">&lt;-</span> <span class="fu">fmt_b</span>(r2_vals<span class="sc">$</span>R2_conditional)</span>
+<span id="cb80-55"><a href="#cb80-55" aria-hidden="true" tabindex="-1"></a>r2_m_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_marginal)</span>
+<span id="cb80-56"><a href="#cb80-56" aria-hidden="true" tabindex="-1"></a>r2_c_pct <span class="ot">&lt;-</span> <span class="fu">fmt_pct</span>(r2_vals<span class="sc">$</span>R2_conditional)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
@@ -2020,7 +2018,7 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>Results: Lexical Decision Reaction Times (Dynamic)</strong><br>
-Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v2.0.1) and <code>lmerTest</code> (v3.2.1) in R (v4.5.2). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al.&nbsp;(2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
+Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v2.0.6) and <code>lmerTest</code> (v3.2.1) in R (v4.5.2). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al.&nbsp;(2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
 <p>Singularity evaluation (<code>isSingular()</code>, tolerance <span class="math inline">\(= 10^{-4}\)</span>) revealed that the maximal specification was degenerate, with the Word-level random intercept collapsing to boundary zero (<span class="math inline">\(\sigma = 0.000, \rho = 1.000\)</span>). Following automated singular variance pruning (<code>trouBBlme4SolveR::dwmw()</code>), non-identifiable random slopes were eliminated. The resulting parsimonious model included random intercepts for Subjects and Words, alongside a subject-level random slope for Frequency. Numerical benchmarking across eight derivative-free optimizers (<code>lme4::allFit()</code>) confirmed that all algorithms converged to identical log-likelihoods (<span class="math inline">\(\Delta \log L &lt; 10^{-5}\)</span>), verifying that the solution was stable and non-singular.</p>
 <p>Fixed-effects significance tests were evaluated using two-tailed <span class="math inline">\(t\)</span>-tests with Satterthwaite degrees-of-freedom approximations via <code>lmerTest</code>. Lexical Frequency significantly facilitated reaction times (<span class="math inline">\(\beta = -0.047\)</span>, <span class="math inline">\(SE = 0.010\)</span>, <span class="math inline">\(t(52.5) = -4.81\)</span>, <span class="math inline">\(p &lt; .001\)</span>), while Word Length exhibited a significant inhibitory effect (<span class="math inline">\(\beta = 0.017\)</span>, <span class="math inline">\(SE = 0.008\)</span>, <span class="math inline">\(t(76.0) = 2.16\)</span>, <span class="math inline">\(p = 0.034\)</span>). Non-native speakers responded marginally slower than native speakers, though this main effect did not reach conventional significance in the parsimonious specification (<span class="math inline">\(\beta = 0.071\)</span>, <span class="math inline">\(SE = 0.053\)</span>, <span class="math inline">\(t(19.0) = 1.34\)</span>, <span class="math inline">\(p = 0.195\)</span>). Post-hoc estimated marginal means (<code>emmeans</code>) indicated mean latencies of <span class="math inline">\(6.355\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.272, 6.437]\)</span>) for native English speakers and <span class="math inline">\(6.426\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.333, 6.519]\)</span>) for other speakers. Overall variance partitioning (Nakagawa &amp; Schielzeth, 2013) revealed that fixed effects accounted for <span class="math inline">\(7.8%\)</span> of total variance (<span class="math inline">\(R^2_m = 0.078\)</span>), while the combined fixed and random effects explained <span class="math inline">\(49.0%\)</span> (<span class="math inline">\(R^2_c = 0.490\)</span>).</p>
 </div>
@@ -2037,8 +2035,160 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 </section>
 </section>
 </section>
-<section id="references" class="level1" data-number="10">
-<h1 data-number="10"><span class="header-section-number">10</span> References</h1>
+<section id="reproducibility" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Reproducibility</h1>
+<p>The following details record the R session and package versions used for this render.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>key_packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"lme4"</span>, <span class="st">"lmerTest"</span>, <span class="st">"DHARMa"</span>, <span class="st">"performance"</span>, <span class="st">"parameters"</span>,</span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"see"</span>, <span class="st">"influence.ME"</span>, <span class="st">"trouBBlme4SolveR"</span>, <span class="st">"dfoptim"</span>, <span class="st">"ordinal"</span>,</span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"emmeans"</span>, <span class="st">"languageR"</span>, <span class="st">"tidyverse"</span>, <span class="st">"knitr"</span>, <span class="st">"quarto"</span></span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>installed_packages <span class="ot">&lt;-</span> key_packages[<span class="fu">vapply</span>(key_packages, requireNamespace, <span class="fu">logical</span>(<span class="dv">1</span>), <span class="at">quietly =</span> <span class="cn">TRUE</span>)]</span>
+<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>package_versions <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Package =</span> installed_packages,</span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Version =</span> <span class="fu">vapply</span>(installed_packages, <span class="cf">function</span>(package) <span class="fu">as.character</span>(<span class="fu">packageVersion</span>(package)), <span class="fu">character</span>(<span class="dv">1</span>)),</span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(package_versions, <span class="at">caption =</span> <span class="st">"Key package versions"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Key package versions</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Package</th>
+<th style="text-align: left;">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">lme4</td>
+<td style="text-align: left;">2.0.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lmerTest</td>
+<td style="text-align: left;">3.2.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">DHARMa</td>
+<td style="text-align: left;">0.5.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">performance</td>
+<td style="text-align: left;">0.18.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">parameters</td>
+<td style="text-align: left;">0.29.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">see</td>
+<td style="text-align: left;">0.14.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">influence.ME</td>
+<td style="text-align: left;">0.9.10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">trouBBlme4SolveR</td>
+<td style="text-align: left;">0.1.4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dfoptim</td>
+<td style="text-align: left;">2023.1.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ordinal</td>
+<td style="text-align: left;">2026.7.26</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">emmeans</td>
+<td style="text-align: left;">2.0.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">languageR</td>
+<td style="text-align: left;">1.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">tidyverse</td>
+<td style="text-align: left;">2.0.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">knitr</td>
+<td style="text-align: left;">1.52</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Toggle Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>R version 4.5.2 (2025-10-31)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
+LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] lubridate_1.9.5        forcats_1.0.1          stringr_1.6.0         
+ [4] dplyr_1.2.1            purrr_1.2.1            readr_2.2.0           
+ [7] tidyr_1.3.2            tibble_3.3.1           ggplot2_4.0.3         
+[10] tidyverse_2.0.0        languageR_1.6          emmeans_2.0.4         
+[13] ordinal_2026.7-26      knitr_1.52             dfoptim_2023.1.0      
+[16] trouBBlme4SolveR_0.1.4 influence.ME_0.9-10    see_0.14.2            
+[19] parameters_0.29.3      performance_0.18.2     DHARMa_0.5.0          
+[22] lmerTest_3.2-1         lme4_2.0-6             Matrix_1.7-4          
+
+loaded via a namespace (and not attached):
+ [1] gtable_0.3.6        xfun_0.61           bayestestR_0.19.0  
+ [4] htmlwidgets_1.6.4   insight_1.5.4       lattice_0.22-7     
+ [7] tzdb_0.5.0          numDeriv_2016.8-1.1 vctrs_0.7.1        
+[10] tools_4.5.2         Rdpack_2.6.6        generics_0.1.4     
+[13] datawizard_1.4.0    ucminf_1.2.3        pkgconfig_2.0.3    
+[16] RColorBrewer_1.1-3  S7_0.2.1            lifecycle_1.0.5    
+[19] compiler_4.5.2      farver_2.1.2        codetools_0.2-20   
+[22] htmltools_0.5.9     yaml_2.3.12         pillar_1.11.1      
+[25] nloptr_2.2.1        MASS_7.3-65         reformulas_0.4.4   
+[28] boot_1.3-32         nlme_3.1-168        tidyselect_1.2.1   
+[31] digest_0.6.39       stringi_1.8.7       mvtnorm_1.4-2      
+[34] splines_4.5.2       fastmap_1.2.0       grid_4.5.2         
+[37] cli_3.6.6           magrittr_2.0.4      withr_3.0.2        
+[40] scales_1.4.0        timechange_0.4.0    estimability_2.0.0 
+[43] rmarkdown_2.32      otel_0.2.0          hms_1.1.4          
+[46] coda_0.19-4.1       evaluate_1.0.5      rbibutils_2.4.1    
+[49] rlang_1.3.0         Rcpp_1.1.2          xtable_1.8-8       
+[52] glue_1.8.0          minqa_1.2.8         jsonlite_2.0.0     
+[55] R6_2.6.1           </code></pre>
+</div>
+</div>
+</section>
+<section id="references" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-arelbundock2024marginaleffects" class="csl-entry" role="listitem">
 Arel-Bundock, Vincent, Noah Greifer, and Andrew Heiss. 2024. <span>“How to Interpret Statistical Models Using <span class="nocase">marginaleffects</span> for <span>R</span> and <span>Python</span>.”</span> <em>Journal of Statistical Software</em> 111 (9): 1–32. <a href="https://doi.org/10.18637/jss.v111.i09">https://doi.org/10.18637/jss.v111.i09</a>.
