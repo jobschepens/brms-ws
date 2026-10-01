@@ -129,12 +129,15 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
     cat("Continuing anyway - may work if toolchain is actually available\n")
     TRUE  # Continue anyway - the check function is overly conservative
   })
-
   # Install CmdStan with explicit settings
   cat("Starting CmdStan installation (downloading and compiling)...\n")
+  cmdstan_target_dir <- Sys.getenv("CMDSTAN_DIR", "/home/rstudio/.cmdstan")
+  if (!dir.exists(cmdstan_target_dir)) {
+    dir.create(cmdstan_target_dir, recursive = TRUE, showWarnings = FALSE)
+  }
   tryCatch({
     cmdstanr::install_cmdstan(
-      dir = Sys.getenv("CMDSTAN_DIR", "/home/rstudio/.cmdstan"),
+      dir = cmdstan_target_dir,
       cores = as.integer(Sys.getenv("CMDSTANR_INSTALL_CORES", "4")),
       quiet = FALSE,
       overwrite = FALSE,

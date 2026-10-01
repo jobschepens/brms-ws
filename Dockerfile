@@ -65,6 +65,9 @@ WORKDIR /home/rstudio/workshop
 # This means we only re-run expensive R package installation when dependencies change
 COPY --chown=rstudio:rstudio install.R .
 
+# Pre-create CmdStan directory with proper ownership
+RUN mkdir -p /home/rstudio/.cmdstan && chown -R rstudio:rstudio /home/rstudio
+
 # Install R packages (brms, cmdstanr, tidyverse extensions, etc.)
 # This is the longest build step (~10-30 minutes depending on system)
 # Layer is cached unless install.R changes
