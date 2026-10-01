@@ -15,9 +15,9 @@ To establish an autonomous, self-contained pipeline on **git.nrw** that publishe
 Because `git.nrw` is a shared multi-tenant academic service operated by university computing centers (Uni Münster / RWTH Aachen), its shared runner pool operates under strict security and resource constraints:
 1. **Unprivileged Execution**: Containers run without `privileged: true` or root kernel capabilities.
 2. **Memory Constraints**: Individual runner containers are capped at ~4–8 GB RAM with no swap.
-3. **Ephemeral Disk Quotas**: Worker scratch partitions are limited to ~10–15 GB.
+3. **Ephemeral Disk Quotas**: Worker scratch partitions are limited to ~10–15 GB total, with typically **< 6 GB remaining** for user jobs.
 
-We methodically evaluated 5 architectural approaches to build and publish the 5.2 GB container on `git.nrw`. Below is the complete record of the approaches, failure points, root-cause analyses, and the final production architecture.
+We methodically evaluated **6 architectural approaches** to build and publish the 5.2 GB container on `git.nrw`. Below is the complete record of the approaches, failure points, root-cause analyses, and the final production architecture.
 
 ---
 
@@ -29,7 +29,8 @@ We methodically evaluated 5 architectural approaches to build and publish the 5.
 | **2** | User-Space Compiler | Kaniko (`gcr.io/kaniko-project/executor:debug`) | Unprivileged snapshot | ~20 min | ❌ Failed | Linux OOM Killer terminated `cc1plus` during CmdStan compilation (`-j4` RAM > 10GB) |
 | **3** | Daemonless Builder | Red Hat Buildah (`quay.io/buildah/stable`) | `chroot` + `vfs` | ~3 min | ❌ Failed | `vfs` lacks copy-on-write; 23-layer unpacking hit `no space left on device` |
 | **4** | Dynamic Buildah Storage | Buildah + `fuse-overlayfs` / `/builds` mount | `chroot` + redirected root | ~2 min | ❌ Failed | `/dev/fuse` not exposed to unprivileged runner; large layer disk limits |
-| **5** | Layer-Streaming Sync | Skopeo (`quay.io/skopeo/stable:latest`) | Direct OCI blob copy | **~45 sec** | **✅ Production Success** | None. Direct registry-to-registry streaming; populates `registry.git.nrw` instantly |
+| **5** | Rootless BuildKit | `moby/buildkit:rootless` (`buildctl`) | User-space daemonless | ~1.5 min | ❌ Failed | Daemon launched with `overlayfs`, but 5.2 GB image unpacking exhausted host disk (`write .../usr/bin/pandoc: no space left on device`) |
+| **6** | Layer-Streaming Sync | Skopeo (`quay.io/skopeo/stable:latest`) | Direct OCI blob copy | **~45 sec** | **✅ Production Success** | None. Direct registry-to-registry streaming; populates `registry.git.nrw` instantly |
 
 ---
 
@@ -98,7 +99,38 @@ We methodically evaluated 5 architectural approaches to build and publish the 5.
 
 ---
 
-### Approach 5: Direct Image Sync via Skopeo (Production Solution)
+### Approach 5: Rootless BuildKit (`moby/buildkit:rootless`)
+
+* **Configuration**: `moby/buildkit:rootless` with `BUILDKITD_FLAGS: --oci-worker-no-process-sandbox`, starting daemon via `rootlesskit buildkitd --oci-worker-no-process-sandbox &` and executing builds with `buildctl`.
+* **Behavior**:
+  - The rootless BuildKit daemon initialized cleanly without requiring `privileged: true` or root capabilities.
+  - `buildctl debug workers` confirmed the active OCI worker with the `overlayfs` snapshotter enabled.
+  - Successfully connected to Docker Hub and began pulling and extracting `docker.io/rocker/verse:4.6.1`.
+* **Runner Environment Diagnostics**:
+  ```text
+  $ df -h
+  Filesystem                Size      Used Available Use% Mounted on
+  overlay                  19.5G     13.3G      5.4G  71% /
+  /dev/sda1                19.5G     13.3G      5.4G  71% /builds
+  /dev/sda1                19.5G     13.3G      5.4G  71% /home/user/.local/share/buildkit
+  ```
+  The runner VM had only **5.4 GB of free disk space remaining** before the build started.
+* **Failure Log**:
+  ```text
+  #6 [ 1/16] FROM docker.io/rocker/verse:4.6.1@sha256:...
+  #6 extracting sha256:bb946716... 1.7s done
+  ...
+  error: failed to solve: ResourceExhausted: failed to compute cache key: 
+  mount callback failed on /run/user/1000/containerd-mount1071452139: 
+  write /run/user/1000/containerd-mount1071452139/usr/bin/pandoc: no space left on device
+  ERROR: Job failed: exit code 1
+  ```
+* **Root Cause**:
+  Even though BuildKit's rootless overlayfs avoids the exponential amplification of Buildah's `vfs`, the base image `rocker/verse:4.6.1` is **5.2 GB uncompressed**. Combined with downloaded compressed OCI layer archives (~2 GB), the total footprint required exceeds 7.2 GB. Because the shared runner's 19.5 GB root volume already has 13.3 GB consumed by host components, the available 5.4 GB was completely exhausted mid-extraction at `/usr/bin/pandoc`.
+
+---
+
+### Approach 6: Direct Image Sync via Skopeo (Production Solution)
 
 * **Architecture**:
   Since the image is already built, validated, and signed on GitHub Actions using dedicated VM runners (with 7 GB RAM + 10 GB swap and full Docker Buildx hardware acceleration), the GitLab pipeline only needs to populate `registry.git.nrw`.
@@ -122,8 +154,9 @@ We methodically evaluated 5 architectural approaches to build and publish the 5.
 * **Why This Approach Wins**:
   1. **Execution Time**: **~45 seconds** (compared to 25–40 minutes for compilation).
   2. **Reliability**: 0% risk of OOM crashes or disk quota exhaustion.
-  3. **Self-Contained Runtime**: The resulting container lives in **GitLab's own registry** (`registry.git.nrw/jschepen/brms-ws:working`).
-  4. **Pages Execution**: The subsequent `pages` job pulls directly from `registry.git.nrw:working`, running completely independently of GitHub.
+  3. **Zero Local Storage Overhead**: Layer blobs are streamed directly from registry to registry via HTTP chunked transfer without touching the runner's ephemeral disk.
+  4. **Self-Contained Runtime**: The resulting container lives in **GitLab's own registry** (`registry.git.nrw/jschepen/brms-ws:working`).
+  5. **Pages Execution**: The subsequent `pages` job pulls directly from `registry.git.nrw:working`, running completely independently of GitHub.
 
 ---
 
@@ -146,9 +179,15 @@ flowchart LR
 
 ---
 
-## Lessons Learned & Best Practices for `git.nrw`
+## Technical Summary of Runner Bottlenecks on `git.nrw`
 
-1. **Avoid In-Runner Heavy Compilation**: Shared instance runners on `git.nrw` are designed for testing and small scripts, not 30-minute C++ template compilations. Offloading heavy multi-gigabyte builds to Skopeo sync or self-hosted project runners prevents OOM kills.
-2. **Never Use `vfs` for Large Images**: When Docker-in-Docker is unavailable, `STORAGE_DRIVER: vfs` will quickly cause `no space left on device` on images larger than ~2 GB.
-3. **Always Override Entrypoints**: Images from Quay (`skopeo`, `buildah`, `kaniko`) frequently define their binary as the container `ENTRYPOINT`. In GitLab CI, always declare `entrypoint: [""]`.
-4. **Throttle Parallel Make on Limited RAM**: For any local or containerized R/Stan compilation, never exceed `-j2` unless at least 12 GB of dedicated physical memory is guaranteed.
+The systematic evaluation of all 6 container building technologies demonstrates the fundamental boundary constraints of academic shared runners on `git.nrw`:
+
+| Builder | Failure Class | Technical Constraint Triggered |
+| :--- | :--- | :--- |
+| **Docker DinD** | Security / Capability | Linux kernel namespaces & `sysfs` mounts blocked (`privileged: false`) |
+| **Kaniko** | Memory Ceiling | Out-Of-Memory (`SIGKILL` on `cc1plus` with `MAKEFLAGS="-j4"`, RAM > 8 GB) |
+| **Buildah (`vfs`)** | Disk Amplification | Linear layer duplication without copy-on-write (> 25 GB writes) |
+| **Buildah (`overlay`)** | Missing Device | `/dev/fuse` unmapped in unprivileged worker containers |
+| **BuildKit (`rootless`)** | Host Storage Quota | Uncompressed 5.2 GB image exceeds remaining host disk (only 5.4 GB free) |
+| **Skopeo (Winner)** | *None* | Bypasses local RAM, CPU, and disk constraints entirely via direct OCI streaming |
