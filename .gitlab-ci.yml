@@ -22,7 +22,9 @@ variables:
 # ---------------------------------------------------------------------------
 build-container:
   stage: build
-  image: quay.io/skopeo/stable:latest
+  image:
+    name: quay.io/skopeo/stable:latest
+    entrypoint: [""]
   script:
     - echo "Syncing verified R 4.6.1 container to GitLab Container Registry..."
     - skopeo copy --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" docker://ghcr.io/jobschepens/brms-workshop:working docker://$IMAGE_TAG_WORKING
