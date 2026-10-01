@@ -12,7 +12,7 @@
 # - TeX Live for PDF/LaTeX document generation
 # - Publishing tools (rmarkdown, bookdown, blogdown)
 # See: https://rocker-project.org/images/versioned/rstudio.html
-FROM rocker/verse:4.6.1
+FROM docker.io/rocker/verse:4.6.1
 
 # Stan compilation optimization environment variables
 # These significantly speed up CmdStan installation and model compilation

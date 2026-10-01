@@ -30,6 +30,9 @@ build-container:
     BUILDAH_ISOLATION: chroot
     BUILDAH_FORMAT: docker
   before_script:
+    - mkdir -p /etc/containers
+    - echo 'unqualified-search-registries = ["docker.io"]' > /etc/containers/registries.conf
+    - echo 'short-name-mode = "permissive"' >> /etc/containers/registries.conf
     - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
   script:
     # Build container image with Docker format and tags
