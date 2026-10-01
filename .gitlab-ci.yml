@@ -2,6 +2,8 @@
 # GitLab CI/CD Pipeline for BRMS Workshop (gitlab.git.nrw)
 # ===========================================================================
 # 1. Builds and publishes the container to GitLab's own Container Registry.
+#    Uses Kaniko (unprivileged builder) since git.nrw shared runners do not
+#    support privileged Docker-in-Docker (DinD).
 # 2. Uses the GitLab container to render Quarto tutorials in CI.
 # 3. Publishes rendered notebooks and HTML files to GitLab Pages.
 # Completely independent of GitHub.
@@ -12,12 +14,6 @@ stages:
   - deploy
 
 variables:
-  # Configure Docker client to use TLS on port 2376 with dind service certs
-  DOCKER_HOST: tcp://docker:2376
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_TLS_VERIFY: 1
-  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-  DOCKER_DRIVER: overlay2
   IMAGE_TAG_WORKING: "$CI_REGISTRY_IMAGE:working"
   IMAGE_TAG_LATEST: "$CI_REGISTRY_IMAGE:latest"
   IMAGE_TAG_COMMIT: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
@@ -25,29 +21,25 @@ variables:
 # ---------------------------------------------------------------------------
 # 1. Build and push workshop container to GitLab Container Registry
 # ---------------------------------------------------------------------------
+# Uses Kaniko because git.nrw shared runners run without privileged mode
 build-container:
   stage: build
-  image: docker:24
-  services:
-    - docker:24-dind
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   before_script:
-    # Wait for the Docker daemon to become responsive before continuing
-    - for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break || sleep 1; done
-    - docker info
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
-    # Pull existing image for layer caching if available
-    - docker pull "$IMAGE_TAG_WORKING" || true
-    - |
-      docker build \
-        --cache-from "$IMAGE_TAG_WORKING" \
-        --tag "$IMAGE_TAG_WORKING" \
-        --tag "$IMAGE_TAG_LATEST" \
-        --tag "$IMAGE_TAG_COMMIT" \
-        .
-    - docker push "$IMAGE_TAG_WORKING"
-    - docker push "$IMAGE_TAG_LATEST"
-    - docker push "$IMAGE_TAG_COMMIT"
+    - >-
+      /kaniko/executor
+      --context "$CI_PROJECT_DIR"
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+      --destination "$IMAGE_TAG_WORKING"
+      --destination "$IMAGE_TAG_LATEST"
+      --destination "$IMAGE_TAG_COMMIT"
+      --cache=true
+      --cache-repo "$CI_REGISTRY_IMAGE/cache"
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       changes:
