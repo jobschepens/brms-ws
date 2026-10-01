@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.25">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -11,10 +11,16 @@
 
 <title>Session 29: lme4 Model Criticism &amp; Mixed-Effects Diagnostics</title>
 <style>
-code{white-space: pre-wrap;}
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -61,7 +67,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -83,21 +88,20 @@ div.csl-indent {
 <script src="session29-lme4-model-criticism_files/libs/clipboard/clipboard.min.js"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="session29-lme4-model-criticism_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-html/popper.min.js"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-html/anchor.min.js"></script>
 <link href="session29-lme4-model-criticism_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="session29-lme4-model-criticism_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="session29-lme4-model-criticism_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-c6e58a84874182a982a87d3e90212b7a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="session29-lme4-model-criticism_files/libs/bootstrap/bootstrap-fd62207d5d0d87b6c728c40f4e6d639e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid.min.js"></script>
 <script src="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid-init.js"></script>
 <link href="session29-lme4-model-criticism_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -260,9 +264,9 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>We apply some diagnostic workflows to three linguistic datasets from the ‘languageR’ package <span class="citation" data-cites="baayen2006morphological bresnan2007predicting christensen2019ordinal">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen, Feldman, and Schreuder 2006</a>; <a href="#ref-bresnan2007predicting" role="doc-biblioref">Bresnan et al. 2007</a>; <a href="#ref-christensen2019ordinal" role="doc-biblioref">Christensen 2019</a>)</span>:</p>
+<p>We apply some diagnostic workflows to three linguistic datasets from the ‘languageR’ package <span class="citation" data-cites="baayen2006morphological bresnan2007predicting christensen2019ordinal">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen et al. 2006</a>; <a href="#ref-bresnan2007predicting" role="doc-biblioref">Bresnan et al. 2007</a>; <a href="#ref-christensen2019ordinal" role="doc-biblioref">Christensen 2019</a>)</span>:</p>
 <ol type="1">
-<li><strong>Continuous Reaction Time LMM (<code>languageR::lexdec</code>)</strong> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen, Feldman, and Schreuder 2006</a>)</span>: Visual lexical decision reaction times (<span class="math inline">\(N = 1,659\)</span>) with <strong>crossed random factors</strong> (21 <code>Subject</code>s crossed with 79 <code>Word</code>s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (<code>NativeLanguage</code>), and experimental progression (<code>Trial</code>).</li>
+<li><strong>Continuous Reaction Time LMM (<code>languageR::lexdec</code>)</strong> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen et al. 2006</a>)</span>: Visual lexical decision reaction times (<span class="math inline">\(N = 1,659\)</span>) with <strong>crossed random factors</strong> (21 <code>Subject</code>s crossed with 79 <code>Word</code>s), continuous linguistic predictors (Lexical Frequency, Word Length), participant background (<code>NativeLanguage</code>), and experimental progression (<code>Trial</code>).</li>
 <li><strong>Discrete Syntactic Choice GLMM (<code>languageR::dative</code>)</strong> <span class="citation" data-cites="bresnan2007predicting">(<a href="#ref-bresnan2007predicting" role="doc-biblioref">Bresnan et al. 2007</a>)</span>: Dative alternation choices (<span class="math inline">\(N = 3,263\)</span>; double object NP <em>give John the book</em> vs.&nbsp;prepositional PP <em>give the book to John</em>), with predictors related to <strong>prominence hierarchies</strong> studied in CRC 1252 (Animacy, Pronominality, Givenness, End-Weight).</li>
 <li><strong>Ordinal Subjective Rating CLMM (<code>languageR::sizeRatings</code>)</strong>: Semantic size ratings (<span class="math inline">\(N = 3,078\)</span>) on a 7-point Likert scale across 38 subjects and 81 concrete nouns, used to compare Gaussian and ordinal models.</li>
 </ol>
@@ -494,7 +498,7 @@ window.Quarto = {
 <p><code>||</code> only removes the correlations reliably for numeric predictors. If <code>x</code> is a factor with more than two levels, <code>lme4</code> splits the term before it creates the dummy (contrast) columns, so the columns of the factor can stay correlated with each other. For factors, first create numeric contrast columns (as done below with <code>Native_num</code> and <code>Sex_num</code>) and use those inside <code>||</code>, or write out the separate <code>(0 + ... | ...)</code> terms.</p>
 </div>
 </div>
-<p>We prepare <code>languageR::lexdec</code> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen, Feldman, and Schreuder 2006</a>)</span>, standardizing continuous predictors to optimize numerical conditioning and applying <strong>centered sum contrast coding</strong> (<span class="math inline">\(-0.5 / +0.5\)</span>) to categorical factors <span class="citation" data-cites="schad2020contrast">(<a href="#ref-schad2020contrast" role="doc-biblioref">Schad et al. 2020</a>)</span>:</p>
+<p>We prepare <code>languageR::lexdec</code> <span class="citation" data-cites="baayen2006morphological">(<a href="#ref-baayen2006morphological" role="doc-biblioref">Baayen et al. 2006</a>)</span>, standardizing continuous predictors to optimize numerical conditioning and applying <strong>centered sum contrast coding</strong> (<span class="math inline">\(-0.5 / +0.5\)</span>) to categorical factors <span class="citation" data-cites="schad2020contrast">(<a href="#ref-schad2020contrast" role="doc-biblioref">Schad et al. 2020</a>)</span>:</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Toggle Code</summary>
@@ -587,13 +591,13 @@ $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> Groups   Name        Std.Dev. Corr          
- Word     (Intercept) 0.052690               
-          Native_num  0.034876  0.759        
-          Sex_num     0.017059 -0.799 -0.998 
- Subject  (Intercept) 0.142142               
-          Freq_z      0.018886 -0.433        
-          Length_z    0.023391  0.921 -0.473 
- Residual             0.168190               </code></pre>
+ Word     (Intercept) 0.052687               
+          Native_num  0.034875  0.759        
+          Sex_num     0.017058 -0.799 -0.998 
+ Subject  (Intercept) 0.142066               
+          Freq_z      0.018880 -0.433        
+          Length_z    0.023366  0.921 -0.474 
+ Residual             0.168193               </code></pre>
 </div>
 </div>
 <p><code>rePCA()</code> gives a complementary view by rotating each grouping factor’s random-effects covariance into orthogonal principal components. Near-zero component standard deviations reveal unsupported directions, including combinations of intercepts and slopes that may not be obvious in <code>VarCorr()</code>.</p>
@@ -606,23 +610,23 @@ $ Sex_num    &lt;dbl&gt; -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -
 <div class="cell-output cell-output-stdout">
 <pre><code>$Word
 Standard deviations (1, .., p=3):
-[1] 0.3681683 0.1260249 0.0000000
+[1] 0.3681288 0.1260569 0.0000000
 
 Rotation (n x k) = (3 x 3):
            [,1]       [,2]       [,3]
-[1,] -0.8291786  0.5582373 0.02887635
-[2,] -0.4990797 -0.7625968 0.41154044
-[3,]  0.2517583  0.3268289 0.91093393
+[1,] -0.8291954  0.5581989 0.02913811
+[2,] -0.4990303 -0.7627702 0.41127889
+[3,]  0.2518011  0.3264897 0.91104371
 
 $Subject
 Standard deviations (1, .., p=3):
-[1] 0.85622048 0.10179529 0.05210706
+[1] 0.8557482 0.1017837 0.0518856
 
 Rotation (n x k) = (3 x 3):
             [,1]        [,2]       [,3]
-[1,] -0.98696242 -0.07894182 -0.1402618
-[2,]  0.05781978 -0.98718289  0.1487509
-[3,] -0.15020673  0.13870160  0.9788768
+[1,] -0.98696613 -0.07902955 -0.1401862
+[2,]  0.05779675 -0.98706459  0.1495427
+[3,] -0.15019117  0.13949132  0.9787670
 
 attr(,"class")
 [1] "prcomplist"</code></pre>
@@ -672,25 +676,25 @@ REML criterion at convergence: -976.9
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--2.2258 -0.6208 -0.1122  0.4417  6.3909 
+-2.2258 -0.6208 -0.1123  0.4417  6.3908 
 
 Random effects:
  Groups   Name        Variance  Std.Dev. Corr        
- Word     (Intercept) 0.0030407 0.05514              
+ Word     (Intercept) 0.0030410 0.05514              
           Native_num  0.0012919 0.03594  0.83        
- Subject  (Intercept) 0.0201101 0.14181              
-          Freq_z      0.0003596 0.01896  -0.43       
-          Length_z    0.0005399 0.02324   0.92 -0.46 
- Residual             0.0283971 0.16851              
+ Subject  (Intercept) 0.0201096 0.14181              
+          Freq_z      0.0003595 0.01896  -0.43       
+          Length_z    0.0005397 0.02323   0.92 -0.46 
+ Residual             0.0283973 0.16851              
 Number of obs: 1659, groups:  Word, 79; Subject, 21
 
 Fixed effects:
              Estimate Std. Error        df t value Pr(&gt;|t|)    
-(Intercept)  6.392944   0.033061 19.620469 193.366  &lt; 2e-16 ***
-Freq_z      -0.044293   0.008835 44.950850  -5.013 8.82e-06 ***
-Length_z     0.016891   0.009332 44.572775   1.810   0.0771 .  
-Native_num   0.071506   0.045793 20.032054   1.562   0.1341    
-Sex_num      0.016483   0.046211 18.001881   0.357   0.7255    
+(Intercept)  6.392941   0.033061 19.622509 193.370  &lt; 2e-16 ***
+Freq_z      -0.044293   0.008835 44.956803  -5.013 8.82e-06 ***
+Length_z     0.016890   0.009332 44.569173   1.810    0.077 .  
+Native_num   0.071470   0.045786 20.035870   1.561    0.134    
+Sex_num      0.016476   0.046203 18.004738   0.357    0.726    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1382,7 +1386,7 @@ Confidence level used: 0.95 </code></pre>
 <ol type="1">
 <li><strong>Reference Grid Balancing</strong>: Continuous covariates are held constant at their grand mean (<span class="math inline">\(\bar{x}\)</span>), and factor cells are weighted equally. When covariates are correlated, the reference grid can evaluate combinations unobserved in actual data.</li>
 <li><strong>Scale of Inference</strong>: Differences on the link scale (log-odds) back-transform to <strong>odds ratios</strong> or <strong>ratio of medians</strong> on the response scale.</li>
-<li><strong>Degrees of Freedom Approximations</strong>: For LMMs, <code>emmeans</code> supports <strong>Kenward-Roger</strong> and <strong>Satterthwaite</strong> approximations <span class="citation" data-cites="kuznetsova2017lmertest">(<a href="#ref-kuznetsova2017lmertest" role="doc-biblioref">Kuznetsova, Brockhoff, and Christensen 2017</a>)</span>. Kenward-Roger is preferred in unbalanced crossed designs to avoid anticonservative tests.</li>
+<li><strong>Degrees of Freedom Approximations</strong>: For LMMs, <code>emmeans</code> supports <strong>Kenward-Roger</strong> and <strong>Satterthwaite</strong> approximations <span class="citation" data-cites="kuznetsova2017lmertest">(<a href="#ref-kuznetsova2017lmertest" role="doc-biblioref">Kuznetsova et al. 2017</a>)</span>. Kenward-Roger is preferred in unbalanced crossed designs to avoid anticonservative tests.</li>
 <li><strong>Homoscedasticity</strong>: Standard errors in <code>emmeans</code> assume a shared residual variance <span class="math inline">\(\sigma^2\)</span> across factor levels.</li>
 <li><strong>Multiplicity Corrections</strong>: When performing multiple contrasts, adjustments must be chosen deliberately:
 <ul>
@@ -1645,12 +1649,12 @@ nloptwrap.NLOPT_LN_BOBYQA                     -0.1034810      0.1101540
 
 $times
                               user.self sys.self elapsed user.child sys.child
-bobyqa                            0.303        0   0.303          0         0
-Nelder_Mead                       0.363        0   0.362          0         0
-nlminbwrap                        0.293        0   0.293          0         0
-nmkbw                             0.376        0   0.393          0         0
-nloptwrap.NLOPT_LN_NELDERMEAD     0.348        0   0.348          0         0
-nloptwrap.NLOPT_LN_BOBYQA         0.252        0   0.253          0         0
+bobyqa                            0.184    0.000   0.184          0         0
+Nelder_Mead                       0.211    0.000   0.211          0         0
+nlminbwrap                        0.181    0.000   0.182          0         0
+nmkbw                             0.220    0.001   0.221          0         0
+nloptwrap.NLOPT_LN_NELDERMEAD     0.209    0.000   0.209          0         0
+nloptwrap.NLOPT_LN_BOBYQA         0.163    0.000   0.164          0         0
 
 $feval
                        bobyqa                   Nelder_Mead 
@@ -2018,7 +2022,7 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>Results: Lexical Decision Reaction Times (Dynamic)</strong><br>
-Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v2.0.6) and <code>lmerTest</code> (v3.2.1) in R (v4.5.2). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al.&nbsp;(2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
+Reaction times were log-transformed and analyzed using Linear Mixed-Effects Models fitted with <code>lme4</code> (v2.0.6) and <code>lmerTest</code> (v3.2.1) in R (v4.6.1). Lexical Frequency and Word Length were standardized (<span class="math inline">\(z\)</span>-scores; <span class="math inline">\(M = 0, SD = 1\)</span>) to facilitate numerical optimization. Participant Native Language was centered using sum contrast coding (<span class="math inline">\(-0.5 = \text{English}, +0.5 = \text{Other}\)</span>) to ensure that lower-order coefficients reflect true main effects. Following Barr et al.&nbsp;(2013), an initial maximal model was fitted with crossed random intercepts for Subjects and Words, alongside random slopes for Frequency and Length within Subjects, and Native Language and Sex within Words.</p>
 <p>Singularity evaluation (<code>isSingular()</code>, tolerance <span class="math inline">\(= 10^{-4}\)</span>) revealed that the maximal specification was degenerate, with the Word-level random intercept collapsing to boundary zero (<span class="math inline">\(\sigma = 0.000, \rho = 1.000\)</span>). Following automated singular variance pruning (<code>trouBBlme4SolveR::dwmw()</code>), non-identifiable random slopes were eliminated. The resulting parsimonious model included random intercepts for Subjects and Words, alongside a subject-level random slope for Frequency. Numerical benchmarking across eight derivative-free optimizers (<code>lme4::allFit()</code>) confirmed that all algorithms converged to identical log-likelihoods (<span class="math inline">\(\Delta \log L &lt; 10^{-5}\)</span>), verifying that the solution was stable and non-singular.</p>
 <p>Fixed-effects significance tests were evaluated using two-tailed <span class="math inline">\(t\)</span>-tests with Satterthwaite degrees-of-freedom approximations via <code>lmerTest</code>. Lexical Frequency significantly facilitated reaction times (<span class="math inline">\(\beta = -0.047\)</span>, <span class="math inline">\(SE = 0.010\)</span>, <span class="math inline">\(t(52.5) = -4.81\)</span>, <span class="math inline">\(p &lt; .001\)</span>), while Word Length exhibited a significant inhibitory effect (<span class="math inline">\(\beta = 0.017\)</span>, <span class="math inline">\(SE = 0.008\)</span>, <span class="math inline">\(t(76.0) = 2.16\)</span>, <span class="math inline">\(p = 0.034\)</span>). Non-native speakers responded marginally slower than native speakers, though this main effect did not reach conventional significance in the parsimonious specification (<span class="math inline">\(\beta = 0.071\)</span>, <span class="math inline">\(SE = 0.053\)</span>, <span class="math inline">\(t(19.0) = 1.34\)</span>, <span class="math inline">\(p = 0.195\)</span>). Post-hoc estimated marginal means (<code>emmeans</code>) indicated mean latencies of <span class="math inline">\(6.355\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.272, 6.437]\)</span>) for native English speakers and <span class="math inline">\(6.426\)</span> log ms (<span class="math inline">\(95\%\text{ CI } [6.333, 6.519]\)</span>) for other speakers. Overall variance partitioning (Nakagawa &amp; Schielzeth, 2013) revealed that fixed effects accounted for <span class="math inline">\(7.8%\)</span> of total variance (<span class="math inline">\(R^2_m = 0.078\)</span>), while the combined fixed and random effects explained <span class="math inline">\(49.0%\)</span> (<span class="math inline">\(R^2_c = 0.490\)</span>).</p>
 </div>
@@ -2132,7 +2136,7 @@ Reaction times were log-transformed and analyzed using Linear Mixed-Effects Mode
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>R version 4.5.2 (2025-10-31)
+<pre><code>R version 4.6.1 (2026-06-24)
 Platform: x86_64-pc-linux-gnu
 Running under: Ubuntu 24.04.4 LTS
 
@@ -2156,40 +2160,50 @@ attached base packages:
 
 other attached packages:
  [1] lubridate_1.9.5        forcats_1.0.1          stringr_1.6.0         
- [4] dplyr_1.2.1            purrr_1.2.1            readr_2.2.0           
+ [4] dplyr_1.2.1            purrr_1.2.2            readr_2.2.0           
  [7] tidyr_1.3.2            tibble_3.3.1           ggplot2_4.0.3         
 [10] tidyverse_2.0.0        languageR_1.6          emmeans_2.0.4         
 [13] ordinal_2026.7-26      knitr_1.52             dfoptim_2023.1.0      
 [16] trouBBlme4SolveR_0.1.4 influence.ME_0.9-10    see_0.14.2            
 [19] parameters_0.29.3      performance_0.18.2     DHARMa_0.5.0          
-[22] lmerTest_3.2-1         lme4_2.0-6             Matrix_1.7-4          
+[22] lmerTest_3.2-1         lme4_2.0-6             Matrix_1.7-5          
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.6        xfun_0.61           bayestestR_0.19.0  
- [4] htmlwidgets_1.6.4   insight_1.5.4       lattice_0.22-7     
- [7] tzdb_0.5.0          numDeriv_2016.8-1.1 vctrs_0.7.1        
-[10] tools_4.5.2         Rdpack_2.6.6        generics_0.1.4     
-[13] datawizard_1.4.0    ucminf_1.2.3        pkgconfig_2.0.3    
-[16] RColorBrewer_1.1-3  S7_0.2.1            lifecycle_1.0.5    
-[19] compiler_4.5.2      farver_2.1.2        codetools_0.2-20   
-[22] htmltools_0.5.9     yaml_2.3.12         pillar_1.11.1      
-[25] nloptr_2.2.1        MASS_7.3-65         reformulas_0.4.4   
-[28] boot_1.3-32         nlme_3.1-168        tidyselect_1.2.1   
-[31] digest_0.6.39       stringi_1.8.7       mvtnorm_1.4-2      
-[34] splines_4.5.2       fastmap_1.2.0       grid_4.5.2         
-[37] cli_3.6.6           magrittr_2.0.4      withr_3.0.2        
-[40] scales_1.4.0        timechange_0.4.0    estimability_2.0.0 
-[43] rmarkdown_2.32      otel_0.2.0          hms_1.1.4          
-[46] coda_0.19-4.1       evaluate_1.0.5      rbibutils_2.4.1    
-[49] rlang_1.3.0         Rcpp_1.1.2          xtable_1.8-8       
-[52] glue_1.8.0          minqa_1.2.8         jsonlite_2.0.0     
-[55] R6_2.6.1           </code></pre>
+ [1] Rdpack_2.6.6         rlang_1.3.0          magrittr_2.0.5      
+ [4] otel_0.2.0           compiler_4.6.1       mgcv_1.9-4          
+ [7] vctrs_0.7.3          pkgconfig_2.0.3      fastmap_1.2.0       
+[10] backports_1.5.1      labeling_0.4.3       cmdstanr_0.9.0      
+[13] promises_1.5.0       rmarkdown_2.32       tzdb_0.5.0          
+[16] ps_1.9.3             nloptr_2.2.1         xfun_0.60           
+[19] jsonlite_2.0.0       later_1.4.8          broom_1.0.13        
+[22] parallel_4.6.1       R6_2.6.1             gap.datasets_0.0.6  
+[25] stringi_1.8.9        qgam_2.0.0           RColorBrewer_1.1-3  
+[28] boot_1.3-32          lmtest_0.9-40        numDeriv_2016.8-1.1 
+[31] estimability_2.0.0   Rcpp_1.1.2           iterators_1.0.14    
+[34] zoo_1.9-1            httpuv_1.6.17        splines_4.6.1       
+[37] timechange_0.4.0     tidyselect_1.2.1     abind_1.4-8         
+[40] yaml_2.3.12          doParallel_1.0.17    codetools_0.2-20    
+[43] processx_3.9.0       lattice_0.22-9       plyr_1.8.9          
+[46] shiny_1.14.0         withr_3.0.3          bayestestR_0.19.0   
+[49] S7_0.2.2             posterior_1.7.1      coda_0.19-4.1       
+[52] evaluate_1.0.5       pillar_1.11.1        gap_1.15.2          
+[55] tensorA_0.36.2.1     checkmate_2.3.4      foreach_1.5.2       
+[58] stats4_4.6.1         reformulas_0.4.4     insight_1.5.4       
+[61] distributional_0.9.0 generics_0.1.4       hms_1.1.4           
+[64] scales_1.4.0         minqa_1.2.8          xtable_1.8-8        
+[67] glue_1.8.1           tools_4.6.1          mvtnorm_1.4-2       
+[70] grid_4.6.1           rbibutils_2.4.1      datawizard_1.4.0    
+[73] nlme_3.1-169         patchwork_1.3.2      cli_3.6.6           
+[76] gtable_0.3.6         digest_0.6.39        pbkrtest_0.5.5      
+[79] ucminf_1.2.3         htmlwidgets_1.6.4    farver_2.1.2        
+[82] htmltools_0.5.9      lifecycle_1.0.5      mime_0.13           
+[85] MASS_7.3-65         </code></pre>
 </div>
 </div>
 </section>
 <section id="references" class="level1" data-number="11">
 <h1 data-number="11"><span class="header-section-number">11</span> References</h1>
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-arelbundock2024marginaleffects" class="csl-entry" role="listitem">
 Arel-Bundock, Vincent, Noah Greifer, and Andrew Heiss. 2024. <span>“How to Interpret Statistical Models Using <span class="nocase">marginaleffects</span> for <span>R</span> and <span>Python</span>.”</span> <em>Journal of Statistical Software</em> 111 (9): 1–32. <a href="https://doi.org/10.18637/jss.v111.i09">https://doi.org/10.18637/jss.v111.i09</a>.
 </div>
@@ -2206,13 +2220,13 @@ Bates, Douglas, Reinhold Kliegl, Shravan Vasishth, and Harald Baayen. 2015. <spa
 Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. <span>“Fitting Linear Mixed-Effects Models Using <span class="nocase">lme4</span>.”</span> <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.
 </div>
 <div id="ref-bolker2009generalized" class="csl-entry" role="listitem">
-Bolker, Benjamin M, Mollie E Brooks, Connie J Clark, Shane W Geange, John R Poulsen, M Henry H Stevens, and Jada-Simone S White. 2009. <span>“Generalized Linear Mixed Models: A Practical Guide for Ecology and Evolution.”</span> <em>Trends in Ecology &amp; Evolution</em> 24 (3): 127–35. <a href="https://doi.org/10.1016/j.tree.2008.10.008">https://doi.org/10.1016/j.tree.2008.10.008</a>.
+Bolker, Benjamin M, Mollie E Brooks, Connie J Clark, et al. 2009. <span>“Generalized Linear Mixed Models: A Practical Guide for Ecology and Evolution.”</span> <em>Trends in Ecology &amp; Evolution</em> 24 (3): 127–35. <a href="https://doi.org/10.1016/j.tree.2008.10.008">https://doi.org/10.1016/j.tree.2008.10.008</a>.
 </div>
 <div id="ref-bresnan2007predicting" class="csl-entry" role="listitem">
-Bresnan, Joan, Anna Cueni, Tatiana Nikitina, and R Harald Baayen. 2007. <span>“Predicting the Dative Alternation.”</span> In <em>Cognitive Foundations of Interpretation</em>, edited by Gerlof Bouma, Irene Krämer, and Joost Zwarts, 69–94. Amsterdam: Royal Netherlands Academy of Science.
+Bresnan, Joan, Anna Cueni, Tatiana Nikitina, and R Harald Baayen. 2007. <span>“Predicting the Dative Alternation.”</span> In <em>Cognitive Foundations of Interpretation</em>, edited by Gerlof Bouma, Irene Krämer, and Joost Zwarts. Royal Netherlands Academy of Science.
 </div>
 <div id="ref-brooks2017glmmtmb" class="csl-entry" role="listitem">
-Brooks, Mollie E, Kasper Kristensen, Koen J van Benthem, Arni Magnusson, Casper W Berg, Anders Nielsen, Hans J Skaug, Martin Mächler, and Benjamin M Bolker. 2017. <span>“<span class="nocase">glmmTMB</span> Balances Speed and Flexibility Among Packages for Zero-Inflated Generalized Linear Mixed Modeling.”</span> <em>The R Journal</em> 9 (2): 378–400. <a href="https://doi.org/10.32614/RJ-2017-066">https://doi.org/10.32614/RJ-2017-066</a>.
+Brooks, Mollie E, Kasper Kristensen, Koen J van Benthem, et al. 2017. <span>“<span class="nocase">glmmTMB</span> Balances Speed and Flexibility Among Packages for Zero-Inflated Generalized Linear Mixed Modeling.”</span> <em>The R Journal</em> 9 (2): 378–400. <a href="https://doi.org/10.32614/RJ-2017-066">https://doi.org/10.32614/RJ-2017-066</a>.
 </div>
 <div id="ref-burkner2017brms" class="csl-entry" role="listitem">
 Bürkner, Paul-Christian. 2017. <span>“<span class="nocase">brms</span>: An <span>R</span> Package for <span>Bayesian</span> Multilevel Models Using <span>Stan</span>.”</span> <em>Journal of Statistical Software</em> 80 (1): 1–28. <a href="https://doi.org/10.18637/jss.v080.i01">https://doi.org/10.18637/jss.v080.i01</a>.
