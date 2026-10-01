@@ -16,13 +16,16 @@ jobs:
           fetch-depth: 0
 
       - name: Push to GitLab NRW
-        if: ${{ secrets.GITLAB_TOKEN != '' }}
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           GITLAB_USER: ${{ secrets.GITLAB_USERNAME || 'jschepen' }}
           GITLAB_HOST: gitlab.git.nrw
           GITLAB_PROJECT: ${{ secrets.GITLAB_PROJECT || 'brms-ws' }}
         run: |
+          if [ -z "$GITLAB_TOKEN" ]; then
+            echo "GITLAB_TOKEN is not configured. Skipping mirror to GitLab."
+            exit 0
+          fi
           echo "Mirroring to https://${GITLAB_HOST}/${GITLAB_USER}/${GITLAB_PROJECT}.git"
           git push --prune \
             "https://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${GITLAB_USER}/${GITLAB_PROJECT}.git" \
