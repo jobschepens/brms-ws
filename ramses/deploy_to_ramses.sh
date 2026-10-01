@@ -7,7 +7,7 @@ set -e
 
 RAMSES_USER="${RAMSES_USER:-jschepen}"
 RAMSES_HOST="${RAMSES_HOST:-ramses1.itcc.uni-koeln.de}"
-RAMSES_DIR="${RAMSES_DIR:-github/brms-workshop}"
+RAMSES_DIR="${RAMSES_DIR:-github/brms-ws}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -52,7 +52,7 @@ echo ""
 echo "2. Navigate to ramses folder:"
 echo "   cd ~/${RAMSES_DIR}/ramses"
 echo ""
-echo "3. Pull the GitHub container image (if not already pulled):"
+echo "3. Pull the container image (only once, ~5-10 min):"
 echo "   bash pull_container_ramses.sh"
 echo ""
 echo "4. Submit the lme4 rendering SLURM job:"

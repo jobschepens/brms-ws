@@ -33,28 +33,35 @@ OUTPUT_HTML="materials/lme4/session29-lme4-model-criticism.html"
 # Auto-detect workspace directory
 if [ -n "$SLURM_SUBMIT_DIR" ] && [ -f "$SLURM_SUBMIT_DIR/../$QMD_FILE" ]; then
     WORKSPACE="$(cd "$SLURM_SUBMIT_DIR/.." && pwd)"
-elif [ -f "$HOME/github/brms-workshop/$QMD_FILE" ]; then
-    WORKSPACE="$HOME/github/brms-workshop"
 elif [ -f "$HOME/github/brms-ws/$QMD_FILE" ]; then
     WORKSPACE="$HOME/github/brms-ws"
+elif [ -f "$HOME/github/brms-workshop/$QMD_FILE" ]; then
+    WORKSPACE="$HOME/github/brms-workshop"
+elif [ -f "$HOME/brms-ws/$QMD_FILE" ]; then
+    WORKSPACE="$HOME/brms-ws"
 elif [ -f "$HOME/brms-workshop/$QMD_FILE" ]; then
     WORKSPACE="$HOME/brms-workshop"
 else
-    WORKSPACE="$HOME/github/brms-workshop"
+    WORKSPACE="$HOME/github/brms-ws"
 fi
+
+echo "Workspace:     $WORKSPACE"
+echo "Target QMD:    $WORKSPACE/$QMD_FILE"
+echo "Container:     $CONTAINER"
+echo ""
 
 # Verify container existence
 if [ ! -f "$CONTAINER" ]; then
     echo "❌ ERROR: Container not found at $CONTAINER"
     echo "Please pull the container first by running:"
-    echo "  cd ~/brms-workshop/scripts && bash pull_container_ramses.sh"
+    echo "  cd $WORKSPACE/ramses && bash pull_container_ramses.sh"
     exit 1
 fi
 
 # Verify input file
 if [ ! -f "$WORKSPACE/$QMD_FILE" ]; then
     echo "❌ ERROR: Target file $WORKSPACE/$QMD_FILE not found."
-    echo "Please deploy workshop materials first via deploy_to_ramses.sh"
+    echo "Please check that git repo is cloned or run deploy_to_ramses.sh"
     exit 1
 fi
 
@@ -86,7 +93,5 @@ if [ -f "$WORKSPACE/$OUTPUT_HTML" ]; then
     echo "Rendered HTML created successfully:"
     ls -lh "$WORKSPACE/$OUTPUT_HTML"
 else
-    echo "⚠️ Warning: $OUTPUT_HTML was not found after execution."
+    echo "⚠️ Warning: $OUTPUT_HTML was not generated or has a different path."
 fi
-
-echo "======================================================================"
