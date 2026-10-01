@@ -9,11 +9,13 @@ jobs:
   mirror:
     name: Mirror repository to gitlab.git.nrw
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: false
 
       - name: Push to GitLab NRW
         env:
@@ -21,13 +23,14 @@ jobs:
           GITLAB_USER: ${{ secrets.GITLAB_USERNAME || 'jschepen' }}
           GITLAB_HOST: gitlab.git.nrw
           GITLAB_PROJECT: ${{ secrets.GITLAB_PROJECT || 'brms-ws' }}
+          GIT_LFS_SKIP_SMUDGE: "1"
         run: |
           if [ -z "$GITLAB_TOKEN" ]; then
             echo "GITLAB_TOKEN is not configured. Skipping mirror to GitLab."
             exit 0
           fi
           echo "Mirroring to https://${GITLAB_HOST}/${GITLAB_USER}/${GITLAB_PROJECT}.git"
-          git push --prune \
+          git -c lfs.allowincompletepush=true push --prune \
             "https://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${GITLAB_USER}/${GITLAB_PROJECT}.git" \
             "+refs/heads/*:refs/heads/*" \
             "+refs/tags/*:refs/tags/*"
