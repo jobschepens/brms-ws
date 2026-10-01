@@ -1,10 +1,10 @@
 # ===========================================================================
 # GitLab CI/CD Pipeline for BRMS Workshop (gitlab.git.nrw)
 # ===========================================================================
-# This pipeline mirrors the GitHub Actions workflow to:
-# 1. Build and publish the Docker container to the GitLab Container Registry.
-# 2. Render Quarto tutorials (including session 29) in CI.
-# 3. Publish the rendered notebooks and HTML files to GitLab Pages.
+# 1. Builds and publishes the container to GitLab's own Container Registry.
+# 2. Uses the GitLab container to render Quarto tutorials in CI.
+# 3. Publishes rendered notebooks and HTML files to GitLab Pages.
+# Completely independent of GitHub.
 # ===========================================================================
 
 stages:
@@ -12,7 +12,12 @@ stages:
   - deploy
 
 variables:
+  # Configure Docker client to use TLS on port 2376 with dind service certs
+  DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  DOCKER_DRIVER: overlay2
   IMAGE_TAG_WORKING: "$CI_REGISTRY_IMAGE:working"
   IMAGE_TAG_LATEST: "$CI_REGISTRY_IMAGE:latest"
   IMAGE_TAG_COMMIT: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
@@ -26,6 +31,9 @@ build-container:
   services:
     - docker:24-dind
   before_script:
+    # Wait for the Docker daemon to become responsive before continuing
+    - for i in $(seq 1 30); do docker info >/dev/null 2>&1 && break || sleep 1; done
+    - docker info
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
   script:
     # Pull existing image for layer caching if available
@@ -53,41 +61,21 @@ build-container:
 # ---------------------------------------------------------------------------
 # 2. Render Quarto tutorials & publish to GitLab Pages
 # ---------------------------------------------------------------------------
+# Uses GitLab's own container built by the job above ($CI_REGISTRY_IMAGE:working)
 pages:
   stage: deploy
-  image: docker:24
-  services:
-    - docker:24-dind
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" || true
+  needs:
+    - job: build-container
+      artifacts: false
+      optional: true
+  image:
+    name: $CI_REGISTRY_IMAGE:working
+    entrypoint: [""]
   script:
-    # 1. Select container image (prefer GitLab registry, fallback to GHCR)
-    - |
-      IMAGE="$IMAGE_TAG_WORKING"
-      if ! docker pull "$IMAGE"; then
-        echo "GitLab image not found, falling back to GitHub Container Registry..."
-        IMAGE="ghcr.io/jobschepens/brms-workshop:working"
-        docker pull "$IMAGE"
-      fi
-      echo "Using image: $IMAGE"
-
-      # 2. Render session29 tutorial inside the container
-      docker run --rm \
-        -v "$(pwd):/workspace" \
-        -w /workspace \
-        "$IMAGE" \
-        sh -c '
-          if command -v quarto >/dev/null 2>&1; then
-            quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
-          elif [ -f /usr/lib/rstudio-server/bin/quarto/bin/quarto ]; then
-            /usr/lib/rstudio-server/bin/quarto/bin/quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
-          else
-            echo "Quarto executable not found in container!" >&2
-            exit 1
-          fi
-        '
-
-    # 3. Assemble GitLab Pages artifact (public/)
+    # 1. Ensure Quarto is in PATH and render session29 tutorial
+    - export PATH="/usr/lib/rstudio-server/bin/quarto/bin:$PATH"
+    - quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
+    # 2. Assemble GitLab Pages artifact (public/)
     - mkdir -p public/lme4
     - cp -r materials/scripts/* public/
     - cp materials/lme4/session29-lme4-model-criticism.html public/lme4/
