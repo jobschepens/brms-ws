@@ -2,7 +2,7 @@
 # GitLab CI/CD Pipeline for BRMS Workshop (gitlab.git.nrw)
 # ===========================================================================
 # 1. Builds and publishes the container to GitLab's own Container Registry
-#    using Red Hat Buildah (quay.io/buildah/stable) with chroot isolation.
+#    using Kaniko (unprivileged builder that succeeds on git.nrw runners).
 # 2. Uses the GitLab container to render Quarto tutorials in CI.
 # 3. Publishes rendered notebooks and HTML files to GitLab Pages.
 # Completely independent of GitHub.
@@ -18,34 +18,28 @@ variables:
   IMAGE_TAG_COMMIT: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
 
 # ---------------------------------------------------------------------------
-# 1. Build and push workshop container to GitLab Container Registry (Buildah)
+# 1. Build and push workshop container to GitLab Container Registry
 # ---------------------------------------------------------------------------
+# Uses Kaniko because git.nrw shared runners run without privileged mode
+# and Buildah with vfs exhausts runner disk space on large (5GB+) R images.
 build-container:
   stage: build
   image:
-    name: quay.io/buildah/stable
+    name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
-  variables:
-    STORAGE_DRIVER: vfs
-    BUILDAH_ISOLATION: chroot
-    BUILDAH_FORMAT: docker
   before_script:
-    - mkdir -p /etc/containers
-    - echo 'unqualified-search-registries = ["docker.io"]' > /etc/containers/registries.conf
-    - echo 'short-name-mode = "permissive"' >> /etc/containers/registries.conf
-    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
-    # Build container image with Docker format and tags
-    - |
-      buildah build \
-        --format docker \
-        -t "$IMAGE_TAG_WORKING" \
-        -t "$IMAGE_TAG_LATEST" \
-        -t "$IMAGE_TAG_COMMIT" \
-        .
-    - buildah push "$IMAGE_TAG_WORKING"
-    - buildah push "$IMAGE_TAG_LATEST"
-    - buildah push "$IMAGE_TAG_COMMIT"
+    - >-
+      /kaniko/executor
+      --context "$CI_PROJECT_DIR"
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+      --destination "$IMAGE_TAG_WORKING"
+      --destination "$IMAGE_TAG_LATEST"
+      --destination "$IMAGE_TAG_COMMIT"
+      --cache=true
+      --cache-repo "$CI_REGISTRY_IMAGE/cache"
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       changes:
