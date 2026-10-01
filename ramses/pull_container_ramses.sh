@@ -31,8 +31,8 @@ cd $CONTAINER_DIR
 echo "Container directory: $CONTAINER_DIR"
 echo ""
 
-# Use Docker Hub as the default source
-DOCKER_IMAGE="docker://jobschepens/brms-workshop:working"
+# Use GitHub Container Registry (GHCR) as the default source
+DOCKER_IMAGE="${1:-docker://ghcr.io/jobschepens/brms-workshop:working}"
 OUTPUT_FILE="brms-workshop_working.sif"
 
 echo "Pulling from: $DOCKER_IMAGE"
@@ -85,10 +85,16 @@ echo "----------------------------------------"
 apptainer exec $OUTPUT_FILE R --version
 echo ""
 
-# Check if BRMS is available
-echo "Checking BRMS installation..."
+# Check if BRMS and lme4 are available
+echo "Checking BRMS & lme4 installation..."
 echo "----------------------------------------"
-apptainer exec $OUTPUT_FILE Rscript -e "cat('BRMS version:', as.character(packageVersion('brms')), '\n')" 2>/dev/null || echo "BRMS check completed"
+apptainer exec $OUTPUT_FILE Rscript -e "cat('BRMS version:', as.character(packageVersion('brms')), '\nlme4 version:', as.character(packageVersion('lme4')), '\n')" 2>/dev/null || echo "Package check completed"
+echo ""
+
+# Check if Quarto is available
+echo "Checking Quarto installation..."
+echo "----------------------------------------"
+apptainer exec $OUTPUT_FILE sh -c 'export PATH="/usr/lib/rstudio-server/bin/quarto/bin:$PATH"; if command -v quarto >/dev/null 2>&1; then quarto --version; else echo "Quarto not found in PATH"; fi'
 echo ""
 
 echo "========================================="

@@ -62,6 +62,31 @@ apptainer exec ~/containers/brms-workshop_working.sif \
 
 ---
 
+## Rendering Session 29 (lme4 Model Criticism) via SLURM
+
+To render the `session29-lme4-model-criticism.qmd` tutorial inside the GitHub Apptainer container on RAMSES:
+
+```bash
+# 1. SSH to RAMSES
+ssh jschepen@ramses1.itcc.uni-koeln.de
+
+# 2. Pull the GitHub container (if not already pulled)
+cd ~/brms-workshop/scripts
+bash pull_container_ramses.sh
+
+# 3. Submit the Quarto render SLURM job
+sbatch render_lme4_slurm.sh
+
+# 4. Monitor the job
+squeue -u $USER
+tail -f render_lme4_*.out
+
+# 5. Check the rendered HTML output
+ls -lh ~/brms-workshop/materials/lme4/session29-lme4-model-criticism.html
+```
+
+---
+
 ## Running BRMS Models
 
 ### Example: Simple Linear Model
