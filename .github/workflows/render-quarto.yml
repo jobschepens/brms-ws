@@ -3,12 +3,22 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - 'materials/**'
+      - '.github/workflows/render-quarto.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  packages: read
+
+# Allow one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -19,21 +29,57 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull workshop container image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/brms-workshop:working"
+          if ! docker pull "$IMAGE"; then
+            IMAGE="ghcr.io/${{ github.repository_owner }}/brms-workshop:main"
+            docker pull "$IMAGE"
+          fi
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Render lme4 tutorial with Quarto in CI
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            "$IMAGE" \
+            sh -c '
+              if command -v quarto >/dev/null 2>&1; then
+                quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
+              elif [ -f /usr/lib/rstudio-server/bin/quarto/bin/quarto ]; then
+                /usr/lib/rstudio-server/bin/quarto/bin/quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
+              else
+                echo "Quarto executable not found in container!" >&2
+                exit 1
+              fi
+            '
+          sudo chown -R $(id -u):$(id -g) materials/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Add lme4 workshop to Pages artifact
         run: |
           mkdir -p materials/scripts/lme4
           cp materials/lme4/session29-lme4-model-criticism.html materials/scripts/lme4/
-          cp -R materials/lme4/session29-lme4-model-criticism_files materials/scripts/lme4/
+          if [ -d materials/lme4/session29-lme4-model-criticism_files ]; then
+            cp -R materials/lme4/session29-lme4-model-criticism_files materials/scripts/lme4/
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'materials/scripts'
-      
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

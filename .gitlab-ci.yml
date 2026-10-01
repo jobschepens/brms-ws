@@ -1,0 +1,103 @@
+# ===========================================================================
+# GitLab CI/CD Pipeline for BRMS Workshop (gitlab.git.nrw)
+# ===========================================================================
+# This pipeline mirrors the GitHub Actions workflow to:
+# 1. Build and publish the Docker container to the GitLab Container Registry.
+# 2. Render Quarto tutorials (including session 29) in CI.
+# 3. Publish the rendered notebooks and HTML files to GitLab Pages.
+# ===========================================================================
+
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  IMAGE_TAG_WORKING: "$CI_REGISTRY_IMAGE:working"
+  IMAGE_TAG_LATEST: "$CI_REGISTRY_IMAGE:latest"
+  IMAGE_TAG_COMMIT: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+
+# ---------------------------------------------------------------------------
+# 1. Build and push workshop container to GitLab Container Registry
+# ---------------------------------------------------------------------------
+build-container:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    # Pull existing image for layer caching if available
+    - docker pull "$IMAGE_TAG_WORKING" || true
+    - |
+      docker build \
+        --cache-from "$IMAGE_TAG_WORKING" \
+        --tag "$IMAGE_TAG_WORKING" \
+        --tag "$IMAGE_TAG_LATEST" \
+        --tag "$IMAGE_TAG_COMMIT" \
+        .
+    - docker push "$IMAGE_TAG_WORKING"
+    - docker push "$IMAGE_TAG_LATEST"
+    - docker push "$IMAGE_TAG_COMMIT"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes:
+        - Dockerfile
+        - install.R
+        - docker-compose.yml
+        - docker/**/*
+        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "web"'  # Allow manual trigger from GitLab UI
+
+# ---------------------------------------------------------------------------
+# 2. Render Quarto tutorials & publish to GitLab Pages
+# ---------------------------------------------------------------------------
+pages:
+  stage: deploy
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY" || true
+  script:
+    # 1. Select container image (prefer GitLab registry, fallback to GHCR)
+    - |
+      IMAGE="$IMAGE_TAG_WORKING"
+      if ! docker pull "$IMAGE"; then
+        echo "GitLab image not found, falling back to GitHub Container Registry..."
+        IMAGE="ghcr.io/jobschepens/brms-workshop:working"
+        docker pull "$IMAGE"
+      fi
+      echo "Using image: $IMAGE"
+
+      # 2. Render session29 tutorial inside the container
+      docker run --rm \
+        -v "$(pwd):/workspace" \
+        -w /workspace \
+        "$IMAGE" \
+        sh -c '
+          if command -v quarto >/dev/null 2>&1; then
+            quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
+          elif [ -f /usr/lib/rstudio-server/bin/quarto/bin/quarto ]; then
+            /usr/lib/rstudio-server/bin/quarto/bin/quarto render materials/lme4/session29-lme4-model-criticism.qmd --to html
+          else
+            echo "Quarto executable not found in container!" >&2
+            exit 1
+          fi
+        '
+
+    # 3. Assemble GitLab Pages artifact (public/)
+    - mkdir -p public/lme4
+    - cp -r materials/scripts/* public/
+    - cp materials/lme4/session29-lme4-model-criticism.html public/lme4/
+    - if [ -d materials/lme4/session29-lme4-model-criticism_files ]; then cp -r materials/lme4/session29-lme4-model-criticism_files public/lme4/; fi
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes:
+        - materials/**/*
+        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "web"'  # Allow manual trigger from GitLab UI

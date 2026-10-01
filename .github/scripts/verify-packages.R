@@ -27,3 +27,14 @@ if (length(missing) > 0) {
 }
 
 cat("All declared packages are installed\n")
+
+if (requireNamespace("cmdstanr", quietly = TRUE)) {
+  cmdstan_path <- tryCatch(
+    cmdstanr::cmdstan_path(),
+    error = function(e) NULL
+  )
+  if (is.null(cmdstan_path) || !dir.exists(cmdstan_path)) {
+    stop("CmdStan is not discoverable for the runtime user")
+  }
+  cat("CmdStan available at", cmdstan_path, "\n")
+}

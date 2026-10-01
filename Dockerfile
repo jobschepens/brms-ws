@@ -4,15 +4,15 @@
 # To build: docker build -t brms-workshop .
 # To run:   docker compose up -d
 
-# Base image: rocker/verse with R 4.5.2
+# Base image: rocker/verse with R 4.6.1
 # rocker/verse includes:
-# - Base R installation (4.5.2)
+# - Base R installation (4.6.1)
 # - RStudio Server (2025.09.2+418)
 # - tidyverse packages pre-installed
 # - TeX Live for PDF/LaTeX document generation
 # - Publishing tools (rmarkdown, bookdown, blogdown)
 # See: https://rocker-project.org/images/versioned/rstudio.html
-FROM rocker/verse:4.5.2
+FROM rocker/verse:4.6.1
 
 # Stan compilation optimization environment variables
 # These significantly speed up CmdStan installation and model compilation
@@ -23,6 +23,7 @@ FROM rocker/verse:4.5.2
 ENV CMDSTAN_INSTALL_TIMEOUT=3600 \
     MAKEFLAGS="-j4" \
     CMDSTANR_INSTALL_CORES=4 \
+  CMDSTAN_DIR=/home/rstudio/.cmdstan \
     DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies required for Stan and R packages
@@ -173,7 +174,7 @@ EXPOSE 8787
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.title="BRMS Workshop" \
       org.opencontainers.image.description="R workshop environment with brms and CmdStan for Bayesian modeling" \
-      org.opencontainers.image.version="4.5.2" \
+      org.opencontainers.image.version="4.6.1" \
       org.opencontainers.image.authors="jobschepens" \
       org.opencontainers.image.url="https://github.com/jobschepens/brms-ws" \
       org.opencontainers.image.source="https://github.com/jobschepens/brms-ws" \

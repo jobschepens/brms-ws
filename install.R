@@ -14,8 +14,8 @@ selected_mirror <- mirrors$cloud
 options(repos = c(CRAN = selected_mirror))
 cat("Using mirror:", selected_mirror, "\n")
 
-# Suppress warnings for cleaner output
-options(warn = -1)
+# Show warnings during image builds so failed or incompatible package installs are visible.
+options(warn = 1)
 
 # Install packages in parallel
 options(Ncpus = min(4, parallel::detectCores()))
@@ -134,6 +134,7 @@ if (requireNamespace("cmdstanr", quietly = TRUE)) {
   cat("Starting CmdStan installation (downloading and compiling)...\n")
   tryCatch({
     cmdstanr::install_cmdstan(
+      dir = Sys.getenv("CMDSTAN_DIR", "/home/rstudio/.cmdstan"),
       cores = as.integer(Sys.getenv("CMDSTANR_INSTALL_CORES", "4")),
       quiet = FALSE,
       overwrite = FALSE,
@@ -244,6 +245,27 @@ install.packages(c(
   "ggridges",       # Ridge plots
   "viridis"         # Color scales
 ), quiet = TRUE)
+
+# Fail the image build instead of producing a partially usable analysis environment.
+required_packages <- c(
+  "brms", "cmdstanr", "lme4", "lmerTest", "DHARMa", "performance",
+  "parameters", "see", "influence.ME", "trouBBlme4SolveR", "dfoptim",
+  "ordinal", "emmeans", "languageR", "tidyverse", "knitr", "rmarkdown"
+)
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing_packages) > 0) {
+  stop(
+    "Required R packages are missing: ",
+    paste(missing_packages, collapse = ", ")
+  )
+}
+
+cat("\nVerified required R packages:\n")
+for (pkg in required_packages) {
+  cat("  ", pkg, " ", as.character(packageVersion(pkg)), "\n", sep = "")
+}
 
 # Success message
 cat("\n=== Installation Complete ===\n")

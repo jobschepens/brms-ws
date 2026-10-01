@@ -6,31 +6,26 @@
 #   docker compose up -d              # Start in detached mode
 #   docker compose logs -f            # View logs
 #   docker compose down               # Stop and remove containers
-#   docker compose build --no-cache   # Rebuild from scratch
+#   docker compose pull              # Pull the image published by CI
 #
 # Access RStudio Server at: http://localhost:8787
 # Default credentials: username=rstudio, password=workshop
 
 services:
   brms-workshop:
-    # Image configuration - Points to the GitHub Container Registry (GHCR)
-    # The :working tag is always the latest successful build from the main branch
+    # The image is built and published by GitHub Actions.
     image: ghcr.io/jobschepens/brms-workshop:working
-    # The 'build' section is enabled for local development with updated packages
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
     container_name: brms-workshop
 
     # Network configuration
     ports:
-      - "8787:8787"  # RStudio Server web interface
+      - "127.0.0.1:8787:8787"  # Local-only RStudio access
 
     # RStudio Server configuration
     environment:
-      - PASSWORD=workshop              # RStudio login password (change in production!)
-      - USERID=1000                    # Match host user ID to avoid permission issues
-      - ROOT=true                      # Allow sudo access inside container
+      - PASSWORD=${RSTUDIO_PASSWORD:-workshop}
+      - USERID=${RSTUDIO_USERID:-1000}
+      - ROOT=${RSTUDIO_ROOT:-false}
       # Optional: Set timezone (defaults to Etc/UTC)
       # - TZ=Europe/Brussels
 
@@ -47,7 +42,6 @@ services:
       - ../temp/katja:/home/rstudio/workshop/temp/katja
       - ../samplesize:/home/rstudio/workshop/samplesize
       - ../cont:/home/rstudio/cont
-
 
       # Optional: Mount additional data or scripts
       # - ./data:/home/rstudio/workshop/data:ro  # :ro = read-only
@@ -83,7 +77,7 @@ services:
     # Metadata labels for documentation and management
     labels:
       com.brms-workshop.description: "RStudio Server with brms and CmdStan"
-      com.brms-workshop.version: "R-4.5.2"
+      com.brms-workshop.version: "R-4.6.1"
       com.brms-workshop.service: "rstudio-server"
 
     # Debugging options (uncomment when troubleshooting)

@@ -68,7 +68,7 @@ docker compose up
 
 | Component | Version | Status |
 |-----------|---------|--------|
-| **R** | 4.5.2 | ✅ Pre-installed |
+| **R** | 4.6.1 | ✅ Pre-installed |
 | **BRMS** | 2.23.0 | ✅ Pre-installed |
 | **CmdStan** | Latest | ✅ Pre-compiled |
 | **RStudio Server** | Latest | ✅ Ready to use |
