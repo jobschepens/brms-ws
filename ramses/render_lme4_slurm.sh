@@ -27,9 +27,21 @@ echo "======================================================================"
 echo ""
 
 CONTAINER="$HOME/containers/brms-workshop_working.sif"
-WORKSPACE="$HOME/brms-workshop"
 QMD_FILE="materials/lme4/session29-lme4-model-criticism.qmd"
 OUTPUT_HTML="materials/lme4/session29-lme4-model-criticism.html"
+
+# Auto-detect workspace directory
+if [ -n "$SLURM_SUBMIT_DIR" ] && [ -f "$SLURM_SUBMIT_DIR/../$QMD_FILE" ]; then
+    WORKSPACE="$(cd "$SLURM_SUBMIT_DIR/.." && pwd)"
+elif [ -f "$HOME/github/brms-workshop/$QMD_FILE" ]; then
+    WORKSPACE="$HOME/github/brms-workshop"
+elif [ -f "$HOME/github/brms-ws/$QMD_FILE" ]; then
+    WORKSPACE="$HOME/github/brms-ws"
+elif [ -f "$HOME/brms-workshop/$QMD_FILE" ]; then
+    WORKSPACE="$HOME/brms-workshop"
+else
+    WORKSPACE="$HOME/github/brms-workshop"
+fi
 
 # Verify container existence
 if [ ! -f "$CONTAINER" ]; then

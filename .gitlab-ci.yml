@@ -1,11 +1,11 @@
 # ===========================================================================
 # GitLab CI/CD Pipeline for BRMS Workshop (gitlab.git.nrw)
 # ===========================================================================
-# 1. Populates GitLab's Container Registry directly from the verified GHCR image
-#    using Skopeo (fast, lightweight, zero compilation, zero OOM risk).
-# 2. Uses GitLab's own container to render Quarto tutorials in CI.
+# 1. Builds and publishes the container to GitLab's own Container Registry
+#    using Red Hat Buildah (quay.io/buildah/stable).
+# 2. Uses the GitLab container to render Quarto tutorials in CI.
 # 3. Publishes rendered notebooks and HTML files to GitLab Pages.
-# Completely independent of GitHub at render and runtime.
+# Completely independent of GitHub.
 # ===========================================================================
 
 stages:
@@ -18,19 +18,53 @@ variables:
   IMAGE_TAG_COMMIT: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
 
 # ---------------------------------------------------------------------------
-# 1. Sync container to GitLab Container Registry (Skopeo)
+# 1. Build and push workshop container to GitLab Container Registry (Buildah)
 # ---------------------------------------------------------------------------
 build-container:
   stage: build
   image:
-    name: quay.io/skopeo/stable:latest
+    name: quay.io/buildah/stable
     entrypoint: [""]
+  variables:
+    BUILDAH_ISOLATION: chroot
+    BUILDAH_FORMAT: docker
+  before_script:
+    - mkdir -p /etc/containers
+    - echo 'unqualified-search-registries = ["docker.io"]' > /etc/containers/registries.conf
+    - echo 'short-name-mode = "permissive"' >> /etc/containers/registries.conf
+    # Check runner disk layout
+    - df -h
+    # Configure storage: use fuse-overlayfs if /dev/fuse exists, or redirect graphroot to /builds volume
+    - mkdir -p /builds/storage /builds/run
+    - |
+      if [ -c /dev/fuse ]; then
+        echo "Using fuse-overlayfs for copy-on-write storage..."
+        DRIVER="overlay"
+      else
+        echo "No /dev/fuse found; using vfs on /builds/storage host volume..."
+        DRIVER="vfs"
+      fi
+      cat <<EOF > /etc/containers/storage.conf
+      [storage]
+      driver = "$DRIVER"
+      runroot = "/builds/run"
+      graphroot = "/builds/storage"
+      [storage.options.overlay]
+      mount_program = "/usr/bin/fuse-overlayfs"
+      EOF
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
   script:
-    - echo "Syncing verified R 4.6.1 container to GitLab Container Registry..."
-    - skopeo copy --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" docker://ghcr.io/jobschepens/brms-workshop:working docker://$IMAGE_TAG_WORKING
-    - skopeo copy --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" docker://$IMAGE_TAG_WORKING docker://$IMAGE_TAG_LATEST
-    - skopeo copy --dest-creds "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" docker://$IMAGE_TAG_WORKING docker://$IMAGE_TAG_COMMIT
-    - echo "Container image successfully published to $IMAGE_TAG_WORKING"
+    # Build container image with Docker format and tags
+    - |
+      buildah build \
+        --format docker \
+        -t "$IMAGE_TAG_WORKING" \
+        -t "$IMAGE_TAG_LATEST" \
+        -t "$IMAGE_TAG_COMMIT" \
+        .
+    - buildah push "$IMAGE_TAG_WORKING"
+    - buildah push "$IMAGE_TAG_LATEST"
+    - buildah push "$IMAGE_TAG_COMMIT"
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       changes:
@@ -44,7 +78,7 @@ build-container:
 # ---------------------------------------------------------------------------
 # 2. Render Quarto tutorials & publish to GitLab Pages
 # ---------------------------------------------------------------------------
-# Uses GitLab's own container synced by the job above ($CI_REGISTRY_IMAGE:working)
+# Uses GitLab's own container built by the job above ($CI_REGISTRY_IMAGE:working)
 pages:
   stage: deploy
   needs:
