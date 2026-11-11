@@ -74,6 +74,14 @@ RUN mkdir -p /home/rstudio/.cmdstan && chown -R rstudio:rstudio /home/rstudio
 RUN R --no-save --no-restore -f install.R \
     && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
+# Expose CmdStan at a version-independent path. Apptainer replaces $HOME with
+# the caller's home, so cmdstanr cannot find /home/rstudio/.cmdstan at runtime;
+# CMDSTAN makes the path explicit and survives that.
+RUN latest=$(ls -d /home/rstudio/.cmdstan/cmdstan-* 2>/dev/null | sort -V | tail -1) \
+    && test -n "$latest" \
+    && ln -sfn "$latest" /opt/cmdstan
+ENV CMDSTAN=/opt/cmdstan
+
 # Copy workshop materials last - these change most frequently during development
 # By copying last, we avoid invalidating expensive package installation cache
 COPY --chown=rstudio:rstudio materials/ ./materials/
