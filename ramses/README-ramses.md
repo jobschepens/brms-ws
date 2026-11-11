@@ -16,10 +16,20 @@ cat brms_test_*.out             # Check results
 
 ## What's Available on RAMSES
 
-✅ **Apptainer 1.4.3** - Run Docker containers on HPC  
-✅ **R 4.4.1** - Latest R version  
+✅ **Apptainer 1.5.4** - Run Docker/OCI containers on HPC  
+✅ **Container R 4.6.1** - brms 2.23.0, rstan 2.32.7, bayesplot 1.16.0  
+✅ **CmdStan 2.40.0** - at `/opt/cmdstan`, with `CMDSTAN` set in the image  
 ✅ **RStudio Server** - For interactive sessions  
-✅ **CmdStanR module** - Pre-built Stan support  
+
+> **Image status (2026-11-11):** `:working` was rebuilt from `main` with CmdStan
+> exposed at `/opt/cmdstan` (`CMDSTAN` set in the image). Re-pull to pick it up:
+>
+> ```bash
+> cd ~/hpc/containers
+> apptainer pull docker://ghcr.io/jobschepens/brms-workshop:working
+> ```
+>
+> Verified: R 4.6.1, brms 2.23.0, rstan 2.32.7, cmdstanr 0.9.0, CmdStan 2.40.0.
 
 ## Workflow: Apptainer Container
 
@@ -147,10 +157,11 @@ mkdir -p $workdir
 cp ~/projects/brms-workshop/data/* $workdir/
 cd $workdir
 
-# Run analysis in container
+# Run analysis in container. Bind /scratch itself (not /scratch/$USER) so
+# paths inside the container match the host paths.
 apptainer exec \
   --bind $workdir:/workspace \
-  --bind /scratch/$USER:/scratch \
+  --bind /scratch:/scratch \
   $CONTAINER \
   Rscript ~/projects/brms-workshop/simple_model.R
 
@@ -196,8 +207,8 @@ scancel -u jschepen             # Cancel all your jobs
 ### Update Container
 ```bash
 cd ~/hpc/containers
-rm brms-workshop_working.sif
-apptainer pull docker://jobschepens/brms-workshop:working
+mv brms-workshop_working.sif brms-workshop_working.sif.bak
+apptainer pull docker://ghcr.io/jobschepens/brms-workshop:working
 ```
 
 ### Check Your Default Account
@@ -257,6 +268,10 @@ squeue --start -j JOBID     # Check estimated start time
 ### CmdStan compilation errors
 - Increase memory: `#SBATCH --mem=16gb`
 - Increase time: `#SBATCH --time=02:00:00`
+- CmdStan not found under Apptainer: the rebuilt `:working` image sets
+  `CMDSTAN=/opt/cmdstan`. For older images, set
+  `CMDSTAN=/home/rstudio/.cmdstan/cmdstan-2.40.0` (or call
+  `cmdstanr::set_cmdstan_path()`) before `apptainer exec`.
 
 ### Model takes too long
 - Reduce iterations: `iter = 1000`
@@ -344,5 +359,5 @@ Do NOT run computations directly on login nodes - always use `sbatch` or `salloc
 
 ---
 
-*Last Updated: November 18, 2025*
-*RAMSES Cluster: Apptainer 1.4.3, R 4.4.1*
+*Last Updated: November 11, 2026*
+*RAMSES Cluster: Apptainer 1.5.4; container R 4.6.1, brms 2.23.0, rstan 2.32.7, CmdStan 2.40.0*
