@@ -7,7 +7,7 @@ set -e
 
 RAMSES_USER="${RAMSES_USER:-jschepen}"
 RAMSES_HOST="${RAMSES_HOST:-ramses1.itcc.uni-koeln.de}"
-RAMSES_DIR="${RAMSES_DIR:-github/brms-ws}"
+RAMSES_DIR="${RAMSES_DIR:-projects/brms-workshop}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -22,7 +22,7 @@ echo ""
 # Step 1: Ensure directory structure exists on RAMSES
 echo "Step 1: Setting up directories on RAMSES..."
 ssh "${RAMSES_USER}@${RAMSES_HOST}" \
-  "mkdir -p ~/${RAMSES_DIR}/{ramses,data,results,materials/lme4} ~/containers"
+  "mkdir -p ~/${RAMSES_DIR}/{ramses,data,results,materials/lme4} ~/hpc/containers"
 
 echo ""
 echo "Step 2: Transferring scripts..."

@@ -8,7 +8,7 @@ cd /c/GitHub/brms-ws
 bash deploy_to_ramses.sh
 
 # On RAMSES (after SSH)
-cd ~/brms-workshop/scripts
+cd ~/projects/brms-workshop/ramses
 bash pull_container_ramses.sh  # ~10 minutes
 sbatch test_apptainer.sh        # Test it
 cat brms_test_*.out             # Check results
@@ -49,15 +49,15 @@ bash deploy_to_ramses.sh
 ssh jschepen@ramses1.itcc.uni-koeln.de
 
 # 3. Pull container (only once, ~10 minutes)
-cd ~/brms-workshop/scripts
+cd ~/projects/brms-workshop/ramses
 bash pull_container_ramses.sh
 
 # 4. Test it
 sbatch test_apptainer.sh
 
 # 5. Run your analysis
-apptainer exec ~/containers/brms-workshop_working.sif \
-  Rscript ~/brms-workshop/my_analysis.R
+apptainer exec ~/hpc/containers/brms-workshop_working.sif \
+  Rscript ~/projects/brms-workshop/my_analysis.R
 ```
 
 ---
@@ -71,7 +71,7 @@ To render the `session29-lme4-model-criticism.qmd` tutorial inside the GitHub Ap
 ssh jschepen@ramses1.itcc.uni-koeln.de
 
 # 2. Pull the GitHub container (if not already pulled)
-cd ~/brms-workshop/scripts
+cd ~/projects/brms-workshop/ramses
 bash pull_container_ramses.sh
 
 # 3. Submit the Quarto render SLURM job
@@ -82,7 +82,7 @@ squeue -u $USER
 tail -f render_lme4_*.out
 
 # 5. Check the rendered HTML output
-ls -lh ~/brms-workshop/materials/lme4/session29-lme4-model-criticism.html
+ls -lh ~/projects/brms-workshop/materials/lme4/session29-lme4-model-criticism.html
 ```
 
 ---
@@ -91,7 +91,7 @@ ls -lh ~/brms-workshop/materials/lme4/session29-lme4-model-criticism.html
 
 ### Example: Simple Linear Model
 
-Create `~/brms-workshop/simple_model.R`:
+Create `~/projects/brms-workshop/simple_model.R`:
 
 ```r
 library(brms)
@@ -101,7 +101,7 @@ library(tidyverse)
 options(mc.cores = 8)
 
 # Load data
-data <- read_csv("~/brms-workshop/data/mydata.csv")
+data <- read_csv("~/projects/brms-workshop/data/mydata.csv")
 
 # Fit model
 fit <- brm(
@@ -115,13 +115,13 @@ fit <- brm(
 )
 
 # Save results
-saveRDS(fit, "~/brms-workshop/results/fit.rds")
+saveRDS(fit, "~/projects/brms-workshop/results/fit.rds")
 summary(fit)
 ```
 
 ### SLURM Job Script
 
-Create `~/brms-workshop/run_model.sh`:
+Create `~/projects/brms-workshop/run_model.sh`:
 
 ```bash
 #!/bin/bash -l
@@ -137,14 +137,14 @@ Create `~/brms-workshop/run_model.sh`:
 # BRMS Analysis with Apptainer Container
 # Uses /scratch for temporary files (better I/O performance)
 
-CONTAINER="$HOME/containers/brms-workshop_working.sif"
+CONTAINER="$HOME/hpc/containers/brms-workshop_working.sif"
 
 # Create work directory in /scratch
 workdir=/scratch/${USER}/${SLURM_JOB_ID}
 mkdir -p $workdir
 
 # Copy input data to scratch
-cp ~/brms-workshop/data/* $workdir/
+cp ~/projects/brms-workshop/data/* $workdir/
 cd $workdir
 
 # Run analysis in container
@@ -152,12 +152,12 @@ apptainer exec \
   --bind $workdir:/workspace \
   --bind /scratch/$USER:/scratch \
   $CONTAINER \
-  Rscript ~/brms-workshop/simple_model.R
+  Rscript ~/projects/brms-workshop/simple_model.R
 
 # Copy results back
 cd -
-cp ${workdir}/*.rds ~/brms-workshop/results/
-cp ${workdir}/*.pdf ~/brms-workshop/results/
+cp ${workdir}/*.rds ~/projects/brms-workshop/results/
+cp ${workdir}/*.pdf ~/projects/brms-workshop/results/
 ```
 
 **Submit:**
@@ -195,7 +195,7 @@ scancel -u jschepen             # Cancel all your jobs
 
 ### Update Container
 ```bash
-cd ~/containers
+cd ~/hpc/containers
 rm brms-workshop_working.sif
 apptainer pull docker://jobschepens/brms-workshop:working
 ```
@@ -238,8 +238,8 @@ sacctmgr show assoc -n user=$USER format=Account
 
 ### Container not found
 ```bash
-cd ~/containers
-bash ~/brms-workshop/scripts/pull_container_ramses.sh
+cd ~/hpc/containers
+bash ~/projects/brms-workshop/ramses/pull_container_ramses.sh
 ```
 
 ### Job fails immediately
@@ -274,8 +274,8 @@ squeue --start -j JOBID     # Check estimated start time
 ## File Organization
 
 ```
-~/brms-workshop/
-├── scripts/
+~/projects/brms-workshop/
+├── ramses/
 │   ├── pull_container_ramses.sh  # Pull container from Docker Hub
 │   ├── test_apptainer.sh         # Test container
 │   ├── run_model.sh              # Your job scripts
@@ -310,14 +310,14 @@ workdir=/scratch/${USER}/${SLURM_JOB_ID}
 mkdir -p $workdir
 
 # Copy data
-cp ~/brms-workshop/data/* $workdir/
+cp ~/projects/brms-workshop/data/* $workdir/
 cd $workdir
 
 # Run analysis
 apptainer exec $CONTAINER Rscript analysis.R
 
 # Copy results back
-cp results/* ~/brms-workshop/results/
+cp results/* ~/projects/brms-workshop/results/
 ```
 
 ### Login Nodes

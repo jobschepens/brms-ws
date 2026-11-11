@@ -20,13 +20,13 @@ echo "Start time: $(date)"
 echo ""
 
 # Set container path (adjust if needed)
-CONTAINER="$HOME/containers/brms-workshop_working.sif"
+CONTAINER="$HOME/hpc/containers/brms-workshop_working.sif"
 
 # Check if container exists
 if [ ! -f "$CONTAINER" ]; then
     echo "❌ ERROR: Container not found at $CONTAINER"
     echo ""
-    echo "Please run: bash ~/brms-workshop/scripts/pull_container_ramses.sh"
+    echo "Please run: bash ~/projects/brms-workshop/ramses/pull_container_ramses.sh"
     exit 1
 fi
 
@@ -119,7 +119,7 @@ echo ""
 echo "✅ Your BRMS container is working correctly on RAMSES!"
 echo ""
 echo "Next steps:"
-echo "  1. Copy your analysis scripts to ~/brms-workshop/"
+echo "  1. Copy your analysis scripts to ~/projects/brms-workshop/"
 echo "  2. Create SLURM job scripts based on this template"
 echo "  3. Submit your analysis jobs with: sbatch your_script.sh"
 echo ""

@@ -24,7 +24,7 @@ echo "✅ Apptainer found: $(apptainer --version)"
 echo ""
 
 # Create containers directory
-CONTAINER_DIR="$HOME/containers"
+CONTAINER_DIR="$HOME/hpc/containers"
 mkdir -p $CONTAINER_DIR
 cd $CONTAINER_DIR
 
@@ -105,7 +105,7 @@ echo "1. Check your SLURM account (for billing):"
 echo "   sacctmgr show assoc -n user=\$USER format=Account"
 echo ""
 echo "2. Submit a test job:"
-echo "   cd ~/brms-workshop/scripts"
+echo "   cd ~/projects/brms-workshop/ramses"
 echo "   sbatch test_apptainer.sh"
 echo ""
 echo "3. Monitor job status:"
