@@ -19,25 +19,29 @@ echo "Target Dir: ~/$RAMSES_DIR"
 echo "Root:       $WORKSPACE_ROOT"
 echo ""
 
-# Step 1: Ensure directory structure exists on RAMSES
-echo "Step 1: Setting up directories on RAMSES..."
-ssh "${RAMSES_USER}@${RAMSES_HOST}" \
-  "mkdir -p ~/${RAMSES_DIR}/{ramses,data,results,materials/lme4} ~/hpc/containers"
-
-echo ""
-echo "Step 2: Transferring scripts..."
-scp \
+# Steps 1-3: stage locally, then use ONE SSH session for mkdir + upload.
+# RAMSES sends a Duo push per login, and unapproved pushes block the account,
+# so do not split this back into separate ssh/scp calls or add retries.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+mkdir -p "$STAGE/ramses" "$STAGE/materials/lme4"
+cp \
   "$SCRIPT_DIR/pull_container_ramses.sh" \
   "$SCRIPT_DIR/test_apptainer.sh" \
   "$SCRIPT_DIR/render_lme4_slurm.sh" \
-  "${RAMSES_USER}@${RAMSES_HOST}:~/${RAMSES_DIR}/ramses/"
-
-echo ""
-echo "Step 3: Transferring lme4 workshop materials (QMD and references)..."
-scp \
+  "$STAGE/ramses/"
+cp \
   "$WORKSPACE_ROOT/materials/lme4/session29-lme4-model-criticism.qmd" \
   "$WORKSPACE_ROOT/materials/lme4/references.bib" \
-  "${RAMSES_USER}@${RAMSES_HOST}:~/${RAMSES_DIR}/materials/lme4/"
+  "$STAGE/materials/lme4/"
+
+echo "Step 1: Setting up directories and transferring files (one login)..."
+echo "Approve the Duo push on your phone now."
+tar -C "$STAGE" -cf - . \
+  | ssh "${RAMSES_USER}@${RAMSES_HOST}" "
+      set -e
+      mkdir -p ~/${RAMSES_DIR}/{ramses,data,results,materials/lme4} ~/hpc/containers
+      tar -C ~/${RAMSES_DIR} -xf -"
 
 echo ""
 echo "======================================================================"
